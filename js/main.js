@@ -53,9 +53,19 @@ dqs("#pitch").addEventListener("input", (event) => {
 
 });
 
+dqs("#connection_angle").addEventListener("input", (event) => {
+  dqs("#connection_angle_label").textContent = 'Connection Angle: ' + event.target.value;
+  //selected_gear.connection_angle = event.target.value        
+  // initial_gear.rotation_animation_value = 0
+  // initial_gear.update_gear_ratio()
+
+  selected_gear.update_connection_angle(event.target.value)
+
+});
+
 dqs("#rotation_speed").addEventListener("input", (event) => {
   dqs("#rotation_speed_label").textContent = 'Rotation Speed: ' + event.target.value;
-  initial_gear.rotation_animation_increment = event.target.value / 1000
+  initial_gear.rotation_animation_increment = event.target.value / 2000
   initial_gear.rotation_animation_value = 0
   initial_gear.update_gear_ratio()
 });
@@ -116,6 +126,12 @@ window.addEventListener('load', (event) =>{
 });
 
 window.addEventListener('mousedown', (event) => {
+
+  if(dqs('#controls').matches(':hover')){
+    console.log("over controlls")
+    return
+  }
+
   let point = new Point(event.x, event.y)
   start_drag_point = point
   let found_dragger = false

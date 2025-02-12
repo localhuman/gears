@@ -91,6 +91,7 @@ export class Gear{
     is_rotating = false
     rotation_animation_increment = 0.000
     rotation_animation_value = 0 
+    connection_angle = 0
 
     is_selected = false 
 
@@ -192,11 +193,26 @@ export class Gear{
         this.render()
     }
 
+    update_connection_angle = (value) => {
+        this.connection_angle = value
+        if( this.parent) {
+            let distance = this.get_radius() + this.parent.get_radius()
+            let connection_angle_computed = Math.floor((this.connection_angle / 360 ) * this.total_teeth) * (360 / this.total_teeth)
+            let connection_angle_radians = connection_angle_computed * Constants.PIOVERONEEIGHTY
+            console.log("Connection angle computed ", connection_angle_computed)
+            let nx = this.parent.position.x + (Math.cos(connection_angle_radians) * distance)
+            let ny = this.parent.position.y + (Math.sin(connection_angle_radians) * distance)
+            let new_position = new Point(nx, ny)
+            this.update_position(new_position, false, self)
+        }
+    }
+
     update_position = (new_position, move_family, caller) => {
         this.position = new_position
 
         if(move_family && this.parent && caller != this.parent){
             
+
             let newX = this.position.x - this.get_radius() - this.parent.get_radius()
             new_position = new Point(newX, this.position.y)
             this.parent.update_position(new_position, move_family, this)
