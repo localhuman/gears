@@ -22,14 +22,16 @@ let is_dragging = false
 let start_drag_point = null
 
 
+
+const reset = () =>{
+  initial_gear.rotation_animation_value = 0
+  initial_gear.update()
+}
+
 dqs("#teeth").addEventListener("input", (event) => {
   dqs("#teeth_label").textContent = 'Teeth: ' + event.target.value;
   selected_gear.total_teeth = event.target.value        
-  initial_gear.rotation_animation_value = 0
-  initial_gear.update_gear_ratio()
-
-  selected_gear.update_position(selected_gear.position, true, this)
-
+  reset()
 });
 
 dqs("#pressure_angle").addEventListener("input", (event) => {
@@ -47,27 +49,19 @@ dqs("#pitch").addEventListener("input", (event) => {
   gears.forEach(g => {
     g.diametral_pitch = newDP
   })
-  initial_gear.rotation_animation_value = 0
-  initial_gear.update_gear_ratio()
-  initial_gear.update_position(initial_gear.position, true, this)
-
+  reset()
 });
 
 dqs("#connection_angle").addEventListener("input", (event) => {
   dqs("#connection_angle_label").textContent = 'Connection Angle: ' + event.target.value;
-  //selected_gear.connection_angle = event.target.value        
-  // initial_gear.rotation_animation_value = 0
-  // initial_gear.update_gear_ratio()
-
-  selected_gear.update_connection_angle(event.target.value)
-
+  selected_gear.connection_angle = event.target.value       
+  reset() 
 });
 
 dqs("#rotation_speed").addEventListener("input", (event) => {
   dqs("#rotation_speed_label").textContent = 'Rotation Speed: ' + event.target.value;
   initial_gear.rotation_animation_increment = event.target.value / 2000
-  initial_gear.rotation_animation_value = 0
-  initial_gear.update_gear_ratio()
+  reset()
 });
 
 
@@ -85,9 +79,7 @@ dqs("#add_gear").addEventListener("click", (event) => {
   last_gear.set_child(new_gear)
   new_gear.is_rotating = initial_gear.is_rotating
   select_gear(new_gear)
-  initial_gear.rotation_animation_value = 0
-  initial_gear.update_gear_ratio()
-
+  reset()
 });
 
 dqs("#remove_gear").addEventListener("click", (event) => {
@@ -115,10 +107,8 @@ dqs("#remove_gear").addEventListener("click", (event) => {
       g.child = gears[i+1]
     }
   }
-  initial_gear.rotation_animation_value = 0
-  initial_gear.update_gear_ratio()
-  initial_gear.update_position(initial_gear.position, true, this)
 
+  reset()
 });
 
 window.addEventListener('load', (event) =>{
@@ -152,15 +142,12 @@ window.addEventListener('mousedown', (event) => {
 })
 
 window.addEventListener('mousemove', (event) => {
-  let p = new Point(event.x, event.y)
-  if(is_dragging) {
-    gears.forEach(g => {
-      let dx = event.x - start_drag_point.x
-      let dy = event.y - start_drag_point.y
-      let nx = dx + g.start_drag_point.x 
-      let ny = dy + g.start_drag_point.y
-      g.update_position(new Point(nx, ny), false, this)
-    })
+  if(is_dragging){
+    let dx = event.x - start_drag_point.x
+    let dy = event.y - start_drag_point.y
+    let nx = dx + initial_gear.start_drag_point.x 
+    let ny = dy + initial_gear.start_drag_point.y
+    initial_gear.update(new Point(nx, ny))
   }
 })
 
@@ -180,6 +167,17 @@ const select_gear = (gear) => {
 
   dqs("#teeth").value = gear.total_teeth
   dqs("#teeth_label").textContent = 'Teeth: ' + gear.total_teeth
+
+  dqs("#connection_angle").value = gear.connection_angle
+  dqs("#connection_angle_label").textContent = 'Connection Angle: ' + gear.connection_angle
+
+  if(selected_gear == initial_gear) {
+    dqs("#connection_angle").disabled = true
+    dqs("#remove_gear").disabled = true
+  } else {
+    dqs("#connection_angle").disabled = false
+    dqs("#remove_gear").disabled = false
+  }
 }
 
 const initialize = () => {

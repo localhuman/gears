@@ -122,7 +122,7 @@ export class Gear{
         this.parent = parent
         this.canvas_id = canvas_id
         this.path = new Path2D()
-        this.update_gear_ratio()
+        this.update()
     }
 
     to_string = () => {
@@ -159,69 +159,33 @@ export class Gear{
         return canvas.getContext("2d");
     }
 
-    update_gear_ratio = () => {
-
-        if (this.parent){
-            //console.log("Updating gear ratio: with parent", this.to_string())
-            let ratio = this.parent.total_teeth / this.total_teeth
-            this.rotation_animation_increment = this.parent.rotation_animation_increment * -1 * ratio
-
-            let self_teeth_odd = is_odd(this.total_teeth)
-            let radians_to_rotate = Constants.TWOPI / (this.total_teeth * 2 )
-
-            if(self_teeth_odd){
-                this.rotation_animation_value = radians_to_rotate
-
-                if(this.parent.rotation_animation_value != 0) {
-                    this.rotation_animation_value = 0
-                }
-
-            }else{
-
-                if(this.parent.rotation_animation_value != 0) {
-                    this.rotation_animation_value = radians_to_rotate
-                } else {
-                    this.rotation_animation_value = 0
-                }
-            }
+    update = (new_position=null) =>{
+        if(new_position) {
+            this.position = new_position
         }
+        if(this.parent) {
 
-        if(this.child){
-            this.child.update_gear_ratio()
-        }
-
-        this.render()
-    }
-
-    update_connection_angle = (value) => {
-        this.connection_angle = value
-        if( this.parent) {
             let distance = this.get_radius() + this.parent.get_radius()
             let connection_angle_computed = Math.floor((this.connection_angle / 360 ) * this.total_teeth) * (360 / this.total_teeth)
             let connection_angle_radians = connection_angle_computed * Constants.PIOVERONEEIGHTY
-            console.log("Connection angle computed ", connection_angle_computed)
             let nx = this.parent.position.x + (Math.cos(connection_angle_radians) * distance)
             let ny = this.parent.position.y + (Math.sin(connection_angle_radians) * distance)
             let new_position = new Point(nx, ny)
-            this.update_position(new_position, false, self)
-        }
-    }
 
-    update_position = (new_position, move_family, caller) => {
-        this.position = new_position
+            let ratio = this.parent.total_teeth / this.total_teeth
+            this.rotation_animation_increment = this.parent.rotation_animation_increment * -1 * ratio
 
-        if(move_family && this.parent && caller != this.parent){
-            
+            this.rotation_animation_value = connection_angle_radians * ratio
 
-            let newX = this.position.x - this.get_radius() - this.parent.get_radius()
-            new_position = new Point(newX, this.position.y)
-            this.parent.update_position(new_position, move_family, this)
+            if( is_odd(this.total_teeth)) {
+                const extra = Constants.TWOPI / (this.total_teeth * 2 )
+                this.rotation_animation_value += extra
+            }
+            this.position = new_position
         }
 
-        if(move_family && this.child && caller != this.child) {
-            let newX = this.position.x + this.get_radius() + this.child.get_radius()
-            new_position = new Point(newX, this.position.y)
-            this.child.update_position(new_position, move_family, self)
+        if(this.child) {
+            this.child.update()
         }
 
         this.render()
