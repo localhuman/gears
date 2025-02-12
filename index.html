@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/styles.css">
+    <title>Gear and Etc Generator</title>
+  </head>
+  <body>
+
+    <canvas id="canvas"></canvas>
+
+
+    <div class="d-flex flex-column flex-shrink-0" id="controls">
+
+      <h1 class="p-2">Gears!</h1>
+      <hr class="m-1">
+
+      <ul class="flex-column mb-auto list-unstyled p-2">
+        <li>
+          <input type="range" id="teeth" name="teeth" min="10" max="200" value="20" step="1"/>
+          <label for="teeth" id="teeth_label" class="w-100">Teeth: 20</label>
+        </li>
+        <li>
+          <input type="range" id="pressure_angle" name="pressure_angle" min="14.5" max="30" value="20" step="0.5"/>
+          <label for="pressure_angle" id="pressure_angle_label" class="w-100">Pressure Angle: 20</label>
+        </li>
+        <li>
+          <input type="range" id="pitch" name="pitch" min="1" max="20" value="2" step=".25"/>
+          <label for="pitch" id="pitch_label" class="w-100">Pitch: 2</label>
+        </li>
+        <li>
+          <input type="range" id="rotation_speed" name="rotation_speed" min="0" max="50" value="0"/>
+          <label for="rotation_speed" id="rotation_speed_label" class="w-100">Rotation Speed: 0</label>
+        </li>
+
+        </ul>        
+        <hr class="m-1">
+        <ul class="flex-column mb-auto list-unstyled p-2">
+          <li class="mt-1">
+          <button type="button" id="add_gear" class="btn btn-light lh-sm">Add Gear</button>
+        </li>
+        <li class="mt-1">
+          <button type="button" id="remove_gear" class="btn btn-light lh-sm">Remove Gear</button>
+        </li>
+
+      </ul>
+      <hr>
+    </div>    
+    
+
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script type="module" src="js/gear.js"></script>
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
