@@ -93,17 +93,14 @@ export class Gear{
     rotation_animation_value = 0 
     connection_angle = 0
     connection_angle_radians = 0
-    connection_flag = false
+    connection_flag = 0
 
     is_selected = false 
 
-    magic_number = 0.994
+    magic_number = 0.996
     child = null
     parent = null 
     name= null
-
-    canvas_id = "canvas"
-
 
     path = null
     center_path = null
@@ -159,11 +156,6 @@ export class Gear{
         return distance_to_center < pitch_diameter
     }
 
-    draw_ctx = () =>{
-        const canvas = document.getElementById(this.canvas_id);
-        return canvas.getContext("2d");
-    }
-
     move_with_drag = (delta) =>{
         let new_position = new Point(this.start_drag_point.x + delta.x, this.start_drag_point.y + delta.y)
         this.position = new_position
@@ -172,74 +164,45 @@ export class Gear{
         }
     }
 
+    teeth_with_parents = () => {
+        let total = this.total_teeth
+        let p = this.parent
+        while (p != null) {
+            total = parseInt(p.total_teeth) + parseInt(total)
+            p = p.parent
+        }
+        return total
+    }
+
     update = (new_position=null) =>{
         if(new_position) {
             this.position = new_position
         }
+        let connection_angle_computed = Math.floor((this.connection_angle / 360 ) * this.total_teeth) * (360 / this.total_teeth)
+        this.connection_angle_radians = connection_angle_computed * Constants.PIOVERONEEIGHTY
+
         if(this.parent) {
 
             let distance = this.get_radius() + this.parent.get_radius()
-            let connection_angle_computed = Math.floor((this.connection_angle / 360 ) * this.total_teeth) * (360 / this.total_teeth)
-            this.connection_angle_radians = connection_angle_computed * Constants.PIOVERONEEIGHTY
-            let nx = this.parent.position.x + (Math.cos(this.connection_angle_radians) * distance)
-            let ny = this.parent.position.y + (Math.sin(this.connection_angle_radians) * distance)
+            let nx = this.parent.position.x + (Math.cos(this.connection_angle_radians + this.parent.rotation_animation_value )  * distance)
+            let ny = this.parent.position.y + (Math.sin(this.connection_angle_radians + this.parent.rotation_animation_value ) * distance)
             let new_position = new Point(nx, ny)
 
             let ratio = this.parent.total_teeth / this.total_teeth
-            let inverse_ratio = this.total_teeth / this.parent.total_teeth
-//            console.log(`${this.name}: inverse ratio ${inverse_ratio}`)
             this.rotation_animation_increment = this.parent.rotation_animation_increment * -1 * ratio
 
-            this.rotation_animation_value = this.connection_angle_radians * ratio
+            this.rotation_animation_value = this.parent.rotation_animation_value + (this.connection_angle_radians * ratio)
 
-            // const extra_extra = 0
-            // if(this.parent.parent) {
-            //     this.rotation_animation_value = this.parent.rotation_animation_value   (this.connection_angle_radians * ratio)
-            // }
-
-
-//s            this.rotation_animation_value -= (this.parent.rotation_animation_value / 2)
-
-//             const extra = Constants.TWOPI / (this.total_teeth  )
              const tooth_extra = Constants.TWOPI / (this.total_teeth * 2)
-//             console.log(this.to_string(), extra, tooth_extra
-             if( is_odd(this.total_teeth))        
-                 this.rotation_animation_value += tooth_extra
+             if( is_odd(this.total_teeth)){
+                this.rotation_animation_value += tooth_extra
+                this.connection_flag = true 
+             } else if (this.parent.connection_flag) {
+                this.connection_flag = false
+             }
 
-            //  if(this.parent.rotation_animation_value != 0) {
-            //     this.rotation_animation_value = this.parent.rotation_animation_value * -1
-            //  }
-//             if(is_odd(this.total_teeth)){
-//                 this.rotation_animation_value += tooth_extra
-//             }
-//             if(is_odd(this.parent.total_teeth)){
-//                 this.rotation_animation_value -= tooth_extra
-//             }
-            //     this.connection_flag = true
-            // }
-            // if(this.parent.connection_flag) {
-            //     this.rotation_animation_value -= extra
-            // }
             this.position = new_position
 
-
-
-
-            // if(self_teeth_odd){
-            //     this.rotation_animation_value = radians_to_rotate
-
-            //     if(this.parent.rotation_animation_value != 0) {
-            //         this.rotation_animation_value = 0
-            //     }
-
-            // }else{
-
-            //     if(this.parent.rotation_animation_value != 0) {
-            //         this.rotation_animation_value = radians_to_rotate
-            //     } else {
-            //         this.rotation_animation_value = 0
-            //     }
-            // }
 
         }
 
@@ -333,10 +296,13 @@ export class Gear{
     }
 
     draw_center = () => {
+        const pitch_diameter = this.total_teeth / this.diametral_pitch
+        let base_radius = Math.cos(this.pressure_angle * Constants.PIOVERONEEIGHTY) * pitch_diameter
+
         let length = this.m * 3
         this.center_path = new Path2D()
         this.center_path.moveTo(-length, 0)
-        this.center_path.lineTo(length, 0)
+        this.center_path.lineTo(base_radius, 0)
         this.center_path.moveTo(0, -length)
         this.center_path.lineTo(0, length)
     }

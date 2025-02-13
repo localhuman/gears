@@ -93,6 +93,9 @@ dqs("#remove_gear").addEventListener("click", (event) => {
   }
 
   gears = gears.filter(item => item !== selected_gear)
+  if(selected_gear.child) {
+    selected_gear.child.connection_angle = selected_gear.connection_angle
+  }
   selected_gear.destroy()
 
   initial_gear = gears[0]
