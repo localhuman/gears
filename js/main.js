@@ -118,7 +118,6 @@ window.addEventListener('load', (event) =>{
 window.addEventListener('mousedown', (event) => {
 
   if(dqs('#controls').matches(':hover')){
-    console.log("over controlls")
     return
   }
 
@@ -145,9 +144,9 @@ window.addEventListener('mousemove', (event) => {
   if(is_dragging){
     let dx = event.x - start_drag_point.x
     let dy = event.y - start_drag_point.y
-    let nx = dx + initial_gear.start_drag_point.x 
-    let ny = dy + initial_gear.start_drag_point.y
-    initial_gear.update(new Point(nx, ny))
+    // let nx = dx + initial_gear.start_drag_point.x 
+    // let ny = dy + initial_gear.start_drag_point.y
+    initial_gear.move_with_drag(new Point(dx, dy))
   }
 })
 
@@ -186,7 +185,7 @@ const initialize = () => {
   canvas.width = width
   canvas.height = height
   let center = new Point(width/2, height/2, 5);
-  initial_gear = new Gear(20,20,.1,new Point(0,0), center)
+  initial_gear = new Gear(20,20,.2,new Point(0,0), center)
   select_gear(initial_gear)
   gears.push(initial_gear)
 }
@@ -198,7 +197,12 @@ const animate = () => {
   ctx.reset()
 
   gears.forEach(g => {
-    g.rotation_animation_value += g.rotation_animation_increment
+
+
+    if(!is_dragging) {
+      g.rotation_animation_value += g.rotation_animation_increment
+
+    }
     ctx.lineWidth = 1
     ctx.strokeStyle = g.get_stroke()
     ctx.fillStyle = g.get_fill()
@@ -214,6 +218,11 @@ const animate = () => {
     ctx.lineWidth = 2
     ctx.stroke(g.center_path)    
 
+    // ctx.font = "16px sans serif";
+    // ctx.textBaseline = "hanging";
+    // ctx.strokeStyle = "black"
+    // ctx.strokeText(g.to_string(), -40, -60);
+    // ctx.strokeText(g.rotation_animation_value * Constants.ONEEIGHTYOVERPI, -40, -40)
     ctx.resetTransform()
 
   })
