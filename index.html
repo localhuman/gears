@@ -22,7 +22,7 @@
           <label for="teeth" id="teeth_label" class="w-100">Teeth: 20</label>
         </li>
         <li>
-          <input type="range" id="pressure_angle" name="pressure_angle" min="14.5" max="30" value="20" step="0.5"/>
+          <input type="range" id="pressure_angle" name="pressure_angle" min="14.5" max="25" value="20" step="0.5"/>
           <label for="pressure_angle" id="pressure_angle_label" class="w-100">Pressure Angle: 20</label>
         </li>
         <li>
@@ -52,6 +52,23 @@
       <hr>
     </div>    
     
+    <div class="modal" tabindex="-1" id="confirm_modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Remove gear?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="confirm_modal_btn">Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>    
 
     <script src="js/jquery-3.7.1.min.js"></script>
     <script type="module" src="js/gear.js"></script>

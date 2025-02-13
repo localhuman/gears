@@ -1,8 +1,8 @@
 export class Point {
     constructor(x, y, decimals=5){
-        this.x = x
-        this.y = y
-        this.decimals = decimals
+        this.x = parseFloat(x)
+        this.y = parseFloat(y)
+        this.decimals = parseFloat(decimals)
     }
 
     copy = () =>{
@@ -184,8 +184,8 @@ export class Gear{
         if(this.parent) {
 
             let distance = this.get_radius() + this.parent.get_radius()
-            let nx = this.parent.position.x + (Math.cos(this.connection_angle_radians + this.parent.rotation_animation_value )  * distance)
-            let ny = this.parent.position.y + (Math.sin(this.connection_angle_radians + this.parent.rotation_animation_value ) * distance)
+            let nx = (this.parent.position.x + (Math.cos(this.connection_angle_radians + this.parent.rotation_animation_value )  * distance)).toFixed(2)
+            let ny = (this.parent.position.y + (Math.sin(this.connection_angle_radians + this.parent.rotation_animation_value ) * distance)).toFixed(2)
             let new_position = new Point(nx, ny)
 
             let ratio = this.parent.total_teeth / this.total_teeth
@@ -449,7 +449,9 @@ export class Gear{
             }
         })
 
+        console.log("Points: ", all_pts.length)
         this.path = new Path2D(p)
+
         //console.log("Rendered: ", this.to_string())
     }
 }
