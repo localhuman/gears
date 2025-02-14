@@ -2,7 +2,7 @@
 //
 // This includes all of Bootstrap's JS plugins.
 
-import "../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
+import "../js/bootstrap.bundle.min.js";
 
 import {Constants, Gear, Point} from "./gear.js";
 
@@ -44,7 +44,7 @@ const reset = () =>{
 const update_state = () =>{
 
   const gearsetstring = gearsets.map(set =>{
-      return set.map(item =>`${item.pressure_angle},${item.diametral_pitch},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y}`).join('G')    
+      return set.map(item =>`${item.pressure_angle},${item.diametral_pitch},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y},${item.rotation_animation_increment}`).join('G')    
   }).join('S')
 
   const url = `#${encodeURI(gearsetstring)}`
@@ -141,7 +141,6 @@ const delete_gear = (confirmed=false) =>{
   let index = gearsets.indexOf(selected_gearset)
   selected_gearset = gears.filter(item => item !== selected_gear)
   gearsets[index] = selected_gearset
-  console.log("gears after delete", gears)
   if(selected_gear.child) {
     selected_gear.child.connection_angle = selected_gear.connection_angle
   }
@@ -181,6 +180,26 @@ const confirm_delete_initial_gear = () => {
   })
 }
 
+const reset_gears = (confirmed=false) => {
+  if(!confirmed){
+    dqs('.modal-title').textContent = "Reset everything?"
+    dqs('.modal-body').innerHTML = `<p>This will delete everything and start over</p>`
+    var myModal = new bootstrap.Modal(document.getElementById('confirm_modal'))
+    myModal.show()
+    dqs('#confirm_modal_btn').addEventListener('click', (event) => {
+      myModal.hide()
+      reset_gears(true)
+    })  
+  } else {
+    window.location.href=""
+  }
+}
+
+dqs("#reset_gears").addEventListener("click", (event) => {
+  reset_gears(false)
+});
+
+
 window.addEventListener('load', (event) =>{
   const location = window.location.hash.substring(1)
   let windowstate = null
@@ -199,17 +218,12 @@ window.addEventListener('click', (event) => {
   }
   if(event.shiftKey) {
 
-    let point = new Point(event.x, event.y)
-    console.log("add new gearset")
-    // let new_teeth = selected_gear.total_teeth
-    // let new_diametral_pitch = selected_gear.diametral_pitch
-  
+    let point = new Point(event.x, event.y)  
     let new_gear = new Gear(selected_gear.total_teeth, selected_gear.pressure_angle, selected_gear.diametral_pitch, new Point(0,0), point)
     let new_gearset = [new_gear]
     gearsets.push(new_gearset)
     select_gear(new_gear, new_gearset)
     reset()
-
 
   }
 
@@ -323,6 +337,7 @@ const initialize_from_gearlist = (params) => {
       //return set.map(item =>`${item.pressure_angle},${item.diametral_pitch},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y}`).join('G')    
       let newGear = new Gear(parseInt(g[2]),parseFloat(g[0]),parseFloat(g[1]), new Point(0,0), new Point(parseFloat(g[4]), parseFloat(g[5])),parent)
       newGear.connection_angle = g[3]
+      newGear.rotation_animation_increment = parseFloat(g[6])
       newgears.push( newGear )
       if(parent) {
         parent.child = newGear
@@ -330,6 +345,8 @@ const initialize_from_gearlist = (params) => {
       parent = newGear
     }
     gearsets.push(newgears)
+    let firstGear = newgears[0]
+    firstGear.update()
   })
 
   selected_gearset = gearsets[0]
@@ -359,17 +376,17 @@ const animate = () => {
       ctx.fill(g.path)
       ctx.stroke(g.path)
   
-      ctx.strokeStyle = g.get_guide_style()
-      ctx.stroke(g.guide_path)
+      // ctx.strokeStyle = g.get_guide_style()
+      // ctx.stroke(g.guide_path)
   
       ctx.strokeStyle = g.get_center_style()
-      ctx.lineWidth = 2
-      ctx.stroke(g.center_path)    
+      // ctx.lineWidth = 2
+      // ctx.stroke(g.center_path)    
   
-      // ctx.font = "16px sans serif";
+      ctx.font = "30px sans serif";
       // ctx.textBaseline = "hanging";
       // ctx.strokeStyle = "black"
-      // ctx.strokeText(g.to_string(), -40, -60);
+      ctx.strokeText("❤", -10, -5);
       // ctx.strokeText(g.rotation_animation_value * Constants.ONEEIGHTYOVERPI, -40, -40)
       ctx.resetTransform()
     })

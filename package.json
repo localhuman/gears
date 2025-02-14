@@ -17,7 +17,10 @@
     "server": "sirv --dev --no-clear --port 3000",
     "start": "npm-run-all --parallel watch server",
     "watch": "nodemon -e html,scss -x \"npm run css\"",
-    "test": "npm-run-all css-lint css"
+    "test": "npm-run-all css-lint css",
+    "dist": "npm run build && rm -rf dist && mkdir dist && cp index.html dist/ && cp -R ./js dist/js && cp -R ./css dist/css",
+    "push-lhi-dry": "npm run dist && rm -rf ../localhuman.industries/staticexport/gears && mkdir ../localhuman.industries/staticexport/gears && cp -R dist/* ../localhuman.industries/staticexport/gears && aws s3 sync ../localhuman.industries/staticexport s3://localhuman.industries --dryrun",
+    "push-lhi": "npm run dist && rm -rf ../localhuman.industries/staticexport/gears && mkdir ../localhuman.industries/staticexport/gears && cp -R dist/* ../localhuman.industries/staticexport/gears && aws s3 sync ../localhuman.industries/staticexport s3://localhuman.industries"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",

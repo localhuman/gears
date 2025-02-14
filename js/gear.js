@@ -256,13 +256,13 @@ export class Gear{
 
     get_fill = () => {
         if(this.is_selected) {
-            return "rgba(0, 132, 239, 0.5)"
+            return "rgba(200, 0, 0, 0.95)"
         }
-        return "rgba(0, 0, 200, .5)"
+        return "rgba(200, 0, 0, 0.6)"
     }
 
     get_center_style = () => {
-        return "rgba(200,200,230,.9)"
+        return "white"
     }
 
     get_guide_style = () => {

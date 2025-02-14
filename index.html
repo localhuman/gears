@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="https://localhuman.industries/static/images/favicon.ico" />
+
     <title>Gear and Etc Generator</title>
   </head>
   <body>
@@ -26,7 +28,7 @@
           <label for="pressure_angle" id="pressure_angle_label" class="w-100">Pressure Angle: 20</label>
         </li>
         <li>
-          <input type="range" id="pitch" name="pitch" min="1" max="20" value="6" step=".25"/>
+          <input type="range" id="pitch" name="pitch" min="1" max="25" value="6" step=".25"/>
           <label for="pitch" id="pitch_label" class="w-100">Pitch: 6</label>
         </li>
         <li>
@@ -47,7 +49,9 @@
         <li class="mt-1">
           <button type="button" id="remove_gear" class="btn btn-light lh-sm">Remove Gear</button>
         </li>
-
+        <li class="mt-1">
+          <button type="button" id="reset_gears" class="btn btn-light lh-sm">Reset Gears</button>
+        </li>
       </ul>
       <hr>
     </div>    
@@ -70,7 +74,7 @@
       </div>
     </div>    
 
-    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
     <script type="module" src="js/gear.js"></script>
     <script type="module" src="js/main.js"></script>
   </body>
