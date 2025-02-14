@@ -15,37 +15,46 @@ const dqs = (id) =>{
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d")
 
-let gears = []
-let initial_gear = null 
+let gearsets = []
+//let initial_gear = null 
+
+let selected_gearset = null 
 let selected_gear = null 
+
 let is_dragging = false 
 let start_drag_point = null
 
 
+const is_initial_gear = (g) => {
+  gearsets.forEach(set =>{
+
+    if(set.indexOf(g) == 0) {
+      return g
+    }
+  })
+}
 
 const reset = () =>{
+  //console.log("Selected gearset, all gearsets: ", selected_gearset, gearsets)
+  let initial_gear = selected_gearset[0]
   initial_gear.rotation_animation_value = 0
   initial_gear.update()
-  update_state()
 }
 
 const update_state = () =>{
-  const gearmapstring = gears.map(item =>`${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y}`).join('G')
-  let state = {
-    p: initial_gear.diametral_pitch,
-    pa: initial_gear.pressure_angle,
-    gs: gearmapstring
-  }
-  const stateString = JSON.stringify(state)
-  const url = `#${encodeURI(stateString)}`
-  console.log("Update state: ", stateString, url)
+
+  const gearsetstring = gearsets.map(set =>{
+      return set.map(item =>`${item.pressure_angle},${item.diametral_pitch},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y}`).join('G')    
+  }).join('S')
+
+  const url = `#${encodeURI(gearsetstring)}`
   window.location = url
-//  const url = url
 }
 
 const decode_state = (state) =>{
   let statestr = decodeURI(state)
-  return JSON.parse(statestr)
+  //return JSON.parse(statestr)
+  return statestr
 } 
 
 dqs("#teeth").addEventListener("input", (event) => {
@@ -56,7 +65,7 @@ dqs("#teeth").addEventListener("input", (event) => {
 
 dqs("#pressure_angle").addEventListener("input", (event) => {
   dqs("#pressure_angle_label").textContent = 'Pressure Angle: ' + event.target.value;
-  gears.forEach(g => {
+  selected_gearset.forEach(g => {
     g.pressure_angle = event.target.value
     g.render()
   })
@@ -65,8 +74,8 @@ dqs("#pressure_angle").addEventListener("input", (event) => {
 
 dqs("#pitch").addEventListener("input", (event) => {
   dqs("#pitch_label").textContent = 'Pitch: ' + event.target.value;
-  const newDP = event.target.value / 30
-  gears.forEach(g => {
+  const newDP = (event.target.value / 30).toFixed(2)
+  selected_gearset.forEach(g => {
     g.diametral_pitch = newDP
   })
   reset()  
@@ -80,6 +89,7 @@ dqs("#connection_angle").addEventListener("input", (event) => {
 
 dqs("#rotation_speed").addEventListener("input", (event) => {
   dqs("#rotation_speed_label").textContent = 'Rotation Speed: ' + event.target.value;
+  let initial_gear = selected_gearset[0]
   initial_gear.rotation_animation_increment = event.target.value / 2000
   reset()
 });
@@ -87,26 +97,27 @@ dqs("#rotation_speed").addEventListener("input", (event) => {
 
 dqs("#add_gear").addEventListener("click", (event) => {  
 
+
+  let initial_gear = selected_gearset[0]
   if(initial_gear) {
     let new_teeth = 20
     let new_diametral_pitch = initial_gear.diametral_pitch
     let new_radius =  new_teeth / new_diametral_pitch
-    let last_gear = gears.at(-1)
+    let last_gear = selected_gearset.at(-1)
   
     let new_x = last_gear.position.x + last_gear.get_radius() + new_radius
     let new_position = new Point(new_x, last_gear.position.y)
   
     let new_gear = new Gear(new_teeth, last_gear.pressure_angle, new_diametral_pitch, new Point(0,0), new_position, last_gear)
-    gears.push(new_gear)
+    selected_gearset.push(new_gear)
     last_gear.set_child(new_gear)
-    new_gear.is_rotating = initial_gear.is_rotating
-    select_gear(new_gear)
+    select_gear(new_gear, selected_gearset)
     reset()
   } else {
-    let center = new Point(window.innerWidth/2, window.innerHeight/2, 5);
-    initial_gear = new Gear(20,20,.2,new Point(0,0), center)
-    select_gear(initial_gear)
-    gears.push(initial_gear)
+    // let center = new Point(window.innerWidth/2, window.innerHeight/2, 5);
+    // initial_gear = new Gear(20,20,.2,new Point(0,0), center)
+    // select_gear(initial_gear, null)
+    // gears.push(initial_gear)
   
   }
   update_state()
@@ -119,35 +130,44 @@ dqs("#remove_gear").addEventListener("click", (event) => {
 
 
 const delete_gear = (confirmed=false) =>{
+  let gears = selected_gearset
+  let initial_gear = gears[0]
+
   if(!confirmed && (gears.length == 1 || selected_gear == initial_gear)) {
       confirm_delete_initial_gear()
       return
-    }
+  }
 
-    gears = gears.filter(item => item !== selected_gear)
-    if(selected_gear.child) {
-      selected_gear.child.connection_angle = selected_gear.connection_angle
-    }
-    selected_gear.destroy()
-    
-    initial_gear = gears[0]
-
-    if(initial_gear) {
-
-      select_gear(initial_gear)
+  let index = gearsets.indexOf(selected_gearset)
+  selected_gearset = gears.filter(item => item !== selected_gear)
+  gearsets[index] = selected_gearset
+  console.log("gears after delete", gears)
+  if(selected_gear.child) {
+    selected_gear.child.connection_angle = selected_gear.connection_angle
+  }
+  selected_gear.destroy()
   
-      for(let i=0; i< gears.length; i++){
-        let g = gears[i]
-        if(i > 0) {
-          g.parent = gears[i-1]      
-        }
-        if(i < gears.length){
-          g.child = gears[i+1]
-        }
+  initial_gear = gears[0]
+
+  if(initial_gear) {
+
+    select_gear(initial_gear, selected_gearset)
+
+    for(let i=0; i< selected_gearset.length; i++){
+      let g = selected_gearset[i]
+      if(i > 0) {
+        g.parent = selected_gearset[i-1]      
       }
-    
-      reset()
+      if(i < gears.length){
+        g.child = selected_gearset[i+1]
+      }
     }
+  
+    reset()
+  } else {
+    //gears = []
+    gearset = gearset.filter( set => set != gears)
+  }
 }
 
 const confirm_delete_initial_gear = () => {
@@ -172,6 +192,29 @@ window.addEventListener('load', (event) =>{
   initialize(windowstate)
 });
 
+window.addEventListener('click', (event) => {
+
+  if(dqs('#controls').matches(':hover')){
+    return
+  }
+  if(event.shiftKey) {
+
+    let point = new Point(event.x, event.y)
+    console.log("add new gearset")
+    // let new_teeth = selected_gear.total_teeth
+    // let new_diametral_pitch = selected_gear.diametral_pitch
+  
+    let new_gear = new Gear(selected_gear.total_teeth, selected_gear.pressure_angle, selected_gear.diametral_pitch, new Point(0,0), point)
+    let new_gearset = [new_gear]
+    gearsets.push(new_gearset)
+    select_gear(new_gear, new_gearset)
+    reset()
+
+
+  }
+
+})
+
 window.addEventListener('mousedown', (event) => {
 
   if(dqs('#controls').matches(':hover')){
@@ -181,19 +224,23 @@ window.addEventListener('mousedown', (event) => {
   let point = new Point(event.x, event.y)
   start_drag_point = point
   let found_dragger = false
-  gears.forEach(g => {
-    if(g.contains(point)){
-      found_dragger = true
-      is_dragging = true
-      select_gear(g)
-    }
+  gearsets.forEach(set => {
+    set.forEach(g => {
+      if(g.contains(point)){
+        found_dragger = true
+        is_dragging = true
+        select_gear(g, set)
+      }
+    })  
   })
 
   if(found_dragger) {
-    gears.forEach(g => {
-      g.start_drag_point = g.position
-      g.is_dragging = true
-    })  
+    gearsets.forEach(set =>{
+      set.forEach(g => {
+        g.start_drag_point = g.position
+        g.is_dragging = true
+      })    
+    })
   }
 })
 
@@ -201,14 +248,17 @@ window.addEventListener('mousemove', (event) => {
   if(is_dragging){
     let dx = event.x - start_drag_point.x
     let dy = event.y - start_drag_point.y
+    let initial_gear = selected_gearset[0]
     initial_gear.move_with_drag(new Point(dx, dy))
   }
 })
 
 window.addEventListener('mouseup', (event) => {
   is_dragging= false 
-  gears.forEach(g => {
-    g.is_dragging = false
+  gearsets.forEach(set => {
+    set.forEach(g => {
+      g.is_dragging = false
+    })  
   })
   update_state()
 
@@ -216,9 +266,10 @@ window.addEventListener('mouseup', (event) => {
 
 
 
-const select_gear = (gear) => {
+const select_gear = (gear, gearset) => {
   if(selected_gear) selected_gear.deselect()   
   selected_gear = gear
+  selected_gearset = gearset
   gear.select()
 
   dqs("#teeth").value = gear.total_teeth
@@ -227,12 +278,10 @@ const select_gear = (gear) => {
   dqs("#connection_angle").value = gear.connection_angle
   dqs("#connection_angle_label").textContent = 'Connection Angle: ' + gear.connection_angle
 
-  if(selected_gear == initial_gear) {
+  if(selected_gearset.indexOf(gear) == 0) {
     dqs("#connection_angle").disabled = true
-//    dqs("#remove_gear").disabled = true
   } else {
     dqs("#connection_angle").disabled = false
-//    dqs("#remove_gear").disabled = false
   }
 }
 
@@ -241,46 +290,51 @@ const initialize = (params) => {
   let height = window.innerHeight;
   canvas.width = width
   canvas.height = height
-  console.log("initializing with state!", params)
+  gearsets.push([])
+  selected_gearset = gearsets[0]
+
   if(params) {
     initialize_from_gearlist(params)
   } else {
     let center = new Point(width/2, height/2, 5);
-    initial_gear = new Gear(20,20,.2,new Point(0,0), center)
-    select_gear(initial_gear)
-    gears.push(initial_gear)  
-    console.log("Initial gear position: ", initial_gear.position)
+    let start_gear = new Gear(20,20,.2,new Point(0,0), center)
+    selected_gearset.push(start_gear)  
+    select_gear(start_gear, selected_gearset)
 
   }
 }
 
 
 const initialize_from_gearlist = (params) => {
-  let gearlist = params.gs.split('G').map(item => {
-    let g = item.split(',')
-    return {
-      teeth: g[0],
-      angle: g[1],
-      x: g[2],
-      y: g[3]
-    }
-  })
-  console.log("Gearlist: ", gearlist)
-  initial_gear = new Gear(gearlist[0].teeth, params.pa, params.p, new Point(0,0), new Point(gearlist[0].x, gearlist[0].y, 5))
-  //select_gear(initial_gear)
-  gears.push(initial_gear)  
-  console.log("Initial gear position: ", initial_gear.position)
+  gearsets = []
 
-  let last_parent = initial_gear
-  for(let i=1; i< gearlist.length; i++) {
-    let info = gearlist[i]
-    let new_gear = new Gear(info.teeth, params.pa, params.p, new Point(0, 0), new Point(info.x, info.y, 2), last_parent)
-    new_gear.connection_angle = info.angle
-    last_parent.child = new_gear
-    gears.push(new_gear)
-    last_parent = new_gear
-  }
-  select_gear(last_parent)
+  let temp_gearsets = []
+  let gearset_list = params.split('S')
+  gearset_list.forEach(glist => {
+    let list = glist.split('G')
+    temp_gearsets.push(list)
+  })
+
+  temp_gearsets.forEach(glist =>{
+    let newgears = []
+    let parent = null
+    for(var i = 0; i< glist.length; i++) {
+      let g = glist[i].split(',')
+      //return set.map(item =>`${item.pressure_angle},${item.diametral_pitch},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y}`).join('G')    
+      let newGear = new Gear(parseInt(g[2]),parseFloat(g[0]),parseFloat(g[1]), new Point(0,0), new Point(parseFloat(g[4]), parseFloat(g[5])),parent)
+      newGear.connection_angle = g[3]
+      newgears.push( newGear )
+      if(parent) {
+        parent.child = newGear
+      }
+      parent = newGear
+    }
+    gearsets.push(newgears)
+  })
+
+  selected_gearset = gearsets[0]
+  let initial_gear = selected_gearset[0]
+  select_gear(initial_gear, selected_gearset)
   reset()
 }
 
@@ -289,34 +343,36 @@ const animate = () => {
 
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
 
-  gears.forEach(g => {
+  gearsets.forEach( set =>{
 
-    if(!is_dragging) {
-      g.rotation_animation_value += g.rotation_animation_increment
+    set.forEach(g => {
 
-    }
-    ctx.lineWidth = 1
-    ctx.strokeStyle = g.get_stroke()
-    ctx.fillStyle = g.get_fill()
-    ctx.translate(g.position.x, g.position.y)
-    ctx.rotate(g.rotation_animation_value)
-    ctx.fill(g.path)
-    ctx.stroke(g.path)
-
-    ctx.strokeStyle = g.get_guide_style()
-    ctx.stroke(g.guide_path)
-
-    ctx.strokeStyle = g.get_center_style()
-    ctx.lineWidth = 2
-    ctx.stroke(g.center_path)    
-
-    // ctx.font = "16px sans serif";
-    // ctx.textBaseline = "hanging";
-    // ctx.strokeStyle = "black"
-    // ctx.strokeText(g.to_string(), -40, -60);
-    // ctx.strokeText(g.rotation_animation_value * Constants.ONEEIGHTYOVERPI, -40, -40)
-    ctx.resetTransform()
-
+      if(!is_dragging) {
+        g.rotation_animation_value += g.rotation_animation_increment
+  
+      }
+      ctx.lineWidth = 1
+      ctx.strokeStyle = g.get_stroke()
+      ctx.fillStyle = g.get_fill()
+      ctx.translate(g.position.x, g.position.y)
+      ctx.rotate(g.rotation_animation_value)
+      ctx.fill(g.path)
+      ctx.stroke(g.path)
+  
+      ctx.strokeStyle = g.get_guide_style()
+      ctx.stroke(g.guide_path)
+  
+      ctx.strokeStyle = g.get_center_style()
+      ctx.lineWidth = 2
+      ctx.stroke(g.center_path)    
+  
+      // ctx.font = "16px sans serif";
+      // ctx.textBaseline = "hanging";
+      // ctx.strokeStyle = "black"
+      // ctx.strokeText(g.to_string(), -40, -60);
+      // ctx.strokeText(g.rotation_animation_value * Constants.ONEEIGHTYOVERPI, -40, -40)
+      ctx.resetTransform()
+    })
   })
 
 }

@@ -124,6 +124,8 @@ export class Gear{
         this.parent = parent
         this.canvas_id = canvas_id
         this.path = new Path2D()
+
+        //console.log("Created gear: ", this.total_teeth, this.pressure_angle, this.diametral_pitch, this.center, this.position)
         this.update()
     }
 
@@ -449,7 +451,7 @@ export class Gear{
             }
         })
 
-        console.log("Points: ", all_pts.length)
+        //console.log("Points: ", all_pts.length)
         this.path = new Path2D(p)
 
         //console.log("Rendered: ", this.to_string())
