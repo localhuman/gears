@@ -24,6 +24,7 @@ let selected_gear = null
 let is_dragging = false 
 let start_drag_point = null
 
+let encoding_version = '001'
 
 const is_initial_gear = (g) => {
   gearsets.forEach(set =>{
@@ -43,7 +44,7 @@ const reset = () =>{
 
 const update_state = () =>{
 
-  const gearsetstring = gearsets.map(set =>{
+  const gearsetstring = `v${encoding_version}.`+gearsets.map(set =>{
       return set.map(item =>`${item.pressure_angle},${item.diametral_pitch},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y},${item.rotation_animation_increment}`).join('G')    
   }).join('S')
 
@@ -100,7 +101,7 @@ dqs("#add_gear").addEventListener("click", (event) => {
 
   let initial_gear = selected_gearset[0]
   if(initial_gear) {
-    let new_teeth = 20
+    let new_teeth = dqs("#teeth").value
     let new_diametral_pitch = initial_gear.diametral_pitch
     let new_radius =  new_teeth / new_diametral_pitch
     let last_gear = selected_gearset.at(-1)
@@ -321,9 +322,18 @@ const initialize = (params) => {
 
 const initialize_from_gearlist = (params) => {
   gearsets = []
+  let version = params.substring(0,4)
+  // default it to string without version
+  let data = params
+  //future proof in case data format changes
+  switch(version){
+    case 'v001':      
+      data = params.substring(5)
+      break 
+  }
 
-  let temp_gearsets = []
-  let gearset_list = params.split('S')
+  let temp_gearsets = []  
+  let gearset_list = data.split('S')
   gearset_list.forEach(glist => {
     let list = glist.split('G')
     temp_gearsets.push(list)
@@ -376,18 +386,19 @@ const animate = () => {
       ctx.fill(g.path)
       ctx.stroke(g.path)
   
-      // ctx.strokeStyle = g.get_guide_style()
-      // ctx.stroke(g.guide_path)
-  
+      ctx.strokeStyle = g.get_guide_style()
+      ctx.stroke(g.guide_path)
+
       ctx.strokeStyle = g.get_center_style()
-      // ctx.lineWidth = 2
-      // ctx.stroke(g.center_path)    
+      ctx.lineWidth = 2
+      ctx.stroke(g.center_path)    
   
-      ctx.font = "30px sans serif";
+      //ctx.font = "30px sans serif";
       // ctx.textBaseline = "hanging";
       // ctx.strokeStyle = "black"
-      ctx.strokeText("❤", -10, -5);
+      //ctx.strokeText(g.to_string(), -10, -5);
       // ctx.strokeText(g.rotation_animation_value * Constants.ONEEIGHTYOVERPI, -40, -40)
+
       ctx.resetTransform()
     })
   })
