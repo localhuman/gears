@@ -5,31 +5,40 @@
 import "../js/bootstrap.bundle.min.js";
 
 import {Constants, Gear, Point} from "./gear.js";
-import { Exporter } from "./export.js";
 
-const dqs = (id) =>{
+
+const dqs = (id: any) => {
   return document.querySelector(id)
 }
 
 
 const canvas = document.getElementById("canvas");
+// @ts-expect-error TS(2531): Object is possibly 'null'.
 const ctx = canvas.getContext("2d")
 
-let gearsets = []
+let gearsets: any = []
 //let initial_gear = null 
 
-let selected_gearset = null 
-let selected_gear = null 
+let selected_gearset: any = null 
+let selected_gear: any = null 
 
 let is_dragging = false 
-let start_drag_point = null
-
-let show_guides = true
+let start_drag_point: any = null
 
 let encoding_version = '001'
 
+const is_initial_gear = (g: any) => {
+  // @ts-expect-error TS(7006): Parameter 'set' implicitly has an 'any' type.
+  gearsets.forEach(set =>{
+
+    if(set.indexOf(g) == 0) {
+      return g
+    }
+  })
+}
 
 const reset = () =>{
+  //console.log("Selected gearset, all gearsets: ", selected_gearset, gearsets)
   let initial_gear = selected_gearset[0]
   initial_gear.rotation_animation_value = 0
   initial_gear.update()
@@ -37,64 +46,63 @@ const reset = () =>{
 
 const update_state = () =>{
 
+  // @ts-expect-error TS(7006): Parameter 'set' implicitly has an 'any' type.
   const gearsetstring = `v${encoding_version}.`+gearsets.map(set =>{
-      return set.map(item =>`${item.pressure_angle},${item.diametral_pitch},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y},${item.rotation_animation_increment}`).join('G')    
+      return set.map((item: any) => `${item.pressure_angle},${item.diametral_pitch},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y},${item.rotation_animation_increment}`).join('G');    
   }).join('S')
 
   const url = `#${encodeURI(gearsetstring)}`
-  history.replaceState(undefined, undefined, url)
-//  window.location = url
+  // @ts-expect-error TS(2322): Type 'string' is not assignable to type '(string |... Remove this comment to see the full error message
+  window.location = url
 }
 
-const decode_state = (state) =>{
+const decode_state = (state: any) => {
   let statestr = decodeURI(state)
+  //return JSON.parse(statestr)
   return statestr
 } 
 
-dqs("#teeth").addEventListener("input", (event) => {
+dqs("#teeth").addEventListener("input", (event: any) => {
   dqs("#teeth_label").textContent = 'Teeth: ' + event.target.value;
   selected_gear.total_teeth = event.target.value        
   reset()
 });
 
-dqs("#pressure_angle").addEventListener("input", (event) => {
+dqs("#pressure_angle").addEventListener("input", (event: any) => {
   dqs("#pressure_angle_label").textContent = 'Pressure Angle: ' + event.target.value;
-  selected_gearset.forEach(g => {
+  selected_gearset.forEach((g: any) => {
     g.pressure_angle = event.target.value
     g.render()
   })
   update_state()
 });
 
-dqs("#pitch").addEventListener("input", (event) => {
+dqs("#pitch").addEventListener("input", (event: any) => {
   dqs("#pitch_label").textContent = 'Pitch: ' + event.target.value;
   const newDP = (event.target.value / 30).toFixed(2)
-  selected_gearset.forEach(g => {
+  selected_gearset.forEach((g: any) => {
     g.diametral_pitch = newDP
   })
   reset()  
 });
 
-dqs("#connection_angle").addEventListener("input", (event) => {
+dqs("#connection_angle").addEventListener("input", (event: any) => {
   dqs("#connection_angle_label").textContent = 'Connection Angle: ' + event.target.value;
   selected_gear.connection_angle = event.target.value       
   reset() 
 });
 
-dqs("#rotation_speed").addEventListener("input", (event) => {
+dqs("#rotation_speed").addEventListener("input", (event: any) => {
   dqs("#rotation_speed_label").textContent = 'Rotation Speed: ' + event.target.value;
   let initial_gear = selected_gearset[0]
   initial_gear.rotation_animation_increment = event.target.value / 2000
   reset()
 });
 
-dqs("#show_guides").addEventListener("input", (event) => {
-  show_guides = event.target.checked
-  console.log("on show guides change: ", event, show_guides)
-});
+
+dqs("#add_gear").addEventListener("click", (event: any) => {  
 
 
-dqs("#add_gear").addEventListener("click", (event) => {  
   let initial_gear = selected_gearset[0]
   if(initial_gear) {
     let new_teeth = dqs("#teeth").value
@@ -121,7 +129,7 @@ dqs("#add_gear").addEventListener("click", (event) => {
 
 });
 
-dqs("#remove_gear").addEventListener("click", (event) => {
+dqs("#remove_gear").addEventListener("click", (event: any) => {
   delete_gear(false)
 });
 
@@ -136,7 +144,7 @@ const delete_gear = (confirmed=false) =>{
   }
 
   let index = gearsets.indexOf(selected_gearset)
-  selected_gearset = gears.filter(item => item !== selected_gear)
+  selected_gearset = gears.filter((item: any) => item !== selected_gear)
   gearsets[index] = selected_gearset
   if(selected_gear.child) {
     selected_gear.child.connection_angle = selected_gear.connection_angle
@@ -161,16 +169,19 @@ const delete_gear = (confirmed=false) =>{
   
     reset()
   } else {
-    gearset = gearset.filter( set => set != gears)
+    //gears = []
+    // @ts-expect-error TS(2552): Cannot find name 'gearset'. Did you mean 'gears'?
+    gearset = gearset.filter( (set: any) => set != gears)
   }
 }
 
 const confirm_delete_initial_gear = () => {
-  dqs('#confirm_modal .modal-title').textContent = "Delete Gearset?"
-  dqs('#confirm_modal .modal-body').innerHTML = `<p>This will delete the parent gear and all children of this gear.</p>`
+  dqs('.modal-title').textContent = "Delete Gearset?"
+  dqs('.modal-body').innerHTML = `<p>This will delete the parent gear and all children of this gear.</p>`
+  // @ts-expect-error TS(2304): Cannot find name 'bootstrap'.
   var myModal = new bootstrap.Modal(document.getElementById('confirm_modal'))
   myModal.show()
-  dqs('#confirm_modal_btn').addEventListener('click', (event) => {
+  dqs('#confirm_modal_btn').addEventListener('click', (event: any) => {
     myModal.hide()
     delete_gear(true)
   })
@@ -178,11 +189,12 @@ const confirm_delete_initial_gear = () => {
 
 const reset_gears = (confirmed=false) => {
   if(!confirmed){
-    dqs('#confirm_modal .modal-title').textContent = "Reset everything?"
-    dqs('#confirm_modal .modal-body').innerHTML = `<p>This will delete everything and start over</p>`
+    dqs('.modal-title').textContent = "Reset everything?"
+    dqs('.modal-body').innerHTML = `<p>This will delete everything and start over</p>`
+    // @ts-expect-error TS(2304): Cannot find name 'bootstrap'.
     var myModal = new bootstrap.Modal(document.getElementById('confirm_modal'))
     myModal.show()
-    dqs('#confirm_modal_btn').addEventListener('click', (event) => {
+    dqs('#confirm_modal_btn').addEventListener('click', (event: any) => {
       myModal.hide()
       reset_gears(true)
     })  
@@ -191,28 +203,9 @@ const reset_gears = (confirmed=false) => {
   }
 }
 
-dqs("#reset_gears").addEventListener("click", (event) => {
+dqs("#reset_gears").addEventListener("click", (event: any) => {
   reset_gears(false)
 });
-
-dqs("#export_svg").addEventListener("click", (event)=> {
-  var myModal = new bootstrap.Modal(document.getElementById('export_modal'))
-  myModal.show()
-
-  dqs('#export_selected_gear').addEventListener('click', (event) => {
-    const filename = dqs('#svg_file_name').value
-    Exporter.export_gear_svg(selected_gear, filename)
-    myModal.hide()
-  })  
-
-
-  dqs('#export_all_gears').addEventListener('click', (event) => {
-    const filename = dqs('#svg_file_name').value
-    const separate = dqs('#show_separate_gearsets').checked
-    Exporter.export_all_gears_svg(gearsets, filename, separate)
-    myModal.hide()
-  })  
-})
 
 
 window.addEventListener('load', (event) =>{
@@ -225,13 +218,6 @@ window.addEventListener('load', (event) =>{
   }
   initialize(windowstate)
 });
-
-window.addEventListener('resize', (event) =>{
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
-});
-
-
 
 window.addEventListener('click', (event) => {
 
@@ -260,8 +246,9 @@ window.addEventListener('mousedown', (event) => {
   let point = new Point(event.x, event.y)
   start_drag_point = point
   let found_dragger = false
+  // @ts-expect-error TS(7006): Parameter 'set' implicitly has an 'any' type.
   gearsets.forEach(set => {
-    set.forEach(g => {
+    set.forEach((g: any) => {
       if(g.contains(point)){
         found_dragger = true
         is_dragging = true
@@ -271,8 +258,9 @@ window.addEventListener('mousedown', (event) => {
   })
 
   if(found_dragger) {
+    // @ts-expect-error TS(7006): Parameter 'set' implicitly has an 'any' type.
     gearsets.forEach(set =>{
-      set.forEach(g => {
+      set.forEach((g: any) => {
         g.start_drag_point = g.position
         g.is_dragging = true
       })    
@@ -291,8 +279,9 @@ window.addEventListener('mousemove', (event) => {
 
 window.addEventListener('mouseup', (event) => {
   is_dragging= false 
+  // @ts-expect-error TS(7006): Parameter 'set' implicitly has an 'any' type.
   gearsets.forEach(set => {
-    set.forEach(g => {
+    set.forEach((g: any) => {
       g.is_dragging = false
     })  
   })
@@ -302,7 +291,7 @@ window.addEventListener('mouseup', (event) => {
 
 
 
-const select_gear = (gear, gearset) => {
+const select_gear = (gear: any, gearset: any) => {
   if(selected_gear) selected_gear.deselect()   
   selected_gear = gear
   selected_gearset = gearset
@@ -321,10 +310,12 @@ const select_gear = (gear, gearset) => {
   }
 }
 
-const initialize = (params) => {
+const initialize = (params: any) => {
   let width = window.innerWidth;
   let height = window.innerHeight;
+  // @ts-expect-error TS(2531): Object is possibly 'null'.
   canvas.width = width
+  // @ts-expect-error TS(2531): Object is possibly 'null'.
   canvas.height = height
   gearsets.push([])
   selected_gearset = gearsets[0]
@@ -341,7 +332,7 @@ const initialize = (params) => {
 }
 
 
-const initialize_from_gearlist = (params) => {
+const initialize_from_gearlist = (params: any) => {
   gearsets = []
   let version = params.substring(0,4)
   // default it to string without version
@@ -353,19 +344,21 @@ const initialize_from_gearlist = (params) => {
       break 
   }
 
-  let temp_gearsets = []  
+  let temp_gearsets: any = []  
   let gearset_list = data.split('S')
-  gearset_list.forEach(glist => {
+  gearset_list.forEach((glist: any) => {
     let list = glist.split('G')
     temp_gearsets.push(list)
   })
 
+  // @ts-expect-error TS(7006): Parameter 'glist' implicitly has an 'any' type.
   temp_gearsets.forEach(glist =>{
     let newgears = []
     let parent = null
     for(var i = 0; i< glist.length; i++) {
       let g = glist[i].split(',')
       //return set.map(item =>`${item.pressure_angle},${item.diametral_pitch},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y}`).join('G')    
+      // @ts-expect-error TS(7022): 'newGear' implicitly has type 'any' because it doe... Remove this comment to see the full error message
       let newGear = new Gear(parseInt(g[2]),parseFloat(g[0]),parseFloat(g[1]), new Point(0,0), new Point(parseFloat(g[4]), parseFloat(g[5])),parent)
       newGear.connection_angle = g[3]
       newGear.rotation_animation_increment = parseFloat(g[6])
@@ -391,9 +384,10 @@ const animate = () => {
 
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
 
+  // @ts-expect-error TS(7006): Parameter 'set' implicitly has an 'any' type.
   gearsets.forEach( set =>{
 
-    set.forEach(g => {
+    set.forEach((g: any) => {
 
       if(!is_dragging) {
         g.rotation_animation_value += g.rotation_animation_increment
@@ -407,14 +401,12 @@ const animate = () => {
       ctx.fill(g.path)
       ctx.stroke(g.path)
   
-      if(show_guides) {
-        ctx.strokeStyle = g.get_guide_style()
-        ctx.stroke(g.guide_path)  
-        ctx.strokeStyle = g.get_center_style()
-        ctx.lineWidth = 2
-        ctx.stroke(g.center_path)      
-      }
+      ctx.strokeStyle = g.get_guide_style()
+      ctx.stroke(g.guide_path)
 
+      ctx.strokeStyle = g.get_center_style()
+      ctx.lineWidth = 2
+      ctx.stroke(g.center_path)    
   
       //ctx.font = "30px sans serif";
       // ctx.textBaseline = "hanging";
