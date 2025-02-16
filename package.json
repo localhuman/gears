@@ -14,6 +14,8 @@
     "css-lint": "stylelint scss/",
     "css-prefix": "postcss --replace css/styles.css --use autoprefixer --map",
     "css": "npm-run-all css-compile css-prefix",
+    "lint": "yarn eslint ./js/**",
+    "lint-fix": "yarn eslint ./js/** --fix",
     "server": "sirv --dev --no-clear --port 3000",
     "start": "npm-run-all --parallel watch server",
     "watch": "nodemon -e html,scss -x \"npm run css\"",
@@ -24,10 +26,13 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
-    "bootstrap": "^5.3.3"
+    "bootstrap": "^5.3.3",
+    "eslint": "^9.20.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.20.0",
     "autoprefixer": "^10.4.20",
+    "globals": "^15.15.0",
     "nodemon": "^3.1.7",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.47",

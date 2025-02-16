@@ -70,6 +70,15 @@
         <li class="">
           <button type="button" id="export_svg" class="btn btn-light lh-sm">Export SVG</button>
         </li>
+        <li class="">
+          <button type="button" id="share_svg" class="btn btn-light lh-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" class="bi bi-copy" viewBox="0 0 20 16">
+              <path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
+            </svg>
+            <span>Share</span>
+          </button>
+        </li>
+
 <!--      
       <li class="">
         <button type="button" id="remove_gear" class="btn btn-light lh-sm">Remove Gear</button>
@@ -126,6 +135,24 @@
         </div>
       </div>
     </div>    
+
+
+    <div class="modal" tabindex="-1" id="share_modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Copied to clipboard!</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Send this link to anyone for them to share and collaborate with you on your gear system.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ok!</button>
+          </div>
+        </div>
+      </div>
+    </div>   
 
     <script src="js/bootstrap.bundle.min.js"></script>
     <script type="module" src="js/export.js"></script>

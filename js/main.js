@@ -199,6 +199,13 @@ dqs("#reset_gears").addEventListener("click", (event) => {
   reset_gears(false)
 });
 
+dqs("#share_svg").addEventListener("click", (event) => {
+  navigator.clipboard.writeText(window.location)
+  var myModal = new bootstrap.Modal(document.getElementById('share_modal'))
+  myModal.show()
+});
+
+
 dqs("#export_svg").addEventListener("click", (event)=> {
   var myModal = new bootstrap.Modal(document.getElementById('export_modal'))
   myModal.show()
