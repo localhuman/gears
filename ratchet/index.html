@@ -3,7 +3,6 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <link rel="stylesheet" href="css/styles.css">
     <link rel="icon" href="https://localhuman.industries/static/images/favicon.ico" />
 
@@ -16,7 +15,7 @@
 
     <div class="d-flex flex-column flex-shrink-0" id="controls">
 
-      <h1 class="p-1 pb-0 mb-0">Gears!</h1>
+      <h1 class="p-1 pb-0 mb-0">Ratchet!</h1>
       <hr class="m-1">
 
       <ul class="flex-column mb-auto list-unstyled p-2 pb-0">
@@ -25,44 +24,39 @@
           <label for="teeth" id="teeth_label" class="w-100">Teeth: 20</label>
         </li>
         <li>
-          <input type="range" id="pressure_angle" name="pressure_angle" min="14.5" max="25" value="20" step="0.5"/>
-          <label for="pressure_angle" id="pressure_angle_label" class="w-100">Pressure Angle: 20</label>
+          <input type="range" id="tooth_height" name="tooth_height" min="-100" max="400" value="30" step="1"/>
+          <label for="tooth_height" id="tooth_height_label" class="w-100">Tooth Height: 30</label>
         </li>
         <li>
-          <input type="range" id="pitch" name="pitch" min="1" max="20" value="5" step=".25"/>
-          <label for="pitch" id="pitch_label" class="w-100">Pitch (M): 5</label>
+          <input type="range" id="tooth_angle" name="tooth_angle" min="0" max="180" value="90" step="1"/>
+          <label for="tooth_angle" id="tooth_angle_label" class="w-100">Tooth Angle: 90</label>
         </li>
         <li>
-          <input type="range" id="rotation_speed" name="rotation_speed" min="0" max="50" value="0"/>
-          <label for="rotation_speed" id="rotation_speed_label" class="w-100">Rotation Speed: 0</label>
+          <input type="range" id="radius" name="radius" min="10" max="600" value="300"/>
+          <label for="radius" id="radius_label" class="w-100">Radius: 300</label>
         </li>
-        <li>
+        <!-- <li>
           <input type="range" id="connection_angle" name="connection_angle" min="0" max="360" value="0"/>
           <label for="connection_angle" id="connection_angle_label" class="w-100">Connection Angle: 0</label>
-        </li>
-        <li>
+        </li> -->
+
+        <!-- <li>
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" id="show_guides" checked>
             <label class="form-check-label" for="show_guides">Show Guides</label>
           </div>
-        </li>
-        <li>
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="show_text" checked>
-            <label class="form-check-label" for="show_text">Show Text</label>
-          </div>
-        </li>
+        </li> -->
         </ul>        
         <hr class="m-1">
         <ul class="flex-column mb-auto list-unstyled p-2">
           <li class="">
-          <button type="button" id="add_gear" class="btn btn-light lh-sm">Add Gear</button>
+          <button type="button" id="add_ratchet" class="btn btn-light lh-sm">Add Tooth</button>
         </li>
         <li class="">
-          <button type="button" id="remove_gear" class="btn btn-light lh-sm">Remove Gear</button>
+          <button type="button" id="remove_ratchet" class="btn btn-light lh-sm">Remove Ratchet</button>
         </li>
         <li class="">
-          <button type="button" id="reset_gears" class="btn btn-light lh-sm">Reset Gears</button>
+          <button type="button" id="reset_ratchets" class="btn btn-light lh-sm">Reset Ratchets</button>
         </li>
       </ul>
       <hr class="m-1">
@@ -128,8 +122,8 @@
     </div>    
 
     <script src="js/bootstrap.bundle.min.js"></script>
-    <script type="module" src="js/export.js"></script>
-    <script type="module" src="js/gear.js"></script>
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="/js/export.js"></script>
+    <script type="module" src="/js/gear.js"></script>
+    <script type="module" src="/js/ratchet_main.js"></script>
   </body>
 </html>

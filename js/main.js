@@ -25,6 +25,7 @@ let is_dragging = false
 let start_drag_point = null
 
 let show_guides = true
+let show_text = true
 
 let encoding_version = '001'
 
@@ -38,7 +39,7 @@ const reset = () =>{
 const update_state = () =>{
 
   const gearsetstring = `v${encoding_version}.`+gearsets.map(set =>{
-      return set.map(item =>`${item.pressure_angle},${item.diametral_pitch},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y},${item.rotation_animation_increment}`).join('G')    
+      return set.map(item =>`${item.pressure_angle},${item.m},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y},${item.rotation_animation_increment}`).join('G')    
   }).join('S')
 
   const url = `#${encodeURI(gearsetstring)}`
@@ -67,10 +68,11 @@ dqs("#pressure_angle").addEventListener("input", (event) => {
 });
 
 dqs("#pitch").addEventListener("input", (event) => {
-  dqs("#pitch_label").textContent = 'Pitch: ' + event.target.value;
-  const newDP = (event.target.value / 30).toFixed(2)
+  dqs("#pitch_label").textContent = 'Pitch (M): ' + event.target.value;
+  const newDP = event.target.value
   selected_gearset.forEach(g => {
-    g.diametral_pitch = newDP
+    g.m = newDP
+    g.render()
   })
   reset()  
 });
@@ -90,22 +92,24 @@ dqs("#rotation_speed").addEventListener("input", (event) => {
 
 dqs("#show_guides").addEventListener("input", (event) => {
   show_guides = event.target.checked
-  console.log("on show guides change: ", event, show_guides)
 });
+
+dqs("#show_text").addEventListener("input", (event) => {
+  show_text = event.target.checked
+});
+
 
 
 dqs("#add_gear").addEventListener("click", (event) => {  
   let initial_gear = selected_gearset[0]
   if(initial_gear) {
     let new_teeth = dqs("#teeth").value
-    let new_diametral_pitch = initial_gear.diametral_pitch
-    let new_radius =  new_teeth / new_diametral_pitch
+    let new_m = initial_gear.m
     let last_gear = selected_gearset.at(-1)
   
-    let new_x = last_gear.position.x + last_gear.get_radius() + new_radius
-    let new_position = new Point(new_x, last_gear.position.y)
+    let new_position = new Point(last_gear.position.x, last_gear.position.y)
   
-    let new_gear = new Gear(new_teeth, last_gear.pressure_angle, new_diametral_pitch, new Point(0,0), new_position, last_gear)
+    let new_gear = new Gear(new_teeth, last_gear.pressure_angle, new_m, new Point(0,0), new_position, last_gear)
     selected_gearset.push(new_gear)
     last_gear.set_child(new_gear)
     select_gear(new_gear, selected_gearset)
@@ -307,12 +311,15 @@ const select_gear = (gear, gearset) => {
   selected_gear = gear
   selected_gearset = gearset
   gear.select()
-
   dqs("#teeth").value = gear.total_teeth
   dqs("#teeth_label").textContent = 'Teeth: ' + gear.total_teeth
 
   dqs("#connection_angle").value = gear.connection_angle
   dqs("#connection_angle_label").textContent = 'Connection Angle: ' + gear.connection_angle
+
+  dqs("#pitch").value = gear.m
+  dqs("#pitch_label").textContent = 'Pitch (M): ' + gear.m
+
 
   if(selected_gearset.indexOf(gear) == 0) {
     dqs("#connection_angle").disabled = true
@@ -333,7 +340,7 @@ const initialize = (params) => {
     initialize_from_gearlist(params)
   } else {
     let center = new Point(width/2, height/2, 5);
-    let start_gear = new Gear(20,20,.2,new Point(0,0), center)
+    let start_gear = new Gear(20,20,5,new Point(0,0), center)
     selected_gearset.push(start_gear)  
     select_gear(start_gear, selected_gearset)
 
@@ -365,7 +372,7 @@ const initialize_from_gearlist = (params) => {
     let parent = null
     for(var i = 0; i< glist.length; i++) {
       let g = glist[i].split(',')
-      //return set.map(item =>`${item.pressure_angle},${item.diametral_pitch},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y}`).join('G')    
+      //return set.map(item =>`${item.pressure_angle},${item.m},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y}`).join('G')    
       let newGear = new Gear(parseInt(g[2]),parseFloat(g[0]),parseFloat(g[1]), new Point(0,0), new Point(parseFloat(g[4]), parseFloat(g[5])),parent)
       newGear.connection_angle = g[3]
       newGear.rotation_animation_increment = parseFloat(g[6])
@@ -405,14 +412,20 @@ const animate = () => {
       ctx.translate(g.position.x, g.position.y)
       ctx.rotate(g.rotation_animation_value)
       ctx.fill(g.path)
-      ctx.stroke(g.path)
-  
+
       if(show_guides) {
+        ctx.stroke(g.path)
         ctx.strokeStyle = g.get_guide_style()
         ctx.stroke(g.guide_path)  
         ctx.strokeStyle = g.get_center_style()
         ctx.lineWidth = 2
         ctx.stroke(g.center_path)      
+      }
+
+      if(g.svg_to_draw != null && show_text) {
+        let tr = g.outside_radius
+
+        ctx.drawImage(g.svg_to_draw, -tr, -tr, tr*2, tr*2)
       }
 
   

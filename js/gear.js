@@ -33,7 +33,7 @@ export class Point {
 
 export const Constants = {
 
-    WIDTH:1000,
+    WIDTH:1400,
     HEIGHT:1000,
     CENTERX : 1000/2,
     CENTERY : 1000/2,
@@ -69,7 +69,7 @@ const is_odd = (value) => {
 }
 
 let gear_count = 0
-export const generate_gear_name = (prefix='Gear') => {
+export const generate_gear_name = (prefix='GEAR') => {
     gear_count++;
     return `${prefix}_${gear_count}`
 }
@@ -78,8 +78,8 @@ export class Gear{
 
     total_teeth  = 20
     pressure_angle = 14.5
-    diametral_pitch = .1
-    m = null
+    diametral_pitch = .5
+    m = 2
     center = null
     position = null 
 
@@ -98,10 +98,12 @@ export class Gear{
     tooth_height = 0
     pitch_radius = 0
     outside_radius = 0 
+    outside_diameter = 0
+
 
     is_selected = false 
 
-    magic_number = 0.996
+    magic_number = 1
     child = null
     parent = null 
     name= null
@@ -110,17 +112,22 @@ export class Gear{
     center_path = null
     guide_path = null
     text_path = null
+    text_color = "white"
+
+    previous_svg = null 
 
     svg_path = null 
 
+    svg_to_draw = null
 
-   constructor(total_teeth= 20, pressure_angle = 14.5, diametral_pitch=.1, center=new Point(0, 0), position = new Point(0, 0), parent = null, canvas_id = "canvas"){
+   constructor(total_teeth= 20, pressure_angle = 14.5, m=2, center=new Point(0, 0), position = new Point(0, 0), parent = null, canvas_id = "canvas"){
 
         this.name = generate_gear_name()
 
         this.total_teeth = total_teeth
         this.pressure_angle = pressure_angle
-        this.diametral_pitch = diametral_pitch
+        this.m = m
+        this.diametral_pitch = 1/this.m
         this.vertices = []
         this.center = center
         this.position = position
@@ -155,9 +162,8 @@ export class Gear{
         return "rgba(84, 84, 98, 0.5)"
     }
 
-
     to_string = () => {
-        return `T:${this.total_teeth}\nRAV: ${this.rotation_animation_value}`
+        return `${this.name} T:${this.total_teeth} M:${this.m}`
     }
 
     select = () => {
@@ -192,15 +198,6 @@ export class Gear{
         }
     }
 
-    teeth_with_parents = () => {
-        let total = this.total_teeth
-        let p = this.parent
-        while (p != null) {
-            total = parseInt(p.total_teeth) + parseInt(total)
-            p = p.parent
-        }
-        return total
-    }
 
     update = (new_position=null) =>{
         if(new_position) {
@@ -248,7 +245,7 @@ export class Gear{
         this.guide_path = null
     }
 
-    render = () =>{
+    render = (render_text=true) =>{
         try{
             this.draw_circles()
             this.draw_center()
@@ -264,6 +261,7 @@ export class Gear{
     }
 
     get_radius = () => {
+        this.diametral_pitch = 1 / this.m
         return this.total_teeth / this.diametral_pitch
     }
 
@@ -272,13 +270,15 @@ export class Gear{
         const pressure_angle_radians = this.pressure_angle * Constants.PIOVERONEEIGHTY
 
         //m is 1 / Diametral pitch
-        this.m = 1 / this.diametral_pitch
+        //this.m = 1 / this.diametral_pitch
+        this.diametral_pitch  = 1 / this.m
         this.pitch_radius = this.total_teeth / this.diametral_pitch
 
         const addendum = this.m 
         const dedendum = this.m * 1.25
 
         this.outside_radius = this.pitch_radius + ( 2 * addendum )
+        this.outside_diameter = this.outside_radius * 2
         this.tooth_height = addendum + dedendum
         const root_radius = this.pitch_radius  - (2 * dedendum )
         let base_radius = Math.cos(pressure_angle_radians) * this.pitch_radius
@@ -293,8 +293,37 @@ export class Gear{
     }
         
     draw_text = () => {
-        this.text_path = new Path2D()
 
+        this.text_img = new Image(this.outside_radius*2, this.outside_radius*2)
+        let text_path_radius = parseFloat(this.pitch_radius * .55)
+        let font_size = parseInt(this.outside_radius / 7)
+        //console.log("Font size: ", font_size)
+
+        this.text_path =             
+        `<path id="textArc_${this.name}" d="M${this.center.x -text_path_radius} ${this.center.y} A ${text_path_radius} ${text_path_radius} 0 1 1 ${this.center.x} ${this.center.y + text_path_radius}" style="fill:none"/>
+        <text style="fill:${this.text_color};font-size:${font_size}px;">
+            <textPath href="#textArc_${this.name}" textLength="auto" startOffset="0" font-family="Helvetica, sans-serif">${this.to_string()}</textPath>
+         </text>`
+
+        let svg = 
+        `<svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="${this.center.x -this.outside_radius} ${this.center.y -this.outside_radius} ${this.outside_diameter} ${this.outside_diameter}" 
+            stroke="none">
+            ${this.text_path}
+        </svg>`
+
+//        if(svg !== this.previous_svg) {
+            let blob = new Blob([svg], {type: 'image/svg+xml'});
+            let url = URL.createObjectURL(blob);
+            this.text_img.src = url;
+    
+            this.text_img.onload = () => {
+                this.svg_to_draw = this.text_img
+                this.previous_svg = svg
+            }    
+//        } 
     }
 
     draw_center = () => {
@@ -303,7 +332,7 @@ export class Gear{
         let length = this.m * 3
         this.center_path = new Path2D()
         this.center_path.moveTo(-length, 0)
-        this.center_path.lineTo(base_radius, 0)
+        this.center_path.lineTo(length, 0)
         this.center_path.moveTo(0, -length)
         this.center_path.lineTo(0, length)
     }
@@ -315,13 +344,24 @@ export class Gear{
         const  pressure_angle_radians = this.pressure_angle * Constants.PIOVERONEEIGHTY
 
         //m is 1 / Diametral pitch
-        this.m = 1 / this.diametral_pitch
+        //this.m = 1 / this.diametral_pitch
+
+        this.diametral_pitch = 1 / this.m
         this.pitch_radius = this.total_teeth / this.diametral_pitch
 
         const addendum = this.m 
         const dedendum = this.m * 1.25
 
         this.outside_radius = this.pitch_radius + ( 2 * addendum )
+        this.outside_diameter = this.outside_radius * 2
+
+        // magic number is just a fudge factor to give smaller gears the tiniest bit more room to mesh
+        // since a 1 pixel border messes the geometry a bit.
+        // as the number of teeth approaches infinity the geometry becomes more perfect and needs less fudge.
+        this.magic_number = 1 - (0.002 - (this.total_teeth / 200 * 0.002))
+        if(this.magic_number > 1 ) 
+            this.magic_number = 1
+
         const root_radius = this.pitch_radius  - (2 * dedendum )
 
         const base_radius = Math.cos(pressure_angle_radians) * this.pitch_radius
