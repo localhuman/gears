@@ -163,7 +163,7 @@ export class Gear{
     }
 
     to_string = () => {
-        return `${this.name} T:${this.total_teeth} M:${this.m}`
+        return `${this.name} T:${this.total_teeth} M:${this.m} PA:${this.pressure_angle}`
     }
 
     select = () => {

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="https://localhuman.industries/static/images/favicon.ico" />
+
+    <title>Escapement Generator</title>
+  </head>
+  <body>
+
+    <canvas id="canvas"></canvas>
+
+
+    <div class="d-flex flex-column flex-shrink-0 escapement-controls" id="controls">
+
+      <h1 class="p-1 pb-0 mb-0">Escapement!</h1>
+      <hr class="m-1">
+
+      <ul class="flex-column mb-auto list-unstyled p-2 pb-0">
+        <li>
+          <input type="range" id="teeth" name="teeth" min="10" max="200" value="30" step="1"/>
+          <label for="teeth" id="teeth_label" class="w-100">Teeth: 30</label>
+        </li>
+        <li>
+          <input type="range" id="tooth_height" name="tooth_height" min="-100" max="400" value="50" step="1"/>
+          <label for="tooth_height" id="tooth_height_label" class="w-100">Tooth Height: 50</label>
+        </li>
+        <li>
+          <input type="range" id="tooth_angle" name="tooth_angle" min="0" max="30" value="15" step=".5"/>
+          <label for="tooth_angle" id="tooth_angle_label" class="w-100">Tooth Included Angle: 15</label>
+        </li>
+        <li>
+          <input type="range" id="tooth_angle_undercut" name="tooth_angle_undercut" min="80" max="120" value="90" step="1"/>
+          <label for="tooth_angle_undercut" id="tooth_angle_undercut_label" class="w-100">Tooth Undercut Angle: 90</label>
+        </li>
+        <li>
+          <input type="range" id="tooth_width" name="tooth_width" min="0" max=".1" value=".02" step="0.005"/>
+          <label for="tooth_width" id="tooth_width_label" class="w-100">Tooth Width: 0.05</label>
+        </li>
+
+        <li>
+          <input type="range" id="radius" name="radius" min="10" max="600" value="200"/>
+          <label for="radius" id="radius_label" class="w-100">Radius: 200</label>
+        </li>
+        <!-- <li>
+          <input type="range" id="connection_angle" name="connection_angle" min="0" max="360" value="0"/>
+          <label for="connection_angle" id="connection_angle_label" class="w-100">Connection Angle: 0</label>
+        </li> -->
+
+        <!-- <li>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="show_guides" checked>
+            <label class="form-check-label" for="show_guides">Show Guides</label>
+          </div>
+        </li> -->
+      <hr class="m-1">
+      <ul class="flex-column mb-auto list-unstyled p-2">
+        <li class="">
+          <button type="button" id="export_svg" class="btn btn-light lh-sm">Export SVG</button>
+        </li>
+<!--      
+      <li class="">
+        <button type="button" id="remove_gear" class="btn btn-light lh-sm">Remove Gear</button>
+      </li>
+      <li class="">
+        <button type="button" id="reset_gears" class="btn btn-light lh-sm">Reset Gears</button>
+      </li>
+-->      
+    </ul>
+    <hr class="m-1">
+    </div>    
+    
+    <div class="modal" tabindex="-1" id="confirm_modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Remove gear?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="confirm_modal_btn">Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>    
+
+    <div class="modal" tabindex="-1" id="export_modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Export SVG</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Export Gear as SVG file with the name below:</p>
+            <div class="input-group flex-nowrap">
+              <input type="text" class="form-control" id="svg_file_name" aria-label="filename" aria-describedby="addon-wrapping" value="MyGears">
+              <span class="input-group-text" id="addon-wrapping">.svg</span>
+            </div>
+            <div class="form-check form-switch pt-4">
+              <input class="form-check-input" type="checkbox" id="show_separate_gearsets">
+              <label class="form-check-label" for="show_guides">Separate Gearsets for easier manipulation in other programs?</label>
+            </div>  
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="export_selected_gear">Export Selected Gear</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="export_all_gears">Export All Gears</button>
+          </div>
+        </div>
+      </div>
+    </div>    
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="/js/export.js"></script>
+    <script type="module" src="/js/gear.js"></script>
+    <script type="module" src="/js/escapement.js"></script>
+    <script type="module" src="/js/escapement_main.js"></script>
+  </body>
+</html>

@@ -419,9 +419,9 @@ const animate = () => {
       ctx.translate(g.position.x, g.position.y)
       ctx.rotate(g.rotation_animation_value)
       ctx.fill(g.path)
+      ctx.stroke(g.path)
 
       if(show_guides) {
-        ctx.stroke(g.path)
         ctx.strokeStyle = g.get_guide_style()
         ctx.stroke(g.guide_path)  
         ctx.strokeStyle = g.get_center_style()

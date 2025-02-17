@@ -95,12 +95,18 @@ $font-size-base:              .9rem; // Assumes the browser default, typically `
 #controls {
   position: relative;
   background-color: rgba($color: black, $alpha: 0.4);
-  max-width: 160px;
+  max-width: 180px;
 
   li {
     padding-bottom: 10px;
   }
 }
+
+#controls.escapement-controls {
+  max-width: 220px;
+
+}
+
 
 #canvas {
   position: absolute;
