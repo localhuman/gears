@@ -7,6 +7,7 @@ import "./bootstrap.bundle.min.js";
 import { Point} from "/js/gear.js";
 import { Escapement } from "/js/escapement.js";
 import { Exporter } from "/js/export.js";
+import { Constants } from "./gear.js";
 
 const dqs = (id) =>{
   return document.querySelector(id)
@@ -69,6 +70,21 @@ dqs("#tooth_height").addEventListener("input", (event) => {
   escapement.tooth_height = parseFloat(event.target.value)
   update_state()  
 });
+
+dqs("#spokes").addEventListener("input", (event) => {
+  dqs("#spokes_label").textContent = 'Spokes: ' + event.target.value;
+  escapement.total_spokes = parseInt(event.target.value)
+  update_state()  
+});
+
+
+dqs("#rotation").addEventListener("input", (event) => {
+  dqs("#rotation_label").textContent = 'Rotation: ' + event.target.value;
+  escapement.rotation_animation_value = Constants.PIOVERONEEIGHTY * parseFloat(event.target.value)
+  update_state()  
+});
+
+
 
 dqs("#radius").addEventListener("input", (event) => {
   dqs("#radius_label").textContent = 'Radius: ' + event.target.value;
@@ -175,14 +191,21 @@ const animate = () => {
   ctx.fillStyle = escapement.get_fill()
   ctx.translate(escapement.position.x, escapement.position.y)
   ctx.rotate(escapement.rotation_animation_value)
-//  ctx.fill(escapement.path)
-  ctx.stroke(escapement.path)
 
-//    if(show_guides) {
-      ctx.strokeStyle = escapement.get_guide_style()
-      ctx.stroke(escapement.guide_path)  
-      ctx.stroke(escapement.center_path)      
-//    }
+  let tr = escapement.total_radius
+  if(escapement.svg_to_draw != null) {
+    ctx.drawImage(escapement.svg_to_draw, -tr, -tr, tr*2, tr*2)
+  }
+  ctx.strokeStyle = "black"
+  ctx.stroke(escapement.dd)  
+//   ctx.fill(escapement.path)
+//   ctx.stroke(escapement.path)
+
+// //    if(show_guides) {
+//       ctx.strokeStyle = escapement.get_guide_style()
+//       ctx.stroke(escapement.guide_path)  
+//       ctx.stroke(escapement.center_path)      
+// //    }
 
   ctx.resetTransform()
 

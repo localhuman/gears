@@ -24,7 +24,7 @@
           <label for="teeth" id="teeth_label" class="w-100">Teeth: 30</label>
         </li>
         <li>
-          <input type="range" id="tooth_height" name="tooth_height" min="-100" max="400" value="50" step="1"/>
+          <input type="range" id="tooth_height" name="tooth_height" min="0" max="400" value="50" step="1"/>
           <label for="tooth_height" id="tooth_height_label" class="w-100">Tooth Height: 50</label>
         </li>
         <li>
@@ -32,12 +32,20 @@
           <label for="tooth_angle" id="tooth_angle_label" class="w-100">Tooth Included Angle: 15</label>
         </li>
         <li>
-          <input type="range" id="tooth_angle_undercut" name="tooth_angle_undercut" min="80" max="120" value="90" step="1"/>
+          <input type="range" id="tooth_angle_undercut" name="tooth_angle_undercut" min="80" max="120" value="100" step="1"/>
           <label for="tooth_angle_undercut" id="tooth_angle_undercut_label" class="w-100">Tooth Undercut Angle: 90</label>
         </li>
         <li>
-          <input type="range" id="tooth_width" name="tooth_width" min="0" max=".1" value=".02" step="0.005"/>
-          <label for="tooth_width" id="tooth_width_label" class="w-100">Tooth Width: 0.05</label>
+          <input type="range" id="tooth_width" name="tooth_width" min="0" max=".1" value=".04" step="0.005"/>
+          <label for="tooth_width" id="tooth_width_label" class="w-100">Tooth Width: 0.04</label>
+        </li>
+        <li>
+          <input type="range" id="spokes" name="spokes" min="0" max="12" value="6" step="1"/>
+          <label for="spokes" id="spokes_label" class="w-100">Spokes: 6</label>
+        </li>
+        <li>
+          <input type="range" id="rotation" name="rotation" min="0" max="360" value="0" step="1"/>
+          <label for="rotation" id="rotation_label" class="w-100">Rotation: 0</label>
         </li>
 
         <li>
@@ -119,6 +127,7 @@
 
     <script src="js/bootstrap.bundle.min.js"></script>
     <script type="module" src="/js/export.js"></script>
+    <script type="module" src="/js/intersect.js"></script>
     <script type="module" src="/js/gear.js"></script>
     <script type="module" src="/js/escapement.js"></script>
     <script type="module" src="/js/escapement_main.js"></script>

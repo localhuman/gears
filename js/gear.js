@@ -28,6 +28,10 @@ export class Point {
     to_string = () => {
         return `Point: ${this.x} ${this.y}`
     }
+
+    distance = (pt) => {
+        return Math.hypot(pt.x - this.x, pt.y - this.y)
+    }
 }
 
 
@@ -72,6 +76,21 @@ let gear_count = 0
 export const generate_gear_name = (prefix='GEAR') => {
     gear_count++;
     return `${prefix}_${gear_count}`
+}
+
+export const points_to_path = (pts) => {
+    let p = ""
+    let first = true;
+    pts.forEach(item => {
+        if(first) {
+            p += item.move_to_svg()
+            first = false;
+        } else {
+            p += item.line_to_svg()
+        }
+    })
+    p += ' Z'
+    return p
 }
 
 export class Gear{
@@ -480,17 +499,7 @@ export class Gear{
             fill_color = Constants.GEAR_FILL_SELECTED
         }
 
-        let p = ""
-        let first = true;
-        all_pts.forEach(item => {
-            if(first) {
-                p += item.move_to_svg()
-                first = false;
-            } else {
-                p += item.line_to_svg()
-            }
-        })
-        p += ' Z'
+        let p = points_to_path(all_pts)
         this.svg_path = p
         this.path = new Path2D(this.svg_path)
     }
