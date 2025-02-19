@@ -93,6 +93,25 @@ export const points_to_path = (pts) => {
     return p
 }
 
+export const points_from_arc = (center, radius, start_radians, end_radians, counterclockwise=false, steps=50) => {
+    let sr = start_radians
+    let er = end_radians
+    let step = (er - sr) / steps
+    let current = sr
+    let res = []
+    for(let i=0; i<steps; i++) {
+        let px = center.x + Math.cos(current) * radius 
+        let py = center.y + Math.sin(current) * radius
+        res.push(new Point(px, py))
+        current += step
+    }
+    if(counterclockwise) {
+        res.reverse()
+    }
+    return res
+}
+
+
 export class Gear{
 
     total_teeth  = 20

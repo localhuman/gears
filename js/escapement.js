@@ -1,4 +1,4 @@
-import { Point, Constants, generate_gear_name, points_to_path } from "/js/gear.js"
+import { Point, Constants, generate_gear_name, points_to_path, points_from_arc } from "/js/gear.js"
 
 import { PointVec2D, InterSection2D, Intersect2DResult } from "/js/intersect.js"
 
@@ -44,6 +44,8 @@ export class Escapement {
   img = null 
   last_svg = null 
 
+  pallet = null
+
   constructor(total_teeth= 30, tooth_height=50, tooth_angle=90, tooth_undercut_angle=15, tooth_width=0.05, radius=200, center, position){
 
     this.name = generate_gear_name('ratchet')
@@ -61,6 +63,7 @@ export class Escapement {
 
     this.path = new Path2D()
 
+    this.pallet = new GrahamPallet(this)
     //console.log("Created ratchet: ", this.total_teeth, this.pressure_angle, this.diametral_pitch, this.center, this.position)
     this.update()
 }
@@ -143,9 +146,11 @@ export class Escapement {
       this.draw_center()
       this.draw_text()
       this.draw_gear()
-      this.draw_debug()
       this.draw_spokes()
       this.to_svg()
+
+      this.pallet.render()
+
     } catch (e) {
       console.log("Colud not render: ", e)            
     }
@@ -216,7 +221,6 @@ let svg =
 
     let radians_per_spoke = Constants.TWOPI / this.total_spokes
 
-    console.log("radians per spoke, padding: ", radians_per_spoke)
     let padding_factor = .05
     let radians = 0
     let steps = 50
@@ -269,8 +273,6 @@ let svg =
         if(outerPoint.distance(op1) > spoke_padding && outerPoint.distance(op2) > spoke_padding) {
           outerPts.push(new Point(opx, opy))
         }
-
-
       }
 
       outerPts.reverse()
@@ -345,50 +347,82 @@ let svg =
     this.p = points_to_path(pts)
     this.path = new Path2D(this.p)
   }
+}
 
 
-  draw_debug = () =>{
+
+export class GrahamPallet {
+
+  escapement = null 
+  total_radius = 0
+  center = null 
+  pallet_center = null
+
+  path = null
+  center_path = null 
+
+  fork_degrees = 3
+
+  rotation = 0
+
+  fillStyle = 'rgb(36, 63, 154)'
+
+  constructor(escapement) {
+    this.escapement = escapement
+    this.render()
+  }
+
+  render = () => {
+    this.draw_pallet()
+  }
+
+  draw_pallet = () =>{
+    this.total_radius = this.escapement.total_radius
+    this.center = this.escapement.center
+
     let distance_to_pallet_center = this.total_radius * Math.sqrt(2)
     let pallet_center = new Point(this.center.x, this.center.y - distance_to_pallet_center)
+    this.pallet_center = pallet_center
+    
     let length = this.total_radius * 1.3
-
+  
     const a45 = Math.PI/4
     const a135 = Math.PI * 3/4
     const a315 = Constants.TWOPI - a45
     const a225 = Constants.TWOPI - a135
-    let mThree = 3 * Constants.PIOVERONEEIGHTY
-
+    let mThree = this.fork_degrees * Constants.PIOVERONEEIGHTY
+  
     let lpxA = pallet_center.x + Math.cos(a135-mThree) * length
     let lpyA = pallet_center.y + Math.sin(a135-mThree) * length
     let lpx = pallet_center.x + Math.cos(a135) * length
     let lpy = pallet_center.y + Math.sin(a135) * length
     let lpxB = pallet_center.x + Math.cos(a135+mThree) * length
     let lpyB = pallet_center.y + Math.sin(a135+mThree) * length
-
+  
     let rpxA = pallet_center.x + Math.cos(a45-mThree) * length
     let rpyA = pallet_center.y + Math.sin(a45-mThree) * length
     let rpx = pallet_center.x + Math.cos(a45) * length
     let rpy = pallet_center.y + Math.sin(a45) * length
     let rpxB = pallet_center.x + Math.cos(a45+mThree) * length
     let rpyB = pallet_center.y + Math.sin(a45+mThree) * length
-
-
+  
+  
     let lp1 = new Point(lpx, lpy)
     let rp1 = new Point(rpx, rpy)
     let lpA = new Point(lpxA, lpyA)
     let rpA = new Point(rpxA, rpyA)
     let lpB = new Point(lpxB, lpyB)
     let rpB = new Point(rpxB, rpyB)
-
-//
+  
+  //
     let blp = new Point(this.center.x + Math.cos(a225) * length,  this.center.y + Math.sin(a225) * length)
     let blpA = new Point(this.center.x + Math.cos(a225-mThree) * length,  this.center.y + Math.sin(a225-mThree) * length)
     let blpB = new Point(this.center.x + Math.cos(a225+mThree) * length,  this.center.y + Math.sin(a225+mThree) * length)
-
+  
     let brp = new Point(this.center.x + Math.cos(a315) * length, this.center.y + Math.sin(a315) * length)
     let brpA = new Point(this.center.x + Math.cos(a315-mThree) * length, this.center.y + Math.sin(a315-mThree) * length)
     let brpB = new Point(this.center.x + Math.cos(a315+mThree) * length, this.center.y + Math.sin(a315+mThree) * length)
-
+  
 
     this.debug_path = `
     M${pallet_center.x} ${pallet_center.y} 
@@ -397,31 +431,31 @@ let svg =
     L${lpA.x} ${lpA.y} Z 
     M${pallet_center.x} ${pallet_center.y} 
     L${lpB.x} ${lpB.y} Z 
-
+  
     M${pallet_center.x} ${pallet_center.y} 
     L${rp1.x} ${rp1.y} Z
     M${pallet_center.x} ${pallet_center.y} 
     L${rpA.x} ${rpA.y} Z
     M${pallet_center.x} ${pallet_center.y} 
     L${rpB.x} ${rpB.y} Z
-
-
-
+  
+  
+  
     M${this.center.x} ${this.center.y}
     L${blp.x} ${blp.y} Z
     M${this.center.x} ${this.center.y}
     L${blpA.x} ${blpA.y} Z
     M${this.center.x} ${this.center.y}
     L${blpB.x} ${blpB.y} Z
-
+  
     M${this.center.x} ${this.center.y}
     L${brp.x} ${brp.y} Z
     M${this.center.x} ${this.center.y}
     L${brpA.x} ${brpA.y} Z
     M${this.center.x} ${this.center.y}
     L${brpB.x} ${brpB.y} Z`
-
-
+  
+  
     // this is the left palate finger left side
     let i1 = InterSection2D.intersect2D(
       new PointVec2D(this.center.x, this.center.y), 
@@ -434,7 +468,7 @@ let svg =
       new PointVec2D(blpB.x, blpB.y), 
       new PointVec2D(pallet_center.x, pallet_center.y),
       new PointVec2D(lpA.x, lpA.y))
- 
+  
     // this is the right palate finger left side
     let i3 = InterSection2D.intersect2D(
       new PointVec2D(this.center.x, this.center.y), 
@@ -448,46 +482,77 @@ let svg =
       new PointVec2D(pallet_center.x, pallet_center.y),
       new PointVec2D(rpA.x, rpA.y))
        
+
     // get distance to center point for left side outer
     let d1 = Math.hypot(i1.x - pallet_center.x, i1.y - pallet_center.y)
     // get distance to center point for left side outer
-    let d2 = Math.hypot(i2.x - pallet_center.x, i2.y - pallet_center.y)
-
-
+    let d2 = Math.hypot(i2.x - pallet_center.x, i2.y - pallet_center.y)  
     // distance to center for right side outer
     let d3 = Math.hypot(i3.x - pallet_center.x, i3.y - pallet_center.y)
     let d4 = Math.hypot(i4.x - pallet_center.x, i4.y - pallet_center.y)
+  
+  
+  //    this.dd = new Path2D(this.debug_path)
+    let d = new Path2D()
+  
+  
+    let a20 = 13 * Constants.PIOVERONEEIGHTY
+    let a25 = 20 * Constants.PIOVERONEEIGHTY
+    let pallet_size = this.total_radius / 10
 
-    console.log("distance 1, total radius?", d1, d2, d3, d4)
+    // d.moveTo(pallet_center.x, pallet_center.y - pallet_size)
+    // d.lineTo(pallet_center.x + Math.cos(a20) * d3, pallet_center.y + Math.sin(a20) * d3)
+    // d.arc(pallet_center.x, pallet_center.y, d3, a20, a45+mThree, false)
+    // d.lineTo(i4.x, i4.y)
+    // d.arc(pallet_center.x, pallet_center.y, d4, a45 - mThree, a25, true)
+    // d.lineTo(pallet_center.x, pallet_center.y + pallet_size)
+    // d.lineTo(pallet_center.x + Math.cos(Math.PI - a25) * d2, pallet_center.y + Math.sin(Math.PI - a25) * d2)
+    // d.arc(pallet_center.x, pallet_center.y, d2, Math.PI - a25, a135-mThree, true)
+    // d.lineTo(i1.x, i1.y)
 
-    // print("Left left intersection: ", leftLeftIntersection)
-    // let ptInner = []
-    // let ptOuter = []
-    // let rOuter = this.total_radius * 1.08
-    // let rInner = this.total_radius * 0.92
-    // let erads = a135
-    // let total_rads = Constants.TWOPI - Math.PI/2
-    // let steps = 50
-    // let step = total_rads / steps
-        
-    // for(let i=0; i< steps; i++ ){
-    //   ptInner.push(new Point(pallet_center.x + Math.cos(erads) * rInner, pallet_center.y + Math.sin(erads)*rInner))
-    //   ptOuter.push(new Point(pallet_center.x + Math.cos(erads) * rOuter, pallet_center.y + Math.sin(erads)*rOuter))
+    let plist = [
+      // top center
+      new Point(pallet_center.x, pallet_center.y - pallet_size), 
+      // top right
+      new Point(pallet_center.x + Math.cos(a20) * d3, pallet_center.y + Math.sin(a20) * d3),    
+    ]
+    //outside right curve
+    let curve = points_from_arc(pallet_center,d3, a20, a45+mThree, false)
+    plist = plist.concat(curve)
 
-    //   erads+=step
-    // }
+    // right finger
+    plist.push(new Point(i4.x, i4.y))
+//    plist.push(new Point(i3.x, i3.y))
 
-    // let innerPath = points_to_path(ptInner.reverse())
-    // let outerPath = points_to_path(ptOuter.reverse())
+    // //inside right curve
+    curve = points_from_arc(pallet_center, d4, a25, a45-mThree, true)
+    plist = plist.concat(curve)
     
-    this.dd = new Path2D(this.debug_path)
+    // back to bottom center
+    plist.push(new Point(pallet_center.x, pallet_center.y + pallet_size))
 
-    // add point of intersection
-    this.dd.arc(i1.x, i1.y, 3, 0, Constants.TWOPI, true)
-    this.dd.arc(i2.x, i2.y, 3, 0, Constants.TWOPI, true)
-    this.dd.arc(i3.x, i3.y, 3, 0, Constants.TWOPI, true)
-    this.dd.arc(i4.x, i4.y, 3, 0, Constants.TWOPI, true)
+    // out to left finger and down
+    plist.push( new Point(pallet_center.x + Math.cos(Math.PI - a25) * d2, pallet_center.y + Math.sin(Math.PI - a25) * d2))
+    curve = points_from_arc(pallet_center, d2, a135 - mThree, Math.PI - a25, true)
+    plist = plist.concat(curve)
 
+    // left finger
+    plist.push(new Point(i2.x, i2.y))
+    plist.push(new Point(i1.x, i1.y))
+
+    curve = points_from_arc(pallet_center, d1, a135 + mThree, Math.PI - a20, false)
+    plist = plist.concat(curve)
+    plist.push(new Point(pallet_center.x, pallet_center.y - pallet_size))
+
+    // d.arc(pallet_center.x, pallet_center.y, d1, a135+mThree, Math.PI - a20, false)
+    // d.lineTo(pallet_center.x, pallet_center.y - pallet_size)
+    // this.path = d
+    let plistPath = points_to_path(plist)
+    this.path = new Path2D(plistPath)
+
+
+    this.center_path = new Path2D()
+    this.center_path.arc(pallet_center.x, pallet_center.y, 5, 0, Constants.TWOPI)
 
 
   }

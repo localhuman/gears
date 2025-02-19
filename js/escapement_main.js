@@ -84,6 +84,18 @@ dqs("#rotation").addEventListener("input", (event) => {
   update_state()  
 });
 
+dqs("#pallet_rotation").addEventListener("input", (event) => {
+  dqs("#pallet_rotation_label").textContent = 'Pallet Rotation: ' + event.target.value;
+  escapement.pallet.rotation = Constants.PIOVERONEEIGHTY * parseFloat(event.target.value)
+  update_state()  
+});
+
+dqs("#pallet_fork_width").addEventListener("input", (event) => {
+  dqs("#pallet_fork_width_label").textContent = 'Fork Width: ' + event.target.value;
+  escapement.pallet.fork_degrees = parseFloat(event.target.value)
+  update_state()  
+});
+
 
 
 dqs("#radius").addEventListener("input", (event) => {
@@ -196,8 +208,22 @@ const animate = () => {
   if(escapement.svg_to_draw != null) {
     ctx.drawImage(escapement.svg_to_draw, -tr, -tr, tr*2, tr*2)
   }
+
+  ctx.rotate(-escapement.rotation_animation_value)
+
+
+  ctx.translate(escapement.pallet.pallet_center.x, escapement.pallet.pallet_center.y)
+  ctx.rotate(escapement.pallet.rotation)
+  ctx.translate(-escapement.pallet.pallet_center.x, -escapement.pallet.pallet_center.y)
+
   ctx.strokeStyle = "black"
-  ctx.stroke(escapement.dd)  
+  ctx.fillStyle = escapement.pallet.fillStyle
+  ctx.stroke(escapement.pallet.path)  
+  ctx.fill(escapement.pallet.path)
+  ctx.fillStyle = "white"
+  ctx.stroke(escapement.pallet.center_path)  
+  ctx.fill(escapement.pallet.center_path)
+
 //   ctx.fill(escapement.path)
 //   ctx.stroke(escapement.path)
 

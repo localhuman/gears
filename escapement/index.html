@@ -47,6 +47,14 @@
           <input type="range" id="rotation" name="rotation" min="0" max="360" value="0" step="1"/>
           <label for="rotation" id="rotation_label" class="w-100">Rotation: 0</label>
         </li>
+        <li>
+          <input type="range" id="pallet_rotation" name="pallet_rotation" min="-15" max="15" value="0" step="1"/>
+          <label for="pallet_rotation" id="pallet_rotation_label" class="w-100">Pallet Rotation: 0</label>
+        </li>
+        <li>
+          <input type="range" id="pallet_fork_width" name="pallet_fork_width" min="1" max="4" value="3" step=".05"/>
+          <label for="pallet_fork_width" id="pallet_fork_width_label" class="w-100">Pallet Fork Width: 3</label>
+        </li>
 
         <li>
           <input type="range" id="radius" name="radius" min="10" max="600" value="200"/>
@@ -125,7 +133,11 @@
       </div>
     </div>    
 
-    <script src="js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="/js/box2d/Box2D_v2.3.1_min.js"></script>
+    <script type="text/javascript" src="/js/box2d/embox2d-helpers.js"></script>
+    <script type="text/javascript" src="/js/box2d/embox2d-html5canvas-debugDraw.js"></script>
+
+    <script src="js/bootstrap.bundle.min.js"></script>    
     <script type="module" src="/js/export.js"></script>
     <script type="module" src="/js/intersect.js"></script>
     <script type="module" src="/js/gear.js"></script>
