@@ -1,4 +1,7 @@
 
+const canvas = document.getElementById("canvas");
+const context = canvas.getContext("2d")
+
 function drawAxes(ctx) {
     ctx.strokeStyle = 'rgb(192,0,0)';
     ctx.beginPath();
