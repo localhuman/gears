@@ -17,7 +17,7 @@ import { Constants } from "./gear.js";
 
 
 // Box 2d thngs
-const PTM = 1;
+const PTM = 24;
 let world = null;
 let mouseJointGroundBody;
 let myDebugDraw;        
@@ -201,7 +201,7 @@ const initializeBox2d = () =>{
 
   var ground = world.CreateBody( new b2BodyDef() );
   var shape = new b2EdgeShape();
-  shape.Set(new b2Vec2(-canvas.width/2, -canvas.height/2 + 3), new b2Vec2(canvas.width/2, -canvas.height/2 + 3));
+  shape.Set(new b2Vec2(-20, -10), new b2Vec2(20, -10));
   ground.CreateFixture(shape, 0.0);
 
   var bodyDef = new b2BodyDef();
@@ -209,23 +209,23 @@ const initializeBox2d = () =>{
   var body = world.CreateBody( bodyDef );
 
   var circleShape = new b2CircleShape();
-  circleShape.set_m_radius( 20 );
+  circleShape.set_m_radius( 1 );
   body.CreateFixture( circleShape, 1.0 );
 
   var fixtureDef = new b2FixtureDef();
-  fixtureDef.set_density( 0.1 );
+  fixtureDef.set_density( 6 );
   fixtureDef.set_restitution(0.2)
-  fixtureDef.set_friction( 0.1 );
+  fixtureDef.set_friction( 0.6 );
   fixtureDef.set_shape( circleShape );
   body.CreateFixture( fixtureDef );
 
   var edgeShape = new b2EdgeShape();
-  edgeShape.Set( new b2Vec2( -canvas.width/2 +3, -canvas.height/2 ), new b2Vec2( -canvas.width/2 + 3, canvas.height/2 ) );
+  edgeShape.Set( new b2Vec2( -20, -10 ), new b2Vec2( -20, 10 ) );
   fixtureDef.set_shape( edgeShape );
   ground.CreateFixture( fixtureDef );
 
   var edgeShape2 = new b2EdgeShape();
-  edgeShape2.Set( new b2Vec2( canvas.width/2 -3, -canvas.height/2 ), new b2Vec2( canvas.width/2 -3, canvas.height/2 ) );
+  edgeShape2.Set( new b2Vec2( 20, -10 ), new b2Vec2( 20, 10 ) );
   fixtureDef.set_shape( edgeShape2 );
   ground.CreateFixture( fixtureDef );
 
@@ -273,12 +273,12 @@ const animate = () => {
   ctx.resetTransform()
 
   if(world != null) {
-    world.Step(1/30, 3, 2);
+    world.Step(1/60, 3, 2);
     ctx.save()
     ctx.translate(canvasOffset.x, canvasOffset.y);
     ctx.scale(1,-1);                
     ctx.scale(PTM,PTM);
-    ctx.lineWidth =2;
+    ctx.lineWidth /= PTM;
     
     drawAxes(ctx);
     
@@ -289,13 +289,13 @@ const animate = () => {
       //mouse joint is not drawn with regular joints in debug draw
       var p1 = mouseJoint.GetAnchorB();
       var p2 = mouseJoint.GetTarget();
-      context.strokeStyle = 'rgb(116, 7, 7)';
-      context.beginPath();
-      context.moveTo(p1.get_x(),p1.get_y());
-      context.lineTo(p2.get_x(),p2.get_y());
-      context.stroke();
+      ctx.strokeStyle = 'rgb(116, 7, 7)';
+      ctx.beginPath();
+      ctx.moveTo(p1.get_x(),p1.get_y());
+      ctx.lineTo(p2.get_x(),p2.get_y());
+      ctx.stroke();
   }    
-    context.restore();  
+    ctx.restore();  
   }
 
 
