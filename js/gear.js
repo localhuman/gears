@@ -5,6 +5,19 @@ export class Point {
         this.decimals = parseFloat(decimals)
     }
 
+    get_x = () => {
+        return this.x
+    }
+
+    get_y = () => {
+        return this.y
+    }
+
+    scale = (value) => {
+        this.y = this.y * value 
+        this.x = this.x * value
+    }
+
     copy = () =>{
         return new Point(this.x, this.y, this.decimals)
     }

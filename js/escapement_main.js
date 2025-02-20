@@ -2,29 +2,42 @@
 //
 // This includes all of Bootstrap's JS plugins.
 
-import "/js/box2d/Box2D_v2.3.1_min.js"
-import "/js/box2d/embox2d-helpers.js"
-import "/js/box2d/embox2d-html5canvas-debugDraw.js"
-
+import { b2DefaultBodyDef, CreateWorld, WorldStep, CreateDebugDraw, RAF, CreateBoxPolygon, b2HexColor, b2AABB, STATIC} from '/js/box2d/PhaserBox2D.js';
+import { b2Vec2, b2BodyType, b2DefaultWorldDef, b2World_Draw, b2ComputeHull, b2CreateBody, b2DefaultShapeDef, b2MakeBox, b2CreatePolygonShape, b2CreateCircleShape, b2MakePolygon, b2Capsule, b2CreateCapsuleShape, b2CreateSegmentShape, b2Segment, b2DefaultChainDef, b2CreateChain, b2MakeOffsetBox, b2Body_SetAngularVelocity } from '/js/box2d/PhaserBox2D.js';
+import { b2DefaultQueryFilter, b2World_OverlapAABB, b2Shape_GetBody, b2Body_GetPosition, CreateMouseJoint, CreateCircle, b2MouseJoint_SetTarget } from './box2d/PhaserBox2D.js';
 import "./bootstrap.bundle.min.js";
 
 import { Point} from "/js/gear.js";
 import { Escapement } from "/js/escapement.js";
 import { Exporter } from "/js/export.js";
 import { Constants } from "./gear.js";
+import { b2DestroyJoint } from './box2d/PhaserBox2D.js';
+
+// canvas!
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d")
 
 
+// Physics settings
+const PTM = 24
+const GRAVITY = 10
+const timeTest = false;
+
+let m_draw 
+let worldDef
+let world 
+let worldId
 
 
 // Box 2d thngs
-const PTM = 24;
-let world = null;
-let mouseJointGroundBody;
-let myDebugDraw;        
-let myQueryCallback;
-let mouseJoint = null;    
+let mouseJoint = null   
+let mouseBody = null 
 let mouseDown = false    
-let run = true;
+
+let escapementShape = null
+let escapementBody = null 
+let escapementParts = null
+
 var mousePosPixel = {
   x: 0,
   y: 0
@@ -46,9 +59,6 @@ var viewCenterPixel = {
   y:240
 };
 
-// canvas!
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d")
 
 // parts
 let escapement = null 
@@ -65,6 +75,28 @@ const dqs = (id) =>{
 
 const update_state = () =>{
   escapement.update()
+
+  if(escapementBody) {
+    world.DestroyBody(escapementBody)
+  }
+   console.log("Hello points!!!", escapement.tooth_points.length)
+   let scaledVerts = escapement.tooth_points.map(p => { 
+     p.scale(1/PTM)
+     return p
+   })
+  //console.log("scaled verts: ", scaledVerts)
+
+
+  // console.log("scaled verts: ", scaledVerts)
+  // escapementShape = createPolygonShape(scaledVerts)
+  // console.log("escapement shape: ", escapementShape)
+
+}
+
+const getWorldB2Vec = (point) => {
+  let pt = getWorldPointFromPixelPoint(point)
+//  console.log("pt: ",point, pt, canvasOffset.y, canvas.height)
+  return new b2Vec2(pt.x, pt.y * -1)
 }
 
 const getWorldPointFromPixelPoint =(pixelPoint) => {
@@ -99,31 +131,48 @@ const startMouseJoint = () => {
   if ( mouseJoint != null )
       return;
   
+  let foundBody=null;
+
+  function queryCallback(shapeId, context) {
+    const bodyId = b2Shape_GetBody(shapeId);
+    foundBody = bodyId
+//    foundBodies.push(bodyId);
+    return true; // keep going to find all shapes in the query area
+  }
+
   // Make a small box.
-  var aabb = new Box2D.b2AABB();
   var d = 0.001;            
-  aabb.set_lowerBound(new b2Vec2(mousePosWorld.x - d, mousePosWorld.y - d));
-  aabb.set_upperBound(new b2Vec2(mousePosWorld.x + d, mousePosWorld.y + d));
+  console.log("Mouse pos world x, y", mousePosWorld)
+  var aabb = new b2AABB(mousePosWorld.x - d,mousePosWorld.y - d, mousePosWorld.x + d, mousePosWorld.y + d);
   
-  // Query the world for overlapping shapes.            
-  myQueryCallback.m_fixture = null;
-  myQueryCallback.m_point = new Box2D.b2Vec2(mousePosWorld.x, mousePosWorld.y);
-  world.QueryAABB(myQueryCallback, aabb);
-  
-  if (myQueryCallback.m_fixture)
-  {
-      var body = myQueryCallback.m_fixture.GetBody();
-      var md = new Box2D.b2MouseJointDef();
-      md.set_bodyA(mouseJointGroundBody);
-      md.set_bodyB(body);
-      md.set_target( new Box2D.b2Vec2(mousePosWorld.x, mousePosWorld.y) );
-      md.set_maxForce( 3000 * body.GetMass() );
-      md.set_collideConnected(true);
-      
-      mouseJoint = Box2D.castObject( world.CreateJoint(md), Box2D.b2MouseJoint );
-      body.SetAwake(true);
+  // Default filter to accept all shapes
+  const filter = b2DefaultQueryFilter();
+
+  // Perform query
+  b2World_OverlapAABB(worldId, aabb, filter, queryCallback, null);
+
+  // let found_body = null    
+  // for (const bodyId of foundBodies) {
+  //   found_position = b2Body_GetPosition(bodyId);
+  //   console.log("Found overlap!!", pos)      
+  // }
+
+  if(foundBody) {
+    let found_position = b2Body_GetPosition(foundBody);
+    mouseJoint = CreateMouseJoint({ worldId,
+      bodyIdA: mouseBody.bodyId,
+      bodyIdB: foundBody,
+      collideConnected: false,
+      maxForce: 35000,
+      hertz: 5.0,
+      dampingRatio: 0.9,
+      target:  found_position //pxmVec2(pointer.worldX, -pointer.worldY)
+  });
+
+  console.log('created', mouseJoint.jointId);    
   }
 }
+
 
 window.addEventListener('mousedown', (event) => {
 
@@ -143,7 +192,12 @@ window.addEventListener('mousemove', (event) => {
   updateMousePos(event)
 
   if ( mouseDown && mouseJoint != null ) {
-    mouseJoint.SetTarget( new Box2D.b2Vec2(mousePosWorld.x, mousePosWorld.y) );
+
+    // const xf = b2Body_GetTransform(mouseBody.bodyId);
+    // //  Optional, but a much better 'feel'
+    // b2Body_SetTransform(mouseBody.bodyId, pxmVec2(pointer.worldX, -pointer.worldY), xf.q);
+
+    b2MouseJoint_SetTarget(mouseJoint.jointId, new b2Vec2(mousePosWorld.x, mousePosWorld.y));
   }
 
 })
@@ -152,9 +206,9 @@ window.addEventListener('mouseup', (event) => {
   mouseDown = false;
   updateMousePos(event);
   if ( mouseJoint != null ) {
-      world.DestroyJoint(mouseJoint);
-      mouseJoint = null;
-  }
+    b2DestroyJoint(mouseJoint.jointId);
+    mouseJoint = null;
+}
 })
 
 
@@ -168,67 +222,91 @@ const initialize = () => {
   let center = new Point(width/2, height/2, 5);
   escapement = new Escapement(dqs('#teeth').value, dqs('#tooth_height').value, dqs('#tooth_angle').value, dqs('#tooth_angle_undercut').value, dqs('#tooth_width').value, dqs('#radius').value, new Point(0,0), center)
   initializeBox2d()
+//  update_state()
 }
 
 const initializeBox2d = () =>{
 
-  canvasOffset.x = canvas.width/2;
-  canvasOffset.y = canvas.height/2;
+  canvasOffset.x = 0;
+  canvasOffset.y = 0;
   
-  myDebugDraw = getCanvasDebugDraw();            
-  myDebugDraw.SetFlags(0x0001);
+  m_draw = CreateDebugDraw(canvas, ctx, PTM);
+  worldDef = b2DefaultWorldDef();
+  worldDef.gravity = new b2Vec2(0, -GRAVITY);
+  // create a world and save the ID which will access it
+  world = CreateWorld({ worldDef: worldDef });
+  worldId = world.worldId;
+
+  mouseBody = CreateCircle({ worldId, type: STATIC, radius: 0.3 });
+
+  let scaledWidth = canvas.width/PTM
+  let scaledHegiht = canvas.height/PTM
+
+
+  // bottom
+  const groundBodyDef = b2DefaultBodyDef();
+  const ground = CreateBoxPolygon({ worldId:world.worldId, type:b2BodyType.b2_staticBody, bodyDef: groundBodyDef, 
+    position:new b2Vec2(scaledWidth/2, -scaledHegiht), size:new b2Vec2(scaledWidth, 1), density:1.0, friction:0.5, color:b2HexColor.b2_colorLawnGreen });
+
+  // left
+  const leftBodyDef = b2DefaultBodyDef();
+  const leftWall = CreateBoxPolygon({ worldId:world.worldId, type:b2BodyType.b2_staticBody, bodyDef: leftBodyDef, 
+    position:new b2Vec2(0.2, -scaledHegiht), size:new b2Vec2(.1, scaledHegiht), density:1.0, friction:0.5, color:b2HexColor.b2_colorLawnGreen });
+
+  // right
+  const rightBodyDef = b2DefaultBodyDef();
+  const rightWall = CreateBoxPolygon({ worldId:world.worldId, type:b2BodyType.b2_staticBody, bodyDef: leftBodyDef, 
+    position:new b2Vec2(scaledWidth-.2, -scaledHegiht), size:new b2Vec2(.1, scaledHegiht), density:1.0, friction:0.5, color:b2HexColor.b2_colorLawnGreen });
+
+
+  // var bodyDef = new b2BodyDef();
+  // bodyDef.set_type( b2_dynamicBody );
+  // var body = world.CreateBody( bodyDef );
+
+  // var fixtureDef = new b2FixtureDef();
+  // fixtureDef.set_density( 6 );
+  // fixtureDef.set_restitution(0.2)
+  // fixtureDef.set_friction( 0.6 );
+
+  // for(let i=0; i<10; i++) {
+
+  //   bodyDef = new b2BodyDef();
+  //   bodyDef.set_type( b2_dynamicBody );
+  //   bodyDef.set_position(new b2Vec2( Math.random(), i  ) );
+  //   body = world.CreateBody( bodyDef );
   
-  myQueryCallback = new Box2D.JSQueryCallback();
+  //   var circleShape = new b2CircleShape();
+  //   circleShape.set_m_radius( 1 );
+  //   body.CreateFixture( circleShape, 1.0 );
+  //   fixtureDef.set_shape( circleShape );
+  //   body.CreateFixture( fixtureDef );
+  // }
 
-  myQueryCallback.ReportFixture = function(fixturePtr) {
-      var fixture = Box2D.wrapPointer( fixturePtr, b2Fixture );
-      if ( fixture.GetBody().GetType() != Box2D.b2_dynamicBody ) //mouse cannot drag static bodies around
-          return true;
-      if ( ! fixture.TestPoint( this.m_point ) )
-          return true;
-      this.m_fixture = fixture;
-      return false;
-  };  
+  // var edgeShape = new b2EdgeShape();
+  // edgeShape.Set( getWorldB2Vec( {x: 10, y: canvas.height - 10}), getWorldB2Vec( {x: 10, y: 0}) );
+  // fixtureDef.set_shape( edgeShape );
+  // ground.CreateFixture( fixtureDef );
+
+  // var edgeShape2 = new b2EdgeShape();
+  // edgeShape2.Set( getWorldB2Vec( {x: canvas.width - 10, y: canvas.height - 10}), getWorldB2Vec( {x: canvas.width - 10, y: 0}) );
+  // fixtureDef.set_shape( edgeShape2 );
+  // ground.CreateFixture( fixtureDef );
 
 
-  if ( world != null ) 
-    Box2D.destroy(world);
-    
-  world = new Box2D.b2World( new Box2D.b2Vec2(0.0, -10.0) );
-  world.SetDebugDraw(myDebugDraw);
 
-  mouseJointGroundBody = world.CreateBody( new Box2D.b2BodyDef() );
+  const bodyDef = b2DefaultBodyDef();
+  bodyDef.type = b2BodyType.b2_dynamicBody; // this will be a dynamic body
+  bodyDef.position = new b2Vec2(10, -10); // set the starting position
 
-  var ground = world.CreateBody( new b2BodyDef() );
-  var shape = new b2EdgeShape();
-  shape.Set(new b2Vec2(-20, -10), new b2Vec2(20, -10));
-  ground.CreateFixture(shape, 0.0);
+  const bodyId = b2CreateBody(worldId, bodyDef);
 
-  var bodyDef = new b2BodyDef();
-  bodyDef.set_type( b2_dynamicBody );
-  var body = world.CreateBody( bodyDef );
+  const circle = {
+      center: new b2Vec2(0, 0), // position, relative to body position
+      radius: 2 // radius
+  };
 
-  var circleShape = new b2CircleShape();
-  circleShape.set_m_radius( 1 );
-  body.CreateFixture( circleShape, 1.0 );
-
-  var fixtureDef = new b2FixtureDef();
-  fixtureDef.set_density( 6 );
-  fixtureDef.set_restitution(0.2)
-  fixtureDef.set_friction( 0.6 );
-  fixtureDef.set_shape( circleShape );
-  body.CreateFixture( fixtureDef );
-
-  var edgeShape = new b2EdgeShape();
-  edgeShape.Set( new b2Vec2( -20, -10 ), new b2Vec2( -20, 10 ) );
-  fixtureDef.set_shape( edgeShape );
-  ground.CreateFixture( fixtureDef );
-
-  var edgeShape2 = new b2EdgeShape();
-  edgeShape2.Set( new b2Vec2( 20, -10 ), new b2Vec2( 20, 10 ) );
-  fixtureDef.set_shape( edgeShape2 );
-  ground.CreateFixture( fixtureDef );
-
+  const shapeDef = b2DefaultShapeDef();
+  const circleShape = b2CreateCircleShape(bodyId, shapeDef, circle);  
 }
 
 
@@ -273,28 +351,10 @@ const animate = () => {
   ctx.resetTransform()
 
   if(world != null) {
-    world.Step(1/60, 3, 2);
-    ctx.save()
-    ctx.translate(canvasOffset.x, canvasOffset.y);
-    ctx.scale(1,-1);                
-    ctx.scale(PTM,PTM);
-    ctx.lineWidth /= PTM;
-    
-    drawAxes(ctx);
-    
-    ctx.fillStyle = 'rgb(255,255,0)';
-    world.DrawDebugData();
+    WorldStep({ worldId: worldId, deltaTime: 30 });
 
-    if ( mouseJoint != null ) {
-      //mouse joint is not drawn with regular joints in debug draw
-      var p1 = mouseJoint.GetAnchorB();
-      var p2 = mouseJoint.GetTarget();
-      ctx.strokeStyle = 'rgb(116, 7, 7)';
-      ctx.beginPath();
-      ctx.moveTo(p1.get_x(),p1.get_y());
-      ctx.lineTo(p2.get_x(),p2.get_y());
-      ctx.stroke();
-  }    
+    b2World_Draw(worldId, m_draw);
+
     ctx.restore();  
   }
 

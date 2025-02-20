@@ -44,6 +44,10 @@ export class Escapement {
   img = null 
   last_svg = null 
 
+  shape_points = null
+
+  tooth_points = null 
+
   pallet = null
 
   constructor(total_teeth= 30, tooth_height=50, tooth_angle=90, tooth_undercut_angle=15, tooth_width=0.05, radius=200, center, position){
@@ -164,6 +168,7 @@ export class Escapement {
     return this.radius
   }
 
+  
 
   draw_circles = () => {
 
@@ -310,6 +315,8 @@ let svg =
 
     let tooth_rads = (this.tooth_angle / 90 ) * radInc
 
+    this.tooth_points =[]
+
     for(let i=0; i< this.total_teeth; i++) {
       let innerx = this.center.x +  Math.cos(rads) * this.radius
       let innery = this.center.y + Math.sin(rads) * this.radius
@@ -339,11 +346,15 @@ let svg =
       pts.push(new Point(tp1x, tp1y))
       pts.push(new Point(tp2x, tp2y))
       pts.push(new Point(ip1x, ip1y))
-      pts.push(new Point(lastx, lasty))
+//      pts.push(new Point(lastx, lasty))
+
+      if(this.tooth_points.length == 0) {
+        this.tooth_points.push(...pts)
+      }
 
       rads+=radInc      
     }
-
+    this.shape_points = pts
     this.p = points_to_path(pts)
     this.path = new Path2D(this.p)
   }
