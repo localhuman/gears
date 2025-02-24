@@ -2,16 +2,16 @@
 //
 // This includes all of Bootstrap's JS plugins.
 
-import { b2DefaultBodyDef, CreateWorld, WorldStep, CreateDebugDraw, RAF, CreateBoxPolygon, b2HexColor, b2AABB, STATIC} from '/js/box2d/PhaserBox2D.js';
-import { b2Vec2, b2BodyType, b2DefaultWorldDef, b2World_Draw, b2ComputeHull, b2CreateBody, b2DefaultShapeDef, b2MakeBox, b2CreatePolygonShape, b2CreateCircleShape, b2MakePolygon, b2Capsule, b2CreateCapsuleShape, b2CreateSegmentShape, b2Segment, b2DefaultChainDef, b2CreateChain, b2MakeOffsetBox, b2Body_SetAngularVelocity } from '/js/box2d/PhaserBox2D.js';
-import { b2DefaultQueryFilter, b2World_OverlapAABB, b2Shape_GetBody, b2Body_GetPosition, CreateMouseJoint, CreateCircle, b2MouseJoint_SetTarget } from './box2d/PhaserBox2D.js';
+import { b2DefaultBodyDef, CreateWorld, WorldStep, CreateDebugDraw, RAF, CreateBoxPolygon, b2HexColor, b2AABB, STATIC} from '/js/box2d/PhaserBox2D-Debug.js';
+import { b2Vec2, b2BodyType, b2DefaultWorldDef, b2World_Draw, b2ComputeHull, b2CreateBody, b2DefaultShapeDef, b2MakeBox, b2CreatePolygonShape, b2CreateCircleShape, b2MakePolygon, b2Capsule, b2CreateCapsuleShape, b2CreateSegmentShape, b2Segment, b2DefaultChainDef, b2CreateChain, b2MakeOffsetBox, b2Body_SetAngularVelocity } from '/js/box2d/PhaserBox2D-Debug.js';
+import { b2DefaultQueryFilter, b2World_OverlapAABB, b2Shape_GetBody, b2Body_GetPosition, CreateMouseJoint, CreateCircle, b2MouseJoint_SetTarget, b2Body_SetTransform, b2Body_GetTransform, b2Rot_GetAngle, b2Body_GetMassData, b2ComputePolygonMass } from './box2d/PhaserBox2D-Debug.js';
 import "./bootstrap.bundle.min.js";
 
 import { Point} from "/js/gear.js";
 import { Escapement } from "/js/escapement.js";
 import { Exporter } from "/js/export.js";
 import { Constants } from "./gear.js";
-import { b2DestroyJoint } from './box2d/PhaserBox2D.js';
+import { b2DestroyJoint,b2DestroyBody,b2DefaultRevoluteJointDef,b2CreateRevoluteJoint,b2Body_SetUserData, b2World_GetContactEvents } from './box2d/PhaserBox2D-Debug.js';
 
 // canvas!
 const canvas = document.getElementById("canvas");
@@ -27,7 +27,7 @@ let m_draw
 let worldDef
 let world 
 let worldId
-
+let ground,leftSde,rightSide
 
 // Box 2d thngs
 let mouseJoint = null   
@@ -37,15 +37,17 @@ let mouseDown = false
 let escapementShape = null
 let escapementBody = null 
 let escapementParts = null
+let palletBody = null
+let palletDensity = 0.8
+let leftRightFactor = 0.72
+let palletFriction = 0.2
+
+let lastContactTime = Date.now()
 
 var mousePosPixel = {
   x: 0,
   y: 0
-};
-var prevMousePosPixel = {
-  x: 0,
-  y: 0
-};        
+};      
 var mousePosWorld = {
   x: 0,
   y: 0
@@ -54,10 +56,6 @@ var canvasOffset = {
   x: 0,
   y: 0
 };        
-var viewCenterPixel = {
-  x:320,
-  y:240
-};
 
 
 // parts
@@ -76,141 +74,21 @@ const dqs = (id) =>{
 const update_state = () =>{
   escapement.update()
 
-  if(escapementBody) {
-    world.DestroyBody(escapementBody)
-  }
-   console.log("Hello points!!!", escapement.tooth_points.length)
-   let scaledVerts = escapement.tooth_points.map(p => { 
-     p.scale(1/PTM)
-     return p
-   })
-  //console.log("scaled verts: ", scaledVerts)
-
-
-  // console.log("scaled verts: ", scaledVerts)
-  // escapementShape = createPolygonShape(scaledVerts)
-  // console.log("escapement shape: ", escapementShape)
-
+  createEscapementPhysics()
 }
 
 const getWorldB2Vec = (point) => {
-  let pt = getWorldPointFromPixelPoint(point)
+  let pt = getWorldPointFromPixelPoint(point.x, point.y)
 //  console.log("pt: ",point, pt, canvasOffset.y, canvas.height)
   return new b2Vec2(pt.x, pt.y * -1)
 }
 
-const getWorldPointFromPixelPoint =(pixelPoint) => {
+const getWorldPointFromPixelPoint =(mx, my) => {
   return {                
-      x: (pixelPoint.x - canvasOffset.x)/PTM,
-      y: (pixelPoint.y - (canvas.height - canvasOffset.y))/PTM
+      x: (mx - canvas.width/2)/PTM,
+      y: (my - canvas.height/2)/-PTM
   };
 }
-
-window.addEventListener('load', (event) =>{
-  initialize()
-});
-
-window.addEventListener('resize', (event) =>{
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
-});
-
-const updateMousePos = (evt) => {
-  var rect = canvas.getBoundingClientRect();
-  mousePosPixel = {
-    x: evt.clientX - rect.left,
-    y: canvas.height - (evt.clientY - rect.top)
-  };
-  mousePosWorld = getWorldPointFromPixelPoint(mousePosPixel);
-
-}
-
-
-const startMouseJoint = () => {
-    
-  if ( mouseJoint != null )
-      return;
-  
-  let foundBody=null;
-
-  function queryCallback(shapeId, context) {
-    const bodyId = b2Shape_GetBody(shapeId);
-    foundBody = bodyId
-//    foundBodies.push(bodyId);
-    return true; // keep going to find all shapes in the query area
-  }
-
-  // Make a small box.
-  var d = 0.001;            
-  console.log("Mouse pos world x, y", mousePosWorld)
-  var aabb = new b2AABB(mousePosWorld.x - d,mousePosWorld.y - d, mousePosWorld.x + d, mousePosWorld.y + d);
-  
-  // Default filter to accept all shapes
-  const filter = b2DefaultQueryFilter();
-
-  // Perform query
-  b2World_OverlapAABB(worldId, aabb, filter, queryCallback, null);
-
-  // let found_body = null    
-  // for (const bodyId of foundBodies) {
-  //   found_position = b2Body_GetPosition(bodyId);
-  //   console.log("Found overlap!!", pos)      
-  // }
-
-  if(foundBody) {
-    let found_position = b2Body_GetPosition(foundBody);
-    mouseJoint = CreateMouseJoint({ worldId,
-      bodyIdA: mouseBody.bodyId,
-      bodyIdB: foundBody,
-      collideConnected: false,
-      maxForce: 35000,
-      hertz: 5.0,
-      dampingRatio: 0.9,
-      target:  found_position //pxmVec2(pointer.worldX, -pointer.worldY)
-  });
-
-  console.log('created', mouseJoint.jointId);    
-  }
-}
-
-
-window.addEventListener('mousedown', (event) => {
-
-  if(dqs('#controls').matches(':hover')){
-    return
-  }
-
-  updateMousePos( event);
-  if ( !mouseDown ) {
-    startMouseJoint();
-    mouseDown = true;
-  }
-})
-
-window.addEventListener('mousemove', (event) => {
-  prevMousePosPixel = mousePosPixel;
-  updateMousePos(event)
-
-  if ( mouseDown && mouseJoint != null ) {
-
-    // const xf = b2Body_GetTransform(mouseBody.bodyId);
-    // //  Optional, but a much better 'feel'
-    // b2Body_SetTransform(mouseBody.bodyId, pxmVec2(pointer.worldX, -pointer.worldY), xf.q);
-
-    b2MouseJoint_SetTarget(mouseJoint.jointId, new b2Vec2(mousePosWorld.x, mousePosWorld.y));
-  }
-
-})
-
-window.addEventListener('mouseup', (event) => {
-  mouseDown = false;
-  updateMousePos(event);
-  if ( mouseJoint != null ) {
-    b2DestroyJoint(mouseJoint.jointId);
-    mouseJoint = null;
-}
-})
-
 
 
 
@@ -222,7 +100,8 @@ const initialize = () => {
   let center = new Point(width/2, height/2, 5);
   escapement = new Escapement(dqs('#teeth').value, dqs('#tooth_height').value, dqs('#tooth_angle').value, dqs('#tooth_angle_undercut').value, dqs('#tooth_width').value, dqs('#radius').value, new Point(0,0), center)
   initializeBox2d()
-//  update_state()
+  createEscapementPhysics()
+
 }
 
 const initializeBox2d = () =>{
@@ -231,83 +110,193 @@ const initializeBox2d = () =>{
   canvasOffset.y = 0;
   
   m_draw = CreateDebugDraw(canvas, ctx, PTM);
+  m_draw.DrawSolidPolygon = () => {}
+  m_draw.DrawSolidCircle = () => {}
+  m_draw.flags = 0x0001 && 0x0002
   worldDef = b2DefaultWorldDef();
   worldDef.gravity = new b2Vec2(0, -GRAVITY);
   // create a world and save the ID which will access it
   world = CreateWorld({ worldDef: worldDef });
   worldId = world.worldId;
 
-  mouseBody = CreateCircle({ worldId, type: STATIC, radius: 0.3 });
+  mouseBody = CreateCircle({ worldId, type: STATIC, radius: 0.3, position: new b2Vec2(-100, -100) });
+
+  // let ptY = escapement.pallet.pallet_center.y / -PTM
+  // console.log("ptY", ptY)
+  // let testBody = CreateCircle({ worldId, type: STATIC, radius: 0.3, position: new b2Vec2(0, ptY) });
 
   let scaledWidth = canvas.width/PTM
   let scaledHegiht = canvas.height/PTM
 
 
   // bottom
-  const groundBodyDef = b2DefaultBodyDef();
-  const ground = CreateBoxPolygon({ worldId:world.worldId, type:b2BodyType.b2_staticBody, bodyDef: groundBodyDef, 
-    position:new b2Vec2(scaledWidth/2, -scaledHegiht), size:new b2Vec2(scaledWidth, 1), density:1.0, friction:0.5, color:b2HexColor.b2_colorLawnGreen });
+  //const groundBodyDef = b2DefaultBodyDef();
+  // ground = CreateBoxPolygon({ worldId:world.worldId, type:b2BodyType.b2_staticBody, 
+  //   position:new b2Vec2(scaledWidth/2, -scaledHegiht/2), size:new b2Vec2(scaledWidth, 1), density:1.0, friction:0.5, color:b2HexColor.b2_colorLawnGreen });
 
-  // left
-  const leftBodyDef = b2DefaultBodyDef();
-  const leftWall = CreateBoxPolygon({ worldId:world.worldId, type:b2BodyType.b2_staticBody, bodyDef: leftBodyDef, 
-    position:new b2Vec2(0.2, -scaledHegiht), size:new b2Vec2(.1, scaledHegiht), density:1.0, friction:0.5, color:b2HexColor.b2_colorLawnGreen });
+    // left
+  // leftSde = CreateBoxPolygon({ worldId:world.worldId, type:b2BodyType.b2_staticBody, 
+  //   position:new b2Vec2(-scaledWidth/2 + .1, -scaledHegiht/2), size:new b2Vec2(.1, scaledHegiht), density:1.0, friction:0.5, color:b2HexColor.b2_colorLawnGreen });
 
-  // right
-  const rightBodyDef = b2DefaultBodyDef();
-  const rightWall = CreateBoxPolygon({ worldId:world.worldId, type:b2BodyType.b2_staticBody, bodyDef: leftBodyDef, 
-    position:new b2Vec2(scaledWidth-.2, -scaledHegiht), size:new b2Vec2(.1, scaledHegiht), density:1.0, friction:0.5, color:b2HexColor.b2_colorLawnGreen });
+  // // right
+  // rightSide= CreateBoxPolygon({ worldId:world.worldId, type:b2BodyType.b2_staticBody,
+  //   position:new b2Vec2(scaledWidth/2 -.1, -scaledHegiht/2), size:new b2Vec2(.1, scaledHegiht), density:1.0, friction:0.5, color:b2HexColor.b2_colorLawnGreen });
 
 
-  // var bodyDef = new b2BodyDef();
-  // bodyDef.set_type( b2_dynamicBody );
-  // var body = world.CreateBody( bodyDef );
-
-  // var fixtureDef = new b2FixtureDef();
-  // fixtureDef.set_density( 6 );
-  // fixtureDef.set_restitution(0.2)
-  // fixtureDef.set_friction( 0.6 );
-
-  // for(let i=0; i<10; i++) {
-
-  //   bodyDef = new b2BodyDef();
-  //   bodyDef.set_type( b2_dynamicBody );
-  //   bodyDef.set_position(new b2Vec2( Math.random(), i  ) );
-  //   body = world.CreateBody( bodyDef );
-  
-  //   var circleShape = new b2CircleShape();
-  //   circleShape.set_m_radius( 1 );
-  //   body.CreateFixture( circleShape, 1.0 );
-  //   fixtureDef.set_shape( circleShape );
-  //   body.CreateFixture( fixtureDef );
-  // }
-
-  // var edgeShape = new b2EdgeShape();
-  // edgeShape.Set( getWorldB2Vec( {x: 10, y: canvas.height - 10}), getWorldB2Vec( {x: 10, y: 0}) );
-  // fixtureDef.set_shape( edgeShape );
-  // ground.CreateFixture( fixtureDef );
-
-  // var edgeShape2 = new b2EdgeShape();
-  // edgeShape2.Set( getWorldB2Vec( {x: canvas.width - 10, y: canvas.height - 10}), getWorldB2Vec( {x: canvas.width - 10, y: 0}) );
-  // fixtureDef.set_shape( edgeShape2 );
-  // ground.CreateFixture( fixtureDef );
+}
 
 
+const createEscapementPhysics = () => {
+
+  console.log("Recreating escapement!")
+
+  if(escapementBody != null) {
+    b2DestroyBody(escapementBody)
+    b2DestroyBody(palletBody)
+  }
+
+
+  let scaledWidth = canvas.width/PTM
+  let scaledHegiht = canvas.height/PTM
+
+  const groundBodyDef = b2DefaultBodyDef()
+  const groundId = b2CreateBody(worldId, groundBodyDef);
 
   const bodyDef = b2DefaultBodyDef();
   bodyDef.type = b2BodyType.b2_dynamicBody; // this will be a dynamic body
-  bodyDef.position = new b2Vec2(10, -10); // set the starting position
-
-  const bodyId = b2CreateBody(worldId, bodyDef);
-
+//  bodyDef.position =  new b2Vec2(0,0) 
+  const shapeDef = b2DefaultShapeDef();
+  shapeDef.density = 0.6
+  shapeDef.friction = 0.05
+  escapementBody = b2CreateBody(worldId, bodyDef);
+  b2Body_SetUserData(escapementBody, "wheel")
   const circle = {
       center: new b2Vec2(0, 0), // position, relative to body position
-      radius: 2 // radius
+      radius: escapement.radius/ PTM // radius
   };
 
-  const shapeDef = b2DefaultShapeDef();
-  const circleShape = b2CreateCircleShape(bodyId, shapeDef, circle);  
+  b2CreateCircleShape(escapementBody, shapeDef, circle);  
+
+  console.log("circle anchor body, escapement body", groundId, escapementBody, world)
+  const jointDef = b2DefaultRevoluteJointDef();
+  jointDef.bodyIdA = escapementBody;
+  jointDef.bodyIdB = groundId;
+  //jointDef.collideConnected = false;
+  jointDef.localAnchorA = new b2Vec2(0, 0); 
+  jointDef.localAnchorB = new b2Vec2(0,0)  // center of the circle
+  jointDef.enableMotor = true;
+  jointDef.maxMotorTorque = 600;
+  jointDef.motorSpeed = 0.15//
+
+  const joint = b2CreateRevoluteJoint(worldId, jointDef);
+
+  for(let j=0; j< escapement.tooth_points.length; j++) {
+    let points = escapement.tooth_points[j]
+    let scaledVerts = points.map(p => { 
+      p.scaleNegY(1/PTM)
+      return new b2Vec2(p.x, p.y)
+    })
+    const hull = b2ComputeHull(scaledVerts, scaledVerts.length);
+    const polygon = b2MakePolygon(hull, 0);
+    const polygonShape = b2CreatePolygonShape(escapementBody, shapeDef, polygon);
+  }
+
+
+  const PgroundBodyDef = b2DefaultBodyDef()
+  const PgroundId = b2CreateBody(worldId, PgroundBodyDef);
+  PgroundBodyDef.position= new b2Vec2(-100, -100)
+
+// //   // pallet
+  let palletBodyDef = b2DefaultBodyDef();
+  palletBodyDef.type = b2BodyType.b2_dynamicBody; // this will be a dynamic body
+  palletBodyDef.position =  new b2Vec2(10, 20) ; // set the starting position
+  palletBody = b2CreateBody(worldId, palletBodyDef)
+  b2Body_SetUserData(palletBody, "pallet")
+
+
+  //right side mass = 23.243
+  ///left side mass = 25.243
+  // multiply left side by 0.9207701145
+
+  let palletShapeDefLeft = b2DefaultShapeDef();
+  palletShapeDefLeft.density = palletDensity * leftRightFactor;
+  palletShapeDefLeft.friction = palletFriction
+
+
+  let palletShapeDef = b2DefaultShapeDef();
+  palletShapeDef.density = palletDensity;
+  palletShapeDef.friction = palletFriction
+
+
+  // pendulum!
+  let pendulumOffset = escapement.total_radius * escapement.pallet.pendulum_offset
+  let pendulumShapeDef = b2DefaultShapeDef()
+  pendulumShapeDef.density = 1
+  const pendulum = {
+    center: new b2Vec2(0, pendulumOffset / -PTM), // position, relative to body position
+    radius: escapement.pallet.pendulum_radius / PTM // radius
+  };  
+  b2CreateCircleShape(palletBody, pendulumShapeDef, pendulum);  
+
+
+  let p1verts = escapement.pallet.part1.map(p => { 
+    p.translate( new Point(0, -escapement.pallet.pallet_center.y))
+    p.scaleNegY(1/PTM)
+    return new b2Vec2(p.x, p.y)
+  })
+
+  let palletHull = b2ComputeHull(p1verts, p1verts.length);
+  let palletPolygon = b2MakePolygon(palletHull, 0);
+  b2CreatePolygonShape(palletBody, palletShapeDef, palletPolygon);
+  console.log("Mass: 1 ", b2ComputePolygonMass(palletPolygon, 1).mass)
+
+  let p2verts = escapement.pallet.part2.map(p => { 
+    p.translate( new Point(0, -escapement.pallet.pallet_center.y))
+    p.scaleNegY(1/PTM)
+    return new b2Vec2(p.x, p.y)
+  })
+  palletHull = b2ComputeHull(p2verts, p2verts.length);
+  palletPolygon = b2MakePolygon(palletHull, 0);
+  b2CreatePolygonShape(palletBody, palletShapeDefLeft, palletPolygon);
+  console.log("Mass: 2 ", b2ComputePolygonMass(palletPolygon, 1).mass)
+
+  let p3verts = escapement.pallet.part3.map(p => { 
+    p.translate( new Point(0, -escapement.pallet.pallet_center.y))
+    p.scaleNegY(1/PTM)
+    return new b2Vec2(p.x, p.y)
+  })
+  palletHull = b2ComputeHull(p3verts, p3verts.length);
+  palletPolygon = b2MakePolygon(palletHull, 0);
+  b2CreatePolygonShape(palletBody, palletShapeDef, palletPolygon);
+  console.log("Mass: 3 ", b2ComputePolygonMass(palletPolygon, 1).mass)
+
+  let p4verts = escapement.pallet.part4.map(p => { 
+    p.translate( new Point(0, -escapement.pallet.pallet_center.y))
+    p.scaleNegY(1/PTM)
+    return new b2Vec2(p.x, p.y)
+  })
+  palletHull = b2ComputeHull(p4verts, p4verts.length);
+  palletPolygon = b2MakePolygon(palletHull, 0);
+  b2CreatePolygonShape(palletBody, palletShapeDefLeft, palletPolygon);
+  console.log("Mass: 4 ", b2ComputePolygonMass(palletPolygon, 1).mass)
+
+
+
+  const PjointDef = b2DefaultRevoluteJointDef();
+  PjointDef.bodyIdA = palletBody;
+  PjointDef.bodyIdB = PgroundId;
+  //jointDef.collideConnected = false;
+  PjointDef.localAnchorA = new b2Vec2(0,0)
+//  PjointDef.localAnchorA =  new b2Vec2(escapement.pallet.pallet_center.x/PTM, escapement.pallet.pallet_center.y/PTM); 
+  PjointDef.localAnchorB = new b2Vec2(0, escapement.pallet.pallet_center.y / -PTM) // center of the circle
+  // PjointDef.enableMotor = true;
+  // PjointDef.maxMotorTorque = 200;
+  // PjointDef.motorSpeed = 0.01 //
+
+   const Pjoint = b2CreateRevoluteJoint(worldId, PjointDef);
+
 }
+
 
 
 
@@ -320,24 +309,16 @@ const animate = () => {
     return
   }
 
+  let transformEscapement = b2Body_GetTransform(escapementBody);
+  let rotationEscapement = b2Rot_GetAngle(transformEscapement.q)
+  let transformPallet = b2Body_GetTransform(palletBody)
+  let rotationPallet = b2Rot_GetAngle(transformPallet.q)
 
 
-  ctx.lineWidth = 1
-  ctx.strokeStyle = escapement.get_stroke()
-  ctx.fillStyle = escapement.get_fill()
+  // draw the pallet
   ctx.translate(escapement.position.x, escapement.position.y)
-  ctx.rotate(escapement.rotation_animation_value)
-
-  let tr = escapement.total_radius
-  if(escapement.svg_to_draw != null) {
-    ctx.drawImage(escapement.svg_to_draw, -tr, -tr, tr*2, tr*2)
-  }
-
-  ctx.rotate(-escapement.rotation_animation_value)
-
-
   ctx.translate(escapement.pallet.pallet_center.x, escapement.pallet.pallet_center.y)
-  ctx.rotate(escapement.pallet.rotation)
+  ctx.rotate(-rotationPallet)
   ctx.translate(-escapement.pallet.pallet_center.x, -escapement.pallet.pallet_center.y)
 
   ctx.strokeStyle = "black"
@@ -348,12 +329,48 @@ const animate = () => {
   ctx.stroke(escapement.pallet.center_path)  
   ctx.fill(escapement.pallet.center_path)
 
+  ctx.fillStyle = escapement.pallet.fillStyle
+  ctx.stroke(escapement.pallet.pendulum_spine)
+  ctx.fill(escapement.pallet.pendulum_spine)
+
+  ctx.stroke(escapement.pallet.pendulum_ball)
+  ctx.fill(escapement.pallet.pendulum_ball)
+
+  ctx.resetTransform()
+
+
+
+  ctx.lineWidth = 1
+  ctx.strokeStyle = escapement.get_stroke()
+  ctx.fillStyle = escapement.get_fill()
+  ctx.translate(escapement.position.x, escapement.position.y)
+  ctx.rotate(-rotationEscapement)
+
+  let tr = escapement.total_radius
+  if(escapement.svg_to_draw != null) {
+    ctx.drawImage(escapement.svg_to_draw, -tr, -tr, tr*2, tr*2)
+  }
+
+  ctx.rotate(rotationEscapement)
+
+
+
+
+
   ctx.resetTransform()
 
   if(world != null) {
     WorldStep({ worldId: worldId, deltaTime: 30 });
 
-    b2World_Draw(worldId, m_draw);
+    //b2World_Draw(worldId, m_draw);
+    const contactEvents = b2World_GetContactEvents(worldId);
+    // const beginEvents = contactEvents.beginContacts;
+    if(contactEvents.beginCount) {
+      let newContactTime = Date.now()
+      let period = newContactTime - lastContactTime
+      lastContactTime = newContactTime
+      dqs('#period_label').textContent = `Elapsed: ${period} ms`
+    }
 
     ctx.restore();  
   }
@@ -362,9 +379,6 @@ const animate = () => {
 }
 
 animate()
-
-
-
 
 
 
@@ -475,6 +489,47 @@ dqs("#radius").addEventListener("input", (event) => {
 });
 
 
+//finger_angle
+
+dqs("#finger_angle").addEventListener("input", (event) => {
+  dqs("#finger_angle_label").textContent = 'Finger Angle: ' + event.target.value;
+  let value = 45 - parseFloat(event.target.value)
+  escapement.pallet.finger_offset = value
+  update_state()
+});
+
+dqs("#pendulum_offset").addEventListener("input", (event) => {
+  dqs("#pendulum_offset_label").textContent = 'Pendulum Offset: ' + event.target.value;
+  escapement.pallet.pendulum_offset = parseFloat(event.target.value)
+  update_state()
+});
+
+dqs("#pendulum_radius").addEventListener("input", (event) => {
+  dqs("#pendulum_radius_label").textContent = 'Pendulum Radius: ' + event.target.value;
+  escapement.pallet.pendulum_radius = parseFloat(event.target.value)
+  update_state()
+});
+
+dqs("#pallet_density").addEventListener("input", (event) => {
+  dqs("#pallet_density_label").textContent = 'Pallet Density: ' + event.target.value;
+  palletDensity = parseFloat(event.target.value)
+  update_state()
+});
+
+dqs("#pallet_lr").addEventListener("input", (event) => {
+  dqs("#pallet_lr_label").textContent = 'Pallet L/R ' + event.target.value;
+  leftRightFactor = parseFloat(event.target.value)
+  update_state()
+});
+
+dqs("#pallet_friction").addEventListener("input", (event) => {
+  dqs("#pallet_friction_label").textContent = 'Pallet friction ' + event.target.value;
+  palletFriction = parseFloat(event.target.value)
+  update_state()
+});
+
+
+
 dqs("#export_svg").addEventListener("click", (event)=> {
   var myModal = new bootstrap.Modal(document.getElementById('export_modal'))
   myModal.show()
@@ -493,4 +548,108 @@ dqs("#export_svg").addEventListener("click", (event)=> {
   //   myModal.hide()
   // })  
 })
+
+
+// Mouse things 
+
+
+window.addEventListener('load', (event) =>{
+  initialize()
+});
+
+window.addEventListener('resize', (event) =>{
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+  let scaledWidth = canvas.width/PTM
+  let scaledHegiht = canvas.height/PTM
+
+  let xf = b2Body_GetTransform(ground.bodyId);
+  b2Body_SetTransform(ground.bodyId,  new b2Vec2(-scaledWidth/2, -scaledHegiht/2 +1),xf.q)
+  b2Body_SetTransform(leftSde.bodyId,  new b2Vec2(-scaledWidth/2, -scaledHegiht/2),xf.q)
+  b2Body_SetTransform(rightSide.bodyId,  new b2Vec2(scaledWidth/2 - 0.2, -scaledHegiht/2),xf.q)
+
+});
+
+const updateMousePos = (evt) => {
+  var rect = canvas.getBoundingClientRect();
+  mousePosPixel = {
+    x: evt.clientX - rect.left,
+    y: canvas.height - (evt.clientY - rect.top)
+  };
+  mousePosWorld = getWorldPointFromPixelPoint(evt.x, evt.y);
+
+}
+
+
+const startMouseJoint = () => {
+    
+  if ( mouseJoint != null )
+      return;
+  
+  let foundBody=null;
+  function queryCallback(shapeId, _context) {
+    const bodyId = b2Shape_GetBody(shapeId);
+    foundBody = bodyId
+    return true; // keep going to find all shapes in the query area
+  }
+
+  // Make a small box.
+  var d = 0.001;            
+  var aabb = new b2AABB(mousePosWorld.x - d,mousePosWorld.y - d, mousePosWorld.x + d, mousePosWorld.y + d);
+  
+  // Default filter to accept all shapes
+  const filter = b2DefaultQueryFilter();
+
+  // Perform query
+  b2World_OverlapAABB(worldId, aabb, filter, queryCallback, null);
+  if(foundBody) {
+    console.log("Found body!!!")
+    let found_position = b2Body_GetPosition(foundBody);
+    mouseJoint = CreateMouseJoint({ worldId,
+      bodyIdA: mouseBody.bodyId,
+      bodyIdB: foundBody,
+      collideConnected: false,
+      maxForce: 35000,
+      hertz: 5.0,
+      dampingRatio: 0.9,
+      target:  found_position 
+    });
+  }
+}
+
+
+window.addEventListener('mousedown', (event) => {
+
+  if(dqs('#controls').matches(':hover')){
+    return
+  }
+
+
+  updateMousePos( event);
+  if ( !mouseDown ) {
+    startMouseJoint();
+    mouseDown = true;
+  }
+})
+
+window.addEventListener('mousemove', (event) => {
+  updateMousePos(event)
+
+  if ( mouseDown && mouseJoint != null ) {
+    //const xf = b2Body_GetTransform(mouseBody.bodyId);
+    // //  Optional, but a much better 'feel'
+    //b2Body_SetTransform(mouseBody.bodyId, pxmVec2(mousePosWorld.x, mousePosWorld.y), xf.q);
+    b2MouseJoint_SetTarget(mouseJoint.jointId, new b2Vec2(mousePosWorld.x, mousePosWorld.y));
+  }
+})
+
+window.addEventListener('mouseup', (event) => {
+  mouseDown = false;
+  updateMousePos(event);
+  if ( mouseJoint != null ) {
+    b2DestroyJoint(mouseJoint.jointId);
+    mouseJoint = null;
+}
+})
+
 

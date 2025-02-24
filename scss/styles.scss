@@ -107,6 +107,18 @@ $font-size-base:              .9rem; // Assumes the browser default, typically `
 
 }
 
+#controls-right {
+  position: absolute;
+  right:0px;
+  top:0px;
+  background-color: rgba($color: black, $alpha: 0.4);
+  width: 180px;
+
+  li {
+    padding-bottom: 10px;
+  }
+}
+
 
 #canvas {
   position: absolute;

@@ -14,8 +14,19 @@ export class Point {
     }
 
     scale = (value) => {
-        this.y = this.y * value 
         this.x = this.x * value
+        this.y = this.y * value 
+    }
+
+    scaleNegY = (value) => {
+        this.x = this.x * value
+        this.y = this.y * -value 
+    }
+
+
+    translate = (pt) => {
+        this.x = this.x + pt.x
+        this.y = this.y + pt.y
     }
 
     copy = () =>{
@@ -109,7 +120,7 @@ export const points_to_path = (pts) => {
 export const points_from_arc = (center, radius, start_radians, end_radians, counterclockwise=false, steps=50) => {
     let sr = start_radians
     let er = end_radians
-    let step = (er - sr) / steps
+    let step = (er - sr) / (steps - 1)
     let current = sr
     let res = []
     for(let i=0; i<steps; i++) {

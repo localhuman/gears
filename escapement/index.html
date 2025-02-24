@@ -20,28 +20,28 @@
 
       <ul class="flex-column mb-auto list-unstyled p-2 pb-0">
         <li>
-          <input type="range" id="teeth" name="teeth" min="10" max="200" value="30" step="1"/>
-          <label for="teeth" id="teeth_label" class="w-100">Teeth: 30</label>
+          <input type="range" id="teeth" name="teeth" min="10" max="200" value="29" step="1"/>
+          <label for="teeth" id="teeth_label" class="w-100">Teeth: 29</label>
         </li>
         <li>
           <input type="range" id="tooth_height" name="tooth_height" min="0" max="400" value="50" step="1"/>
           <label for="tooth_height" id="tooth_height_label" class="w-100">Tooth Height: 50</label>
         </li>
         <li>
-          <input type="range" id="tooth_angle" name="tooth_angle" min="0" max="30" value="15" step=".5"/>
-          <label for="tooth_angle" id="tooth_angle_label" class="w-100">Tooth Included Angle: 15</label>
+          <input type="range" id="tooth_angle" name="tooth_angle" min="0" max="30" value="17" step=".5"/>
+          <label for="tooth_angle" id="tooth_angle_label" class="w-100">Tooth Included Angle: 17</label>
         </li>
         <li>
-          <input type="range" id="tooth_angle_undercut" name="tooth_angle_undercut" min="80" max="120" value="100" step="1"/>
-          <label for="tooth_angle_undercut" id="tooth_angle_undercut_label" class="w-100">Tooth Undercut Angle: 90</label>
+          <input type="range" id="tooth_angle_undercut" name="tooth_angle_undercut" min="80" max="120" value="98" step="1"/>
+          <label for="tooth_angle_undercut" id="tooth_angle_undercut_label" class="w-100">Tooth Undercut Angle: 98</label>
         </li>
         <li>
           <input type="range" id="tooth_width" name="tooth_width" min="0" max=".1" value=".04" step="0.005"/>
           <label for="tooth_width" id="tooth_width_label" class="w-100">Tooth Width: 0.04</label>
         </li>
         <li>
-          <input type="range" id="spokes" name="spokes" min="0" max="12" value="6" step="1"/>
-          <label for="spokes" id="spokes_label" class="w-100">Spokes: 6</label>
+          <input type="range" id="spokes" name="spokes" min="0" max="12" value="5" step="1"/>
+          <label for="spokes" id="spokes_label" class="w-100">Spokes: 5</label>
         </li>
         <li>
           <input type="range" id="rotation" name="rotation" min="0" max="360" value="0" step="1"/>
@@ -88,6 +88,64 @@
     <hr class="m-1">
     </div>    
     
+
+
+
+
+
+    <div class="flex-column flex-shrink-0 escapement-controls" id="controls-right">
+
+      <h1 class="p-1 pb-0 mb-0">Fun!</h1>
+      <hr class="m-1">
+
+      <ul class="flex-column mb-auto list-unstyled p-2 pb-0">
+        <li>
+          <span id="period_label"></span>
+        </li>
+        <hr class="m-1">
+        <li>
+          <input type="range" id="finger_angle" name="finger_angle" min="35" max="55" value="43.5" step="0.1"/>
+          <label for="finger_angle" id="finger_angle_label" class="w-100">Finger Angle: 43.5</label>
+        </li>
+
+        <li>
+          <input type="range" id="pendulum_offset" name="pendulum_offset" min="2.5" max="4" value="3.2" step="0.005"/>
+          <label for="pendulum_offset" id="pendulum_offset_label" class="w-100">pendulum offset: 3.2</label>
+        </li>
+        <li>
+          <input type="range" id="pendulum_radius" name="pendulum_radius" min="10" max="300" value="92" step="1"/>
+          <label for="pendulum_radius" id="pendulum_radius_label" class="w-100">pendulum radius: 92</label>
+        </li>
+        <!-- <li>
+          <input type="range" id="pendulum_density" name="pendulum_density" min=".1" max="1" value=.8" step=".05"/>
+          <label for="pendulum_density" id="pendulum_density_label" class="w-100">pendulum density: .8</label>
+        </li> -->
+        <li>
+          <input type="range" id="pallet_density" name="pallet_density" min=".1" max="1" value=".8" step="0.05"/>
+          <label for="pallet_density" id="pallet_density_label" class="w-100">pallet density: .8</label>
+        </li>
+        <li>
+          <input type="range" id="pallet_lr" name="pallet_lr" min=".6" max=".95" value=".72" step="0.005"/>
+          <label for="pallet_lr" id="pallet_lr_label" class="w-100">pallet l/r: .72</label>
+        </li>
+        <li>
+          <input type="range" id="pallet_friction" name="pallet_friction" min="0" max="1" value=".2" step="0.01"/>
+          <label for="pallet_friction" id="pallet_friction_label" class="w-100">pallet friction 0.2</label>
+        </li>
+
+      <hr class="m-1">
+    </div>    
+
+
+
+
+
+
+
+
+
+
+
     <div class="modal" tabindex="-1" id="confirm_modal">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -133,7 +191,7 @@
       </div>
     </div>    
 
-    <script type="module" src="/js/box2d/PhaserBox2D.js"></script>
+    <script type="module" src="/js/box2d/PhaserBox2D-Debug.js"></script>
 
     <script src="js/bootstrap.bundle.min.js"></script>    
     <script type="module" src="/js/export.js"></script>

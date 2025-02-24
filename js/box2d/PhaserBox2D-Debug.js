@@ -421,6 +421,7 @@ function b2AABB_IsValid(aabb) {
 }
 function b2Normalize(v) {
   if (!v) {
+    console.assert(false);
   }
   const length = b2Length(v);
   if (length > eps) {
@@ -431,6 +432,7 @@ function b2Normalize(v) {
 }
 function b2NormalizeChecked(v) {
   const length = b2Length(v);
+  console.assert(length > eps);
   const invLength = 1 / length;
   return new b2Vec2(v.x * invLength, v.y * invLength);
 }
@@ -454,6 +456,7 @@ function b2GetLengthUnitsPerMeter() {
   return b2_lengthUnitsPerMeter;
 }
 function b2SetAssertFcn(assertFcn) {
+  console.warn("b2SetAssertFcn not supported");
 }
 function b2GetVersion() {
   return new b2Version(3, 0, 0);
@@ -469,20 +472,28 @@ var b2_speculativeDistance = 4 * b2_linearSlop;
 var b2_aabbMargin = 0.1 * b2_lengthUnitsPerMeter2;
 var b2_timeToSleep = 0.5;
 function b2SetAllocator() {
+  console.warn("b2SetAllocator not supported");
 }
 function b2GetByteCount() {
+  console.warn("b2GetByteCount not supported");
 }
 function b2CreateTimer() {
+  console.warn("b2CreateTimer not supported");
 }
 function b2GetTicks() {
+  console.warn("b2GetTicks not supported");
 }
 function b2GetMilliseconds() {
+  console.warn("b2GetMilliseconds not supported");
 }
 function b2GetMillisecondsAndReset(timer) {
+  console.warn("b2GetMillisecondsAndReset not supported");
 }
 function b2SleepMilliseconds(ms) {
+  console.warn("b2SleepMilliseconds not supported");
 }
 function b2Yield() {
+  console.warn("b2Yield not supported");
 }
 
 // src/include/id_h.js
@@ -905,6 +916,7 @@ function b2DestroyStackAllocator(allocator) {
   allocator.entries = null;
 }
 function b2AllocateStackItem(alloc, size, name, ctor = null) {
+  console.assert(size >= 0);
   const entry = new b2StackEntry();
   entry.size = size;
   entry.name = name;
@@ -921,8 +933,14 @@ function b2AllocateStackItem(alloc, size, name, ctor = null) {
 }
 function b2FreeStackItem(alloc, mem) {
   const entryCount = alloc.entries.length;
+  console.assert(entryCount > 0);
   const entry = alloc.entries[entryCount - 1];
+  console.assert(entry.data == mem);
+  console.assert(entry.size >= 0);
   alloc.entries.pop();
+}
+function b2GetStackAllocation(alloc) {
+  return alloc.entries.length;
 }
 
 // src/allocate_c.js
@@ -1617,6 +1635,7 @@ function b2SegmentDistance(p1X, p1Y, q1X, q1Y, p2X, p2Y, q2X, q2Y) {
   return sdResult;
 }
 function b2MakeProxy(vertices, count, radius) {
+  console.assert(count <= B2_MAX_POLYGON_VERTICES);
   count = Math.min(count, B2_MAX_POLYGON_VERTICES);
   const proxy = new b2DistanceProxy();
   proxy.points = [];
@@ -1695,12 +1714,14 @@ function b2ComputeSimplexSearchDirection(simplex) {
         return b2RightPerp(e12);
       }
     default:
+      console.assert(false);
       return new b2Vec2(0, 0);
   }
 }
 function b2ComputeSimplexClosestPoint(s) {
   switch (s.count) {
     case 0:
+      console.assert(false);
       return new b2Vec2(0, 0);
     case 1:
       return s.v1.w;
@@ -1709,12 +1730,14 @@ function b2ComputeSimplexClosestPoint(s) {
     case 3:
       return new b2Vec2(0, 0);
     default:
+      console.assert(false);
       return new b2Vec2(0, 0);
   }
 }
 function b2ComputeSimplexWitnessPoints(a, b, s) {
   switch (s.count) {
     case 0:
+      console.assert(false);
       break;
     case 1:
       a.x = s.v1.wA.x;
@@ -1735,6 +1758,7 @@ function b2ComputeSimplexWitnessPoints(a, b, s) {
       b.y = a.y;
       break;
     default:
+      console.assert(false);
       break;
   }
 }
@@ -1846,6 +1870,7 @@ function b2ShapeDistance(cache, input, simplexes, simplexCapacity) {
   const k_maxIters = 20;
   const saveA = [0, 0, 0];
   const saveB = [0, 0, 0];
+  console.assert(simplex.v2 !== simplex.v3);
   let iter = 0;
   while (iter < k_maxIters) {
     const saveCount = simplex.count;
@@ -1863,6 +1888,7 @@ function b2ShapeDistance(cache, input, simplexes, simplexCapacity) {
         b2SolveSimplex3(simplex);
         break;
       default:
+        console.assert(false);
         break;
     }
     if (simplex.count === 3) {
@@ -1966,6 +1992,7 @@ function b2ShapeCast(input) {
   const k_maxIters = 20;
   let iter = 0;
   while (iter < k_maxIters && b2Length(v) > sigma + 0.5 * linearSlop) {
+    console.assert(simplex.count < 3);
     output.iterations += 1;
     indexA = b2FindSupport(proxyA, b2Neg(v));
     wA = proxyA.points[indexA];
@@ -2003,6 +2030,7 @@ function b2ShapeCast(input) {
         b2SolveSimplex3(simplex);
         break;
       default:
+        console.assert(false);
     }
     if (simplex.count === 3) {
       return output;
@@ -2046,6 +2074,7 @@ function b2MakeSeparationFunction(cache, proxyA, sweepA, proxyB, sweepB, t1) {
   f.proxyA = proxyA;
   f.proxyB = proxyB;
   const count = cache.count;
+  console.assert(0 < count && count < 3);
   f.sweepA = new b2Sweep();
   Object.assign(f.sweepA, sweepA);
   f.sweepB = new b2Sweep();
@@ -2144,6 +2173,7 @@ function b2FindMinSeparation(f, t) {
       return new MinSeparationReturn(indexA, indexB, separation);
     }
     default:
+      console.assert(false);
       return new MinSeparationReturn(-1, -1, 0);
   }
 }
@@ -2176,6 +2206,7 @@ function b2EvaluateSeparation(f, indexA, indexB, t) {
       return separation;
     }
     default:
+      console.assert(false);
       return 0;
   }
 }
@@ -2187,10 +2218,13 @@ function b2TimeOfImpact(input) {
   const proxyB = input.proxyB;
   const sweepA = input.sweepA;
   const sweepB = input.sweepB;
+  console.assert(b2IsNormalized(sweepA.q1) && b2IsNormalized(sweepA.q2), `sweepA not normalized q1:${sweepA.q1.s * sweepA.q1.s + sweepA.q1.c * sweepA.q1.c} q2:${sweepA.q2.s * sweepA.q2.s + sweepA.q2.c * sweepA.q2.c}`);
+  console.assert(b2IsNormalized(sweepB.q1) && b2IsNormalized(sweepB.q2), `sweepB not normalized q1:${sweepB.q1.s * sweepB.q1.s + sweepB.q1.c * sweepB.q1.c} q2:${sweepB.q2.s * sweepB.q2.s + sweepB.q2.c * sweepB.q2.c}`);
   const tMax = input.tMax;
   const totalRadius = proxyA.radius + proxyB.radius;
   const target = Math.max(b2_linearSlop, totalRadius - b2_linearSlop);
   const tolerance = 0.25 * b2_linearSlop;
+  console.assert(target > tolerance);
   let t1 = 0;
   const k_maxIterations = 20;
   let iter = 0;
@@ -2341,6 +2375,7 @@ function b2IsPolygonCCW(points, count) {
 function b2ComputeHull(points, count) {
   const hull = new b2Hull();
   if (count < 3 || count > B2_MAX_POLYGON_VERTICES) {
+    console.assert(false, "WARNING: not enough points in the hull.");
     return hull;
   }
   const aabb = new b2AABB(Number.MAX_VALUE, Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
@@ -2420,6 +2455,7 @@ function b2ComputeHull(points, count) {
   for (let i = 0; i < hull2.count; ++i) {
     hull.points[hull.count++] = hull2.points[i];
   }
+  console.assert(hull.count <= B2_MAX_POLYGON_VERTICES);
   let searching = true;
   while (searching && hull.count > 2) {
     searching = false;
@@ -2452,9 +2488,11 @@ function b2ValidateHull(hull) {
     return true;
   }
   if (hull.count < 3 || B2_MAX_POLYGON_VERTICES < hull.count) {
+    console.warn("WARNING: hull does not have enough points.");
     return false;
   }
   if (!b2IsPolygonCCW(hull.points, hull.count)) {
+    console.warn("WARNING: hull does not have CCW winding.");
     return false;
   }
   for (let i = 0; i < hull.count; ++i) {
@@ -2468,6 +2506,7 @@ function b2ValidateHull(hull) {
       }
       const distance = b2Cross(b2Sub(hull.points[j], p4), e);
       if (distance >= 0) {
+        console.warn("WARNING: hull points are not behind edges (?)");
         return false;
       }
     }
@@ -2482,6 +2521,7 @@ function b2ValidateHull(hull) {
     const e = b2Normalize(b2Sub(p32, p14));
     const distance = b2Cross(b2Sub(p23, p14), e);
     if (distance <= b2_linearSlop) {
+      console.warn("WARNING: hull has collinear points.");
       return false;
     }
   }
@@ -2505,6 +2545,7 @@ function b2ComputePolygonCentroid(vertices, count) {
     center = b2MulAdd(center, a * inv3, b2Add(e1, e2));
     area += a;
   }
+  console.assert(area > eps);
   const invArea = 1 / area;
   center.x *= invArea;
   center.y *= invArea;
@@ -2513,6 +2554,7 @@ function b2ComputePolygonCentroid(vertices, count) {
 }
 function b2MakePolygon(hull, radius, forceCheck = true) {
   if (forceCheck && !b2ValidateHull(hull)) {
+    console.warn("Invalid hull.");
     return null;
   }
   if (hull.count < 3) {
@@ -2528,12 +2570,14 @@ function b2MakePolygon(hull, radius, forceCheck = true) {
     const i1 = i;
     const i2 = i + 1 < shape.count ? i + 1 : 0;
     const edge = b2Sub(shape.vertices[i2], shape.vertices[i1]);
+    console.assert(b2Dot(edge, edge) > eps * eps);
     shape.normals[i] = b2Normalize(b2CrossVS(edge, 1));
   }
   shape.centroid = b2ComputePolygonCentroid(shape.vertices, shape.count);
   return shape;
 }
 function b2MakeOffsetPolygon(hull, radius, transform, forceCheck = true) {
+  console.assert(forceCheck && b2ValidateHull(hull), "Invalid hull.");
   if (hull.count < 3) {
     return b2MakeSquare(0.5);
   }
@@ -2547,6 +2591,7 @@ function b2MakeOffsetPolygon(hull, radius, transform, forceCheck = true) {
     const i1 = i;
     const i2 = i + 1 < shape.count ? i + 1 : 0;
     const edge = b2Sub(shape.vertices[i2], shape.vertices[i1]);
+    console.assert(b2Dot(edge, edge) > eps * eps);
     shape.normals[i] = b2Normalize(b2CrossVS(edge, 1));
   }
   shape.centroid = b2ComputePolygonCentroid(shape.vertices, shape.count);
@@ -2556,6 +2601,8 @@ function b2MakeSquare(h) {
   return b2MakeBox(h, h);
 }
 function b2MakeBox(hx, hy) {
+  console.assert(b2IsValid(hx) && hx > 0);
+  console.assert(b2IsValid(hy) && hy > 0);
   const shape = new b2Polygon();
   shape.count = 4;
   shape.vertices[0] = new b2Vec2(-hx, -hy);
@@ -2631,6 +2678,7 @@ function b2ComputeCapsuleMass(shape, density) {
   return massData;
 }
 function b2ComputePolygonMass(shape, density) {
+  console.assert(shape.count > 0);
   if (shape.count == 1) {
     const circle = new b2Circle();
     circle.center = shape.vertices[0].clone();
@@ -2647,6 +2695,7 @@ function b2ComputePolygonMass(shape, density) {
   const vertices = new Array(B2_MAX_POLYGON_VERTICES);
   const count = shape.count;
   const radius = shape.radius;
+  console.assert(count <= B2_MAX_POLYGON_VERTICES);
   if (radius > 0) {
     const sqrt2 = 1.412;
     for (let i = 0; i < count; ++i) {
@@ -2681,6 +2730,7 @@ function b2ComputePolygonMass(shape, density) {
   }
   const massData = new b2MassData();
   massData.mass = density * area;
+  console.assert(area > eps);
   const invArea = 1 / area;
   center.x *= invArea;
   center.y *= invArea;
@@ -2768,6 +2818,7 @@ function b2PointInPolygon(point, shape) {
 var rayPoint2 = new b2Vec2(0, 0);
 var rayNormal2 = new b2Vec2(0, 1);
 function b2RayCastCircle(input, shape) {
+  console.assert(b2IsValidRay(input));
   const p4 = shape.center.clone();
   const output = new b2CastOutput(rayNormal2, rayPoint2);
   const s = b2Sub(input.origin, p4);
@@ -2798,6 +2849,7 @@ function b2RayCastCircle(input, shape) {
   return output;
 }
 function b2RayCastCapsule(input, shape) {
+  console.assert(b2IsValidRay(input));
   const output = new b2CastOutput(rayNormal2, rayPoint2);
   const v1 = shape.center1;
   const v2 = shape.center2;
@@ -2921,6 +2973,7 @@ function b2RayCastSegment(input, shape, oneSided) {
   return output;
 }
 function b2RayCastPolygon(input, shape) {
+  console.assert(b2IsValidRay(input));
   if (shape.radius === 0) {
     const p14 = input.origin;
     const d = input.translation;
@@ -2946,6 +2999,7 @@ function b2RayCastPolygon(input, shape) {
         return output;
       }
     }
+    console.assert(0 <= lower && lower <= input.maxFraction);
     if (index >= 0) {
       output.fraction = lower;
       output.normal = shape.normals[index];
@@ -3102,6 +3156,9 @@ function b2CreateShapeInternal(world, body, transform, def, geometry, shapeType)
   return shape;
 }
 function b2CreateShape(bodyId, def, geometry, shapeType) {
+  console.assert(b2IsValid(def.density) && def.density >= 0);
+  console.assert(b2IsValid(def.friction) && def.friction >= 0);
+  console.assert(b2IsValid(def.restitution) && def.restitution >= 0);
   const world = b2GetWorldLocked(bodyId.world0);
   if (world === null) {
     return new b2ShapeId(0, 0, 0);
@@ -3130,12 +3187,13 @@ function b2CreateCapsuleShape(bodyId, def, capsule) {
   return b2CreateShape(bodyId, def, capsule, b2ShapeType.b2_capsuleShape);
 }
 function b2CreatePolygonShape(bodyId, def, polygon) {
-  console.log("B2 creating polygon shape: ", bodyId)
+  console.assert(b2IsValid(polygon.radius) && polygon.radius >= 0);
   return b2CreateShape(bodyId, def, polygon, b2ShapeType.b2_polygonShape);
 }
 function b2CreateSegmentShape(bodyId, def, segment) {
   const lengthSqr = b2DistanceSquared(segment.point1, segment.point2);
   if (lengthSqr <= b2_linearSlop * b2_linearSlop) {
+    console.assert(false);
     return new b2ShapeId();
   }
   return b2CreateShape(bodyId, def, segment, b2ShapeType.b2_segmentShape);
@@ -3179,6 +3237,9 @@ function b2DestroyShape(shapeId) {
   }
 }
 function b2CreateChain(bodyId, def) {
+  console.assert(b2IsValid(def.friction) && def.friction >= 0);
+  console.assert(b2IsValid(def.restitution) && def.restitution >= 0);
+  console.assert(def.count >= 4);
   const world = b2GetWorldLocked(bodyId.world0);
   if (world === null) {
     return new b2ChainId();
@@ -3273,6 +3334,7 @@ function b2DestroyChain(chainId) {
     }
     chainIdPtr = world.chainArray[chainIdPtr].nextChainId;
   }
+  console.assert(found === true);
   if (found === false) {
     return;
   }
@@ -3300,6 +3362,7 @@ function b2ComputeShapeAABB(shape, xf2) {
     case b2ShapeType.b2_chainSegmentShape:
       return b2ComputeSegmentAABB(shape.chainSegment.segment, xf2);
     default:
+      console.assert(false);
       return new b2AABB(xf2.p.x, xf2.p.y, xf2.p.x, xf2.p.y);
   }
 }
@@ -3329,6 +3392,7 @@ function b2GetShapePerimeter(shape) {
       const points = shape.polygon.vertices;
       const count = shape.polygon.count;
       let perimeter = 2 * Math.PI * shape.polygon.radius;
+      console.assert(count > 0);
       let prev = points[count - 1];
       for (let i = 0; i < count; ++i) {
         const next = points[i];
@@ -3483,8 +3547,10 @@ function b2ShapeCastShape(input, shape, transform) {
   return output;
 }
 function b2CreateShapeProxy(shape, bp, type, transform, forcePairCreation) {
+  console.assert(shape.proxyKey == B2_NULL_INDEX);
   b2UpdateShapeAABBs(shape, transform, type);
   shape.proxyKey = b2BroadPhase_CreateProxy(bp, type, shape.fatAABB, shape.filter.categoryBits, shape.id, forcePairCreation);
+  console.assert(B2_PROXY_TYPE(shape.proxyKey) < b2BodyType.b2_bodyTypeCount);
 }
 function b2DestroyShapeProxy(shape, bp) {
   if (shape.proxyKey != B2_NULL_INDEX) {
@@ -3505,6 +3571,7 @@ function b2MakeShapeDistanceProxy(shape) {
     case b2ShapeType.b2_chainSegmentShape:
       return b2MakeProxy([shape.chainSegment.segment.point1.clone(), shape.chainSegment.segment.point2.clone()], 2, 0);
     default:
+      console.assert(false);
       return new b2DistanceProxy();
   }
 }
@@ -3570,6 +3637,7 @@ function b2Shape_RayCast(shapeId, origin, translation) {
       output = b2RayCastSegment(input, shape.chainSegment.segment, true);
       break;
     default:
+      console.assert(false);
       return output;
   }
   if (output.hit) {
@@ -3579,6 +3647,7 @@ function b2Shape_RayCast(shapeId, origin, translation) {
   return output;
 }
 function b2Shape_SetDensity(shapeId, density) {
+  console.assert(b2IsValid(density) && density >= 0);
   const world = b2GetWorldLocked(shapeId.world0);
   if (world == null) {
     return;
@@ -3595,7 +3664,9 @@ function b2Shape_GetDensity(shapeId) {
   return shape.density;
 }
 function b2Shape_SetFriction(shapeId, friction) {
+  console.assert(b2IsValid(friction) && friction >= 0);
   const world = b2GetWorld(shapeId.world0);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
@@ -3608,7 +3679,9 @@ function b2Shape_GetFriction(shapeId) {
   return shape.friction;
 }
 function b2Shape_SetRestitution(shapeId, restitution) {
+  console.assert(b2IsValid(restitution) && restitution >= 0);
   const world = b2GetWorld(shapeId.world0);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
@@ -3736,26 +3809,31 @@ function b2Shape_GetType(shapeId) {
 function b2Shape_GetCircle(shapeId) {
   const world = b2GetWorld(shapeId.world0);
   const shape = b2GetShape(world, shapeId);
+  console.assert(shape.type === b2ShapeType.b2_circleShape);
   return shape.circle;
 }
 function b2Shape_GetSegment(shapeId) {
   const world = b2GetWorld(shapeId.world0);
   const shape = b2GetShape(world, shapeId);
+  console.assert(shape.type === b2ShapeType.b2_segmentShape);
   return shape.segment;
 }
 function b2Shape_GetChainSegment(shapeId) {
   const world = b2GetWorld(shapeId.world0);
   const shape = b2GetShape(world, shapeId);
+  console.assert(shape.type === b2ShapeType.b2_chainSegmentShape);
   return shape.chainSegment;
 }
 function b2Shape_GetCapsule(shapeId) {
   const world = b2GetWorld(shapeId.world0);
   const shape = b2GetShape(world, shapeId);
+  console.assert(shape.type === b2ShapeType.b2_capsuleShape);
   return shape.capsule;
 }
 function b2Shape_GetPolygon(shapeId) {
   const world = b2GetWorld(shapeId.world0);
   const shape = b2GetShape(world, shapeId);
+  console.assert(shape.type === b2ShapeType.b2_polygonShape);
   return shape.polygon;
 }
 function b2Shape_SetCircle(shapeId, circle) {
@@ -3883,6 +3961,7 @@ function b2Shape_GetContactData(shapeId, contactData, capacity) {
     }
     contactKey = contact.edges[edgeIndex].nextKey;
   }
+  console.assert(index <= capacity);
   return index;
 }
 function b2Shape_GetAABB(shapeId) {
@@ -3995,6 +4074,7 @@ function b2SetBitCountAndClear(bitSet, bitCount) {
   return bitSet;
 }
 function b2InPlaceUnion(setA, setB) {
+  console.assert(setA.blockCount == setB.blockCount);
   const blockCount = setA.blockCount;
   for (let i = 0; i < blockCount; ++i) {
     setA.bits[i] |= setB.bits[i];
@@ -4011,6 +4091,7 @@ var b2BitSet = class {
 };
 function b2SetBit(bitSet, bitIndex) {
   const blockIndex = Math.floor(bitIndex / 64);
+  console.assert(blockIndex < bitSet.blockCount);
   bitSet.bits[blockIndex] |= BigInt(1) << BigInt(bitIndex % 64);
 }
 function b2ClearBit(bitSet, bitIndex) {
@@ -4047,6 +4128,8 @@ var b2ConstraintGraph = class {
   }
 };
 function b2CreateGraph(graph, bodyCapacity) {
+  console.assert(b2_graphColorCount >= 2, "must have at least two constraint graph colors");
+  console.assert(b2_overflowIndex == b2_graphColorCount - 1, "bad over flow index");
   graph = new b2ConstraintGraph();
   bodyCapacity = Math.max(bodyCapacity, 8);
   for (let i = 0; i < b2_overflowIndex; i++) {
@@ -4158,6 +4241,7 @@ function b2RemoveContactFromGraph(world, bodyIdA, bodyIdB, colorIndex, localInde
   }
 }
 function b2AssignJointColor(graph, bodyIdA, bodyIdB, staticA, staticB) {
+  console.assert(staticA == false || staticB == false);
   return b2_overflowIndex;
 }
 function b2CreateJointInGraph(world, joint) {
@@ -4183,6 +4267,7 @@ function b2AddJointToGraph(world, jointSim, joint) {
 }
 function b2RemoveJointFromGraph(world, bodyIdA, bodyIdB, colorIndex, localIndex) {
   const graph = world.constraintGraph;
+  console.assert(0 <= colorIndex && colorIndex < b2_graphColorCount);
   const color = graph.colors[colorIndex];
   if (colorIndex != b2_overflowIndex) {
     b2ClearBit(color.bodySet, bodyIdA);
@@ -4737,6 +4822,7 @@ var b2RotateType = {
   b2_rotateCE: 4
 };
 function b2RotateNodes(tree, iA) {
+  console.assert(iA != B2_NULL_INDEX);
   const nodes = tree.nodes;
   const A = nodes[iA];
   if (A.height < 2) {
@@ -4744,13 +4830,18 @@ function b2RotateNodes(tree, iA) {
   }
   const iB = A.child1;
   const iC = A.child2;
+  console.assert(0 <= iB && iB < tree.nodeCapacity);
+  console.assert(0 <= iC && iC < tree.nodeCapacity);
   const B = nodes[iB];
   const C = nodes[iC];
   if (B.height === 0) {
+    console.assert(C.height > 0);
     const iF = C.child1;
     const iG = C.child2;
     const F = nodes[iF];
     const G = nodes[iG];
+    console.assert(0 <= iF && iF < tree.nodeCapacity);
+    console.assert(0 <= iG && iG < tree.nodeCapacity);
     const costBase = b2Perimeter(C.aabb);
     const aabbBG = b2AABB_Union(B.aabb, G.aabb);
     const costBF = b2Perimeter(aabbBG);
@@ -4785,10 +4876,13 @@ function b2RotateNodes(tree, iA) {
       A.enlarged = C.enlarged || G.enlarged;
     }
   } else if (C.height === 0) {
+    console.assert(B.height > 0);
     const iD = B.child1;
     const iE = B.child2;
     const D = nodes[iD];
     const E = nodes[iE];
+    console.assert(0 <= iD && iD < tree.nodeCapacity);
+    console.assert(0 <= iE && iE < tree.nodeCapacity);
     const costBase = b2Perimeter(B.aabb);
     const aabbCE = b2AABB_Union(C.aabb, E.aabb);
     const costCD = b2Perimeter(aabbCE);
@@ -4831,6 +4925,10 @@ function b2RotateNodes(tree, iA) {
     const E = nodes[iE];
     const F = nodes[iF];
     const G = nodes[iG];
+    console.assert(0 <= iD && iD < tree.nodeCapacity);
+    console.assert(0 <= iE && iE < tree.nodeCapacity);
+    console.assert(0 <= iF && iF < tree.nodeCapacity);
+    console.assert(0 <= iG && iG < tree.nodeCapacity);
     const areaB = b2Perimeter(B.aabb);
     const areaC = b2Perimeter(C.aabb);
     const costBase = areaB + areaC;
@@ -4915,6 +5013,7 @@ function b2RotateNodes(tree, iA) {
         A.enlarged = B.enlarged || E.enlarged;
         break;
       default:
+        console.assert(false);
         break;
     }
   }
@@ -4956,6 +5055,8 @@ function b2InsertLeaf(tree, leaf, shouldRotate) {
   while (index !== B2_NULL_INDEX) {
     const child1 = nodes[index].child1;
     const child2 = nodes[index].child2;
+    console.assert(child1 !== B2_NULL_INDEX);
+    console.assert(child2 !== B2_NULL_INDEX);
     nodes[index].aabb = b2AABB_Union(nodes[child1].aabb, nodes[child2].aabb);
     nodes[index].categoryBits = nodes[child1].categoryBits | nodes[child2].categoryBits;
     nodes[index].height = 1 + Math.max(nodes[child1].height, nodes[child2].height);
@@ -5005,6 +5106,10 @@ function b2RemoveLeaf(tree, leaf) {
   }
 }
 function b2DynamicTree_CreateProxy(tree, aabb, categoryBits, userData) {
+  console.assert(-B2_HUGE < aabb.lowerBoundX && aabb.lowerBoundX < B2_HUGE);
+  console.assert(-B2_HUGE < aabb.lowerBoundY && aabb.lowerBoundY < B2_HUGE);
+  console.assert(-B2_HUGE < aabb.upperBoundX && aabb.upperBoundX < B2_HUGE);
+  console.assert(-B2_HUGE < aabb.upperBoundY && aabb.upperBoundY < B2_HUGE);
   const proxyId = b2AllocateNode(tree);
   const node = tree.nodes[proxyId];
   node.aabb = aabb;
@@ -5017,14 +5122,22 @@ function b2DynamicTree_CreateProxy(tree, aabb, categoryBits, userData) {
   return proxyId;
 }
 function b2DynamicTree_DestroyProxy(tree, proxyId) {
+  console.assert(0 <= proxyId && proxyId < tree.nodeCapacity);
+  console.assert(b2IsLeaf(tree.nodes[proxyId]));
   b2RemoveLeaf(tree, proxyId);
   b2FreeNode(tree, proxyId);
+  console.assert(tree.proxyCount > 0);
   tree.proxyCount -= 1;
 }
 function b2DynamicTree_GetProxyCount(tree) {
   return tree.proxyCount;
 }
 function b2DynamicTree_MoveProxy(tree, proxyId, aabb) {
+  console.assert(b2AABB_IsValid(aabb));
+  console.assert(aabb.upperBoundX - aabb.lowerBoundX < B2_HUGE);
+  console.assert(aabb.upperBoundY - aabb.lowerBoundY < B2_HUGE);
+  console.assert(0 <= proxyId && proxyId < tree.nodeCapacity);
+  console.assert(b2IsLeaf(tree.nodes[proxyId]));
   b2RemoveLeaf(tree, proxyId);
   tree.nodes[proxyId].aabb = aabb;
   const shouldRotate = false;
@@ -5032,6 +5145,12 @@ function b2DynamicTree_MoveProxy(tree, proxyId, aabb) {
 }
 function b2DynamicTree_EnlargeProxy(tree, proxyId, aabb) {
   const nodes = tree.nodes;
+  console.assert(b2AABB_IsValid(aabb));
+  console.assert(aabb.upperBoundX - aabb.lowerBoundX < B2_HUGE);
+  console.assert(aabb.upperBoundY - aabb.lowerBoundY < B2_HUGE);
+  console.assert(0 <= proxyId && proxyId < tree.nodeCapacity);
+  console.assert(b2IsLeaf(tree.nodes[proxyId]));
+  console.assert(b2AABB_Contains(nodes[proxyId].aabb, aabb) == false);
   nodes[proxyId].aabb = aabb;
   let parentIndex = nodes[proxyId].parent_next;
   while (parentIndex !== B2_NULL_INDEX) {
@@ -5081,6 +5200,7 @@ function b2DynamicTree_GetMaxBalance(tree) {
     if (node.height <= 1) {
       continue;
     }
+    console.assert(b2IsLeaf(node) == false);
     const child1 = node.child1;
     const child2 = node.child2;
     const balance = Math.abs(tree.nodes[child2].height - tree.nodes[child1].height);
@@ -5504,6 +5624,7 @@ function b2DynamicTree_Rebuild(tree) {
     nodeIndex = stack2.pop();
     node = nodes[nodeIndex];
   }
+  console.assert(leafCount <= proxyCount);
   tree.root = b2BuildTree(tree, leafCount);
   return leafCount;
 }
@@ -5553,6 +5674,7 @@ var b2SolverSet = class {
   }
 };
 function b2DestroySolverSet(world, setIndex) {
+  console.assert(setIndex >= 0);
   let set = world.solverSetArray[setIndex];
   set.sims = null;
   set.states = null;
@@ -5565,6 +5687,7 @@ function b2DestroySolverSet(world, setIndex) {
   world.solverSetArray[setIndex] = set;
 }
 function b2WakeSolverSet(world, setIndex) {
+  console.assert(setIndex >= b2SetType.b2_firstSleepingSet);
   const set = world.solverSetArray[setIndex];
   const awakeSet = world.solverSetArray[b2SetType.b2_awakeSet];
   const disabledSet = world.solverSetArray[b2SetType.b2_disabledSet];
@@ -5574,6 +5697,7 @@ function b2WakeSolverSet(world, setIndex) {
   for (let i = 0; i < bodyCount; ++i) {
     const simSrc = set.sims.data[i];
     const body = bodies[simSrc.bodyId];
+    console.assert(body.setIndex === setIndex);
     body.setIndex = b2SetType.b2_awakeSet;
     body.localIndex = awakeSet.sims.count;
     body.sleepTime = 0;
@@ -5588,10 +5712,13 @@ function b2WakeSolverSet(world, setIndex) {
       const contact = contacts[contactId];
       contactKey = contact.edges[edgeIndex].nextKey;
       if (contact.setIndex !== b2SetType.b2_disabledSet) {
+        console.assert(contact.setIndex === b2SetType.b2_awakeSet || contact.setIndex === setIndex);
         continue;
       }
       const localIndex = contact.localIndex;
+      console.assert(0 <= localIndex && localIndex < disabledSet.contacts.count);
       const contactSim = disabledSet.contacts.data[localIndex];
+      console.assert((contact.flags & b2ContactFlags.b2_contactTouchingFlag) === 0 && contactSim.manifold.pointCount === 0);
       contact.setIndex = b2SetType.b2_awakeSet;
       contact.localIndex = awakeSet.contacts.count;
       const awakeContactSim = b2AddContact(awakeSet.contacts);
@@ -5600,6 +5727,7 @@ function b2WakeSolverSet(world, setIndex) {
       if (movedLocalIndex !== B2_NULL_INDEX) {
         const movedContact = disabledSet.contacts.data[localIndex];
         const movedId = movedContact.contactId;
+        console.assert(contacts[movedId].localIndex === movedLocalIndex);
         contacts[movedId].localIndex = localIndex;
       }
     }
@@ -5608,6 +5736,10 @@ function b2WakeSolverSet(world, setIndex) {
   for (let i = 0; i < contactCount; ++i) {
     const contactSim = set.contacts.data[i];
     const contact = contacts[contactSim.contactId];
+    console.assert(contact.flags & b2ContactFlags.b2_contactTouchingFlag);
+    console.assert(contactSim.simFlags & b2ContactSimFlags.b2_simTouchingFlag);
+    console.assert(contactSim.manifold.pointCount > 0);
+    console.assert(contact.setIndex === setIndex);
     b2AddContactToGraph(world, contactSim, contact);
     contact.setIndex = b2SetType.b2_awakeSet;
   }
@@ -5616,6 +5748,7 @@ function b2WakeSolverSet(world, setIndex) {
   for (let i = 0; i < jointCount; ++i) {
     const jointSim = set.joints.data[i];
     const joint = joints[jointSim.jointId];
+    console.assert(joint.setIndex === setIndex);
     b2AddJointToGraph(world, jointSim, joint);
     joint.setIndex = b2SetType.b2_awakeSet;
   }
@@ -5634,6 +5767,7 @@ function b2WakeSolverSet(world, setIndex) {
 }
 function b2TrySleepIsland(world, islandId) {
   const island = world.islandArray[islandId];
+  console.assert(island.setIndex === b2SetType.b2_awakeSet, `b2TrySleepIsland island.setIndex is not awakeSet: ${island.setIndex}`);
   if (island.constraintRemoveCount > 0) {
     return;
   }
@@ -5645,6 +5779,7 @@ function b2TrySleepIsland(world, islandId) {
     world.solverSetArray.push(set);
   }
   const awakeSet = world.solverSetArray[b2SetType.b2_awakeSet];
+  console.assert(0 <= island.localIndex && island.localIndex < awakeSet.islands.count);
   const sleepSet = world.solverSetArray[sleepSetId];
   sleepSet.setIndex = sleepSetId;
   sleepSet.sims = b2CreateBodySimArray(island.bodyCount);
@@ -5656,20 +5791,27 @@ function b2TrySleepIsland(world, islandId) {
   let bodyId = island.headBody;
   while (bodyId !== B2_NULL_INDEX) {
     const body = bodies[bodyId];
+    console.assert(body.setIndex === b2SetType.b2_awakeSet);
+    console.assert(body.islandId === islandId);
     if (body.bodyMoveIndex !== B2_NULL_INDEX) {
+      console.assert(moveEvents[body.bodyMoveIndex].bodyId.index1 - 1 === bodyId);
+      console.assert(moveEvents[body.bodyMoveIndex].bodyId.revision === body.revision);
       moveEvents[body.bodyMoveIndex].fellAsleep = true;
       body.bodyMoveIndex = B2_NULL_INDEX;
     }
     const awakeBodyIndex = body.localIndex;
+    console.assert(0 <= awakeBodyIndex && awakeBodyIndex < awakeSet.sims.count);
     const awakeSim = awakeSet.sims.data[awakeBodyIndex];
     const sleepBodyIndex = sleepSet.sims.count;
     const sleepBodySim = b2AddBodySim(sleepSet.sims);
     awakeSim.copyTo(sleepBodySim);
     const movedIndex = b2RemoveBodySim(awakeSet.sims, awakeBodyIndex);
+    console.assert(world.solverSetArray[2].sims.data[0].transform != null, "1 transform is null");
     if (movedIndex !== B2_NULL_INDEX) {
       const movedSim = awakeSet.sims.data[awakeBodyIndex];
       const movedId = movedSim.bodyId;
       const movedBody = bodies[movedId];
+      console.assert(movedBody.localIndex === movedIndex);
       movedBody.localIndex = awakeBodyIndex;
     }
     b2RemoveBodyState(awakeSet.states, awakeBodyIndex);
@@ -5680,11 +5822,13 @@ function b2TrySleepIsland(world, islandId) {
       const contactId2 = contactKey >> 1;
       const edgeIndex = contactKey & 1;
       const contact = contacts[contactId2];
+      console.assert(contact.setIndex === b2SetType.b2_awakeSet || contact.setIndex === b2SetType.b2_disabledSet);
       contactKey = contact.edges[edgeIndex].nextKey;
       if (contact.setIndex === b2SetType.b2_disabledSet) {
         continue;
       }
       if (contact.colorIndex !== B2_NULL_INDEX) {
+        console.assert((contact.flags & b2ContactFlags.b2_contactTouchingFlag) !== 0);
         continue;
       }
       const otherEdgeIndex = edgeIndex ^ 1;
@@ -5694,7 +5838,10 @@ function b2TrySleepIsland(world, islandId) {
         continue;
       }
       const localIndex = contact.localIndex;
+      console.assert(0 <= localIndex && localIndex < awakeSet.contacts.count);
       const contactSim = awakeSet.contacts.data[localIndex];
+      console.assert(contactSim.manifold.pointCount === 0);
+      console.assert((contact.flags & b2ContactFlags.b2_contactTouchingFlag) === 0 || (contact.flags & b2ContactFlags.b2_contactSensorFlag) !== 0);
       contact.setIndex = b2SetType.b2_disabledSet;
       contact.localIndex = disabledSet.contacts.count;
       const disabledContactSim = b2AddContact(disabledSet.contacts);
@@ -5703,6 +5850,7 @@ function b2TrySleepIsland(world, islandId) {
       if (movedContactIndex !== B2_NULL_INDEX) {
         const movedContactSim = awakeSet.contacts.data[localIndex];
         const movedId = movedContactSim.contactId;
+        console.assert(contacts[movedId].localIndex === movedContactIndex);
         contacts[movedId].localIndex = localIndex;
       }
     }
@@ -5711,13 +5859,17 @@ function b2TrySleepIsland(world, islandId) {
   let contactId = island.headContact;
   while (contactId !== B2_NULL_INDEX) {
     const contact = contacts[contactId];
+    console.assert(contact.setIndex === b2SetType.b2_awakeSet);
+    console.assert(contact.islandId === islandId);
     const colorIndex = contact.colorIndex;
+    console.assert(0 <= colorIndex && colorIndex < b2_graphColorCount);
     const color = world.constraintGraph.colors[colorIndex];
     if (colorIndex !== b2_overflowIndex) {
       b2ClearBit(color.bodySet, contact.edges[0].bodyId);
       b2ClearBit(color.bodySet, contact.edges[1].bodyId);
     }
     const awakeContactIndex = contact.localIndex;
+    console.assert(0 <= awakeContactIndex && awakeContactIndex < color.contacts.count);
     const awakeContactSim = color.contacts.data[awakeContactIndex];
     const sleepContactIndex = sleepSet.contacts.count;
     const sleepContactSim = b2AddContact(sleepSet.contacts);
@@ -5727,6 +5879,7 @@ function b2TrySleepIsland(world, islandId) {
       const movedContactSim = color.contacts.data[awakeContactIndex];
       const movedId = movedContactSim.contactId;
       const movedContact = contacts[movedId];
+      console.assert(movedContact.localIndex === movedIndex);
       movedContact.localIndex = awakeContactIndex;
     }
     contact.setIndex = sleepSetId;
@@ -5738,9 +5891,13 @@ function b2TrySleepIsland(world, islandId) {
   let jointId = island.headJoint;
   while (jointId !== B2_NULL_INDEX) {
     const joint = joints[jointId];
+    console.assert(joint.setIndex === b2SetType.b2_awakeSet);
+    console.assert(joint.islandId === islandId);
     const colorIndex = joint.colorIndex;
     const localIndex = joint.localIndex;
+    console.assert(0 <= colorIndex && colorIndex < b2_graphColorCount);
     const color = world.constraintGraph.colors[colorIndex];
+    console.assert(0 <= localIndex && localIndex < color.joints.count);
     const awakeJointSim = color.joints.data[localIndex];
     if (colorIndex !== b2_overflowIndex) {
       b2ClearBit(color.bodySet, joint.edges[0].bodyId);
@@ -5754,6 +5911,7 @@ function b2TrySleepIsland(world, islandId) {
       const movedJointSim = color.joints.data[localIndex];
       const movedId = movedJointSim.jointId;
       const movedJoint = joints[movedId];
+      console.assert(movedJoint.localIndex === movedIndex);
       movedJoint.localIndex = localIndex;
     }
     joint.setIndex = sleepSetId;
@@ -5761,6 +5919,7 @@ function b2TrySleepIsland(world, islandId) {
     joint.localIndex = sleepJointIndex;
     jointId = joint.islandNext;
   }
+  console.assert(island.setIndex === b2SetType.b2_awakeSet);
   const islandIndex = island.localIndex;
   const sleepIsland = b2AddIsland(sleepSet.islands);
   sleepIsland.islandId = islandId;
@@ -5769,6 +5928,7 @@ function b2TrySleepIsland(world, islandId) {
     const movedIslandSim = awakeSet.islands.data[islandIndex];
     const movedIslandId = movedIslandSim.islandId;
     const movedIsland = world.islandArray[movedIslandId];
+    console.assert(movedIsland.localIndex === movedIslandIndex);
     movedIsland.localIndex = islandIndex;
   }
   island.setIndex = sleepSetId;
@@ -5776,6 +5936,8 @@ function b2TrySleepIsland(world, islandId) {
   b2ValidateSolverSets(world);
 }
 function b2MergeSolverSets(world, setId1, setId2) {
+  console.assert(setId1 >= b2SetType.b2_firstSleepingSet);
+  console.assert(setId2 >= b2SetType.b2_firstSleepingSet);
   let set1 = world.solverSetArray[setId1];
   let set2 = world.solverSetArray[setId2];
   if (set1.sims.count < set2.sims.count) {
@@ -5787,6 +5949,7 @@ function b2MergeSolverSets(world, setId1, setId2) {
   for (let i = 0; i < bodyCount; ++i) {
     const simSrc = set2.sims.data[i];
     const body = bodies[simSrc.bodyId];
+    console.assert(body.setIndex === setId2);
     body.setIndex = setId1;
     body.localIndex = set1.sims.count;
     const simDst = b2AddBodySim(set1.sims);
@@ -5797,6 +5960,7 @@ function b2MergeSolverSets(world, setId1, setId2) {
   for (let i = 0; i < contactCount; ++i) {
     const contactSrc = set2.contacts.data[i];
     const contact = contacts[contactSrc.contactId];
+    console.assert(contact.setIndex === setId2);
     contact.setIndex = setId1;
     contact.localIndex = set1.contacts.count;
     const contactDst = b2AddContact(set1.contacts);
@@ -5807,6 +5971,7 @@ function b2MergeSolverSets(world, setId1, setId2) {
   for (let i = 0; i < jointCount; ++i) {
     const jointSrc = set2.joints.data[i];
     const joint = joints[jointSrc.jointId];
+    console.assert(joint.setIndex === setId2);
     joint.setIndex = setId1;
     joint.localIndex = set1.joints.count;
     const jointDst = b2AddJoint(set1.joints);
@@ -5827,7 +5992,9 @@ function b2MergeSolverSets(world, setId1, setId2) {
   b2ValidateSolverSets(world);
 }
 function b2TransferBody(world, targetSet, sourceSet, body) {
+  console.assert(targetSet !== sourceSet);
   const sourceIndex = body.localIndex;
+  console.assert(0 <= sourceIndex && sourceIndex <= sourceSet.sims.count);
   const sourceSim = sourceSet.sims.data[sourceIndex];
   const targetIndex = targetSet.sims.count;
   const targetSim = b2AddBodySim(targetSet.sims);
@@ -5837,6 +6004,7 @@ function b2TransferBody(world, targetSet, sourceSet, body) {
     const movedSim = sourceSet.sims.data[sourceIndex];
     const movedId = movedSim.bodyId;
     const movedBody = world.bodyArray[movedId];
+    console.assert(movedBody.localIndex === movedIndex);
     movedBody.localIndex = sourceIndex;
   }
   if (sourceSet.setIndex === b2SetType.b2_awakeSet) {
@@ -5849,13 +6017,18 @@ function b2TransferBody(world, targetSet, sourceSet, body) {
   body.localIndex = targetIndex;
 }
 function b2TransferJoint(world, targetSet, sourceSet, joint) {
+  console.assert(targetSet !== sourceSet);
   const localIndex = joint.localIndex;
   const colorIndex = joint.colorIndex;
   let sourceSim;
   if (sourceSet.setIndex === b2SetType.b2_awakeSet) {
+    console.assert(0 <= colorIndex && colorIndex < b2_graphColorCount);
     const color = world.constraintGraph.colors[colorIndex];
+    console.assert(0 <= localIndex && localIndex < color.joints.count);
     sourceSim = color.joints.data[localIndex];
   } else {
+    console.assert(colorIndex === B2_NULL_INDEX);
+    console.assert(0 <= localIndex && localIndex < sourceSet.joints.count);
     sourceSim = sourceSet.joints.data[localIndex];
   }
   if (targetSet.setIndex === b2SetType.b2_awakeSet) {
@@ -6020,11 +6193,13 @@ function b2IntegrateVelocitiesTask(startIndex, endIndex, context) {
 function b2IntegratePositionsTask(startIndex, endIndex, context) {
   const states = context.states;
   const h = context.h;
+  console.assert(startIndex <= endIndex);
   for (let i = startIndex; i < endIndex; ++i) {
     const state = states[i];
     b2IntegrateRotationOut(state.deltaRotation, h * state.angularVelocity, state.deltaRotation);
     state.deltaPosition.x = state.deltaPosition.x + h * state.linearVelocity.x;
     state.deltaPosition.y = state.deltaPosition.y + h * state.linearVelocity.y;
+    console.assert(state.deltaPosition != null);
   }
 }
 function b2FinalizeBodiesTask(startIndex, endIndex, threadIndex, context) {
@@ -6045,11 +6220,14 @@ function b2FinalizeBodiesTask(startIndex, endIndex, threadIndex, context) {
   const enableContinuous = world.enableContinuous;
   const speculativeDistance = b2_speculativeDistance;
   const aabbMargin = b2_aabbMargin;
+  console.assert(startIndex <= endIndex);
   for (let simIndex = startIndex; simIndex < endIndex; ++simIndex) {
     const state = states[simIndex];
     const sim = sims[simIndex];
     const v = state.linearVelocity;
     const w = state.angularVelocity;
+    console.assert(b2IsValid(v.x) && b2IsValid(v.y));
+    console.assert(Number.isFinite(w));
     sim.center.x += state.deltaPosition.x;
     sim.center.y += state.deltaPosition.y;
     const c2 = b2MulRotC(state.deltaRotation, sim.transform.q);
@@ -6118,6 +6296,7 @@ function b2FinalizeBodiesTask(startIndex, endIndex, threadIndex, context) {
     let shapeId = body.headShapeId;
     while (shapeId !== B2_NULL_INDEX) {
       const shape = world.shapeArray[shapeId];
+      console.assert(shape.isFast === false);
       if (isFast) {
         shape.isFast = true;
         b2SetBit(enlargedSimBitSet, simIndex);
@@ -6128,6 +6307,7 @@ function b2FinalizeBodiesTask(startIndex, endIndex, threadIndex, context) {
         aabb.upperBoundX += speculativeDistance;
         aabb.upperBoundY += speculativeDistance;
         shape.aabb = aabb;
+        console.assert(shape.enlargedAABB === false);
         if (b2AABB_Contains(shape.fatAABB, aabb) === false) {
           const fatAABB = new b2AABB(
             aabb.lowerBoundX - aabbMargin,
@@ -6153,6 +6333,7 @@ function b2ExecuteBlock(stage, context, block) {
   } else if (stageType === b2SolverStageType.b2_stageIntegratePositions) {
     b2IntegratePositionsTask(startIndex, endIndex, context);
   } else {
+    console.warn("unsupported stage type: " + stageType);
   }
 }
 function b2ExecuteMainStage(stage, context) {
@@ -6213,10 +6394,13 @@ function b2SolverTask(workerContext) {
       stageIndex += activeColorCount;
     }
     b2StoreOverflowImpulses(context);
+    console.assert(stages[stageIndex].type == b2SolverStageType.b2_stageStoreImpulses);
     b2ExecuteMainStage(stages[stageIndex], context);
     context.atomicSyncBits = Number.MAX_SAFE_INTEGER;
+    console.assert(stageIndex + 1 == context.stageCount);
     return;
   }
+  console.error("b2SolverTask workerIndex = " + workerIndex);
 }
 var constSweep = new b2Sweep(new b2Vec2(), new b2Vec2(), new b2Vec2(), new b2Rot(), new b2Rot());
 function b2ContinuousQueryCallback(proxyId, shapeId, context) {
@@ -6240,6 +6424,7 @@ function b2ContinuousQueryCallback(proxyId, shapeId, context) {
   }
   const body = world.bodyArray[shape.bodyId];
   const bodySim = b2GetBodySim(world, body);
+  console.assert(body.type === b2BodyType.b2_staticBody || fastBodySim.isBullet);
   if (bodySim.isBullet) {
     return true;
   }
@@ -6330,7 +6515,9 @@ var p1 = new b2Vec2();
 var constSweep2 = new b2Sweep(new b2Vec2(), new b2Vec2(), new b2Vec2(), new b2Rot(), new b2Rot());
 function b2SolveContinuous(world, bodySimIndex) {
   const awakeSet = world.solverSetArray[b2SetType.b2_awakeSet];
+  console.assert(0 <= bodySimIndex && bodySimIndex < awakeSet.sims.count);
   const fastBodySim = awakeSet.sims.data[bodySimIndex];
+  console.assert(fastBodySim.isFast);
   const shapes = world.shapeArray;
   const sweep = b2MakeSweep(fastBodySim, constSweep2);
   p.x = sweep.c1.x - (sweep.q1.c * sweep.localCenter.x - sweep.q1.s * sweep.localCenter.y);
@@ -6352,6 +6539,7 @@ function b2SolveContinuous(world, bodySimIndex) {
   let shapeId = fastBody.headShapeId;
   while (shapeId != B2_NULL_INDEX) {
     const fastShape = shapes[shapeId];
+    console.assert(fastShape.isFast == true);
     shapeId = fastShape.nextShapeId;
     fastShape.isFast = false;
     context.fastShape = fastShape;
@@ -6432,6 +6620,7 @@ function b2SolveContinuous(world, bodySimIndex) {
 }
 function b2FastBodyTask(startIndex, endIndex, taskContext) {
   const stepContext = taskContext;
+  console.assert(startIndex <= endIndex);
   for (let i = startIndex; i < endIndex; ++i) {
     const simIndex = stepContext.fastBodies[i];
     b2SolveContinuous(stepContext.world, simIndex);
@@ -6439,6 +6628,7 @@ function b2FastBodyTask(startIndex, endIndex, taskContext) {
 }
 function b2BulletBodyTask(startIndex, endIndex, taskContext) {
   const stepContext = taskContext;
+  console.assert(startIndex <= endIndex);
   for (let i = startIndex; i < endIndex; ++i) {
     const simIndex = stepContext.bulletBodies[i];
     b2SolveContinuous(stepContext.world, simIndex);
@@ -6600,6 +6790,7 @@ function b2Solve(world, stepContext) {
       }
     }
     const blockDiff = baseGraphBlock;
+    console.assert(blockDiff === graphBlockCount, `Block count mismatch: ${blockDiff} !== ${graphBlockCount}`);
     let si = 0;
     const setStageProperties = (stage, type, blocks, blockCount, colorIndex = -1) => {
       stage.type = type;
@@ -6613,6 +6804,8 @@ function b2Solve(world, stepContext) {
     setStageProperties(stages[si++], b2SolverStageType.b2_stageIntegrateVelocities, bodyBlocks, bodyBlockCount);
     setStageProperties(stages[si++], b2SolverStageType.b2_stageIntegratePositions, bodyBlocks, bodyBlockCount);
     setStageProperties(stages[si++], b2SolverStageType.b2_stageStoreImpulses, contactBlocks, contactBlockCount);
+    console.assert(si === stageCount, "Stage count mismatch");
+    console.assert(workerCount <= b2_maxWorkers);
     stepContext.graph = graph;
     stepContext.joints = null;
     stepContext.contacts = null;
@@ -6644,6 +6837,7 @@ function b2Solve(world, stepContext) {
     b2FreeStackItem(world.stackAllocator, overflowContactConstraints);
   }
   {
+    console.assert(world.contactHitArray.length === 0);
     const threshold = world.hitEventThreshold;
     const colors = world.constraintGraph.colors;
     for (let i = 0; i < b2_graphColorCount; ++i) {
@@ -6697,12 +6891,14 @@ function b2Solve(world, stepContext) {
       while (word !== 0n) {
         const ctz = b2CTZ64(word);
         const bodySimIndex = 64 * k + ctz;
+        console.assert(bodySimIndex < awakeSet.sims.count);
         const bodySim = awakeSet.sims.data[bodySimIndex];
         const body = world.bodyArray[bodySim.bodyId];
         let shapeId = body.headShapeId;
         while (shapeId !== B2_NULL_INDEX) {
           const shape = shapes[shapeId];
           if (shape.enlargedAABB) {
+            console.assert(shape.isFast === false);
             b2BroadPhase_EnlargeProxy(broadPhase, shape.proxyKey, shape.fatAABB);
             shape.enlargedAABB = false;
           } else if (shape.isFast) {
@@ -6725,6 +6921,7 @@ function b2Solve(world, stepContext) {
     const fastBodies = stepContext.fastBodies;
     const fastBodyCount = stepContext.fastBodyCount;
     for (let i = 0; i < fastBodyCount; ++i) {
+      console.assert(0 <= fastBodies[i] && fastBodies[i] < awakeSet.sims.count);
       const fastBodySim = awakeSet.sims.data[fastBodies[i]];
       if (fastBodySim.enlargeAABB === false) {
         continue;
@@ -6741,6 +6938,7 @@ function b2Solve(world, stepContext) {
         shape.enlargedAABB = false;
         const proxyKey = shape.proxyKey;
         const proxyId = B2_PROXY_ID(proxyKey);
+        console.assert(B2_PROXY_TYPE(proxyKey) === b2BodyType.b2_dynamicBody);
         b2DynamicTree_EnlargeProxy(dynamicTree, proxyId, shape.fatAABB);
         shapeId = shape.nextShapeId;
       }
@@ -6757,6 +6955,7 @@ function b2Solve(world, stepContext) {
     const bulletBodies = stepContext.bulletBodies;
     const bulletBodyCount = stepContext.bulletBodyCount;
     for (let i = 0; i < bulletBodyCount; ++i) {
+      console.assert(0 <= bulletBodies[i] && bulletBodies[i] < awakeSet.sims.count);
       const bulletBodySim = awakeSet.sims.data[bulletBodies[i]];
       if (bulletBodySim.enlargeAABB === false) {
         continue;
@@ -6773,6 +6972,7 @@ function b2Solve(world, stepContext) {
         shape.enlargedAABB = false;
         const proxyKey = shape.proxyKey;
         const proxyId = B2_PROXY_ID(proxyKey);
+        console.assert(B2_PROXY_TYPE(proxyKey) === b2BodyType.b2_dynamicBody);
         b2DynamicTree_EnlargeProxy(dynamicTree, proxyId, shape.fatAABB);
         shapeId = shape.nextShapeId;
       }
@@ -6785,6 +6985,7 @@ function b2Solve(world, stepContext) {
   stepContext.fastBodies = null;
   stepContext.fastBodyCount = 0;
   if (world.enableSleep === true) {
+    console.assert(world.splitIslandId === B2_NULL_INDEX);
     let splitSleepTimer = 0;
     for (let i = 0; i < world.workerCount; ++i) {
       const taskContext = world.taskContextArray[i];
@@ -7256,16 +7457,20 @@ function b2GetPrismaticJointTorque(world, base) {
   return world.inv_h * base.prismaticJoint.impulse.y;
 }
 function b2PreparePrismaticJoint(base, context) {
+  console.assert(base.type == b2JointType.b2_prismaticJoint);
   const idA = base.bodyIdA;
   const idB = base.bodyIdB;
   const world = context.world;
   const bodies = world.bodyArray;
   const bodyA = bodies[idA];
   const bodyB = bodies[idB];
+  console.assert(bodyA.setIndex == b2SetType.b2_awakeSet || bodyB.setIndex == b2SetType.b2_awakeSet);
   const setA = world.solverSetArray[bodyA.setIndex];
   const setB = world.solverSetArray[bodyB.setIndex];
   const localIndexA = bodyA.localIndex;
   const localIndexB = bodyB.localIndex;
+  console.assert(0 <= localIndexA && localIndexA <= setA.sims.count);
+  console.assert(0 <= localIndexB && localIndexB <= setB.sims.count);
   const bodySimA = setA.sims.data[bodyA.localIndex];
   const bodySimB = setB.sims.data[bodyB.localIndex];
   const mA = bodySimA.invMass;
@@ -7303,6 +7508,7 @@ function b2PreparePrismaticJoint(base, context) {
   }
 }
 function b2WarmStartPrismaticJoint(base, context) {
+  console.assert(base.type == b2JointType.b2_prismaticJoint);
   const mA = base.invMassA;
   const mB = base.invMassB;
   const iA = base.invIA;
@@ -7332,6 +7538,7 @@ function b2WarmStartPrismaticJoint(base, context) {
   stateB.angularVelocity += iB * LB;
 }
 function b2SolvePrismaticJoint(base, context, useBias) {
+  console.assert(base.type == b2JointType.b2_prismaticJoint);
   const mA = base.invMassA;
   const mB = base.invMassB;
   const iA = base.invIA;
@@ -7473,6 +7680,7 @@ function b2SolvePrismaticJoint(base, context, useBias) {
   stateB.angularVelocity = wB;
 }
 function b2DrawPrismaticJoint(draw, base, transformA, transformB) {
+  console.assert(base.type == b2JointType.b2_prismaticJoint);
   const joint = base.prismaticJoint;
   const pA = b2TransformPoint(transformA, base.localOriginAnchorA);
   const pB = b2TransformPoint(transformB, base.localOriginAnchorB);
@@ -7611,10 +7819,13 @@ function b2PrepareRevoluteJoint(base, context) {
   const bodies = world.bodyArray;
   const bodyA = bodies[idA];
   const bodyB = bodies[idB];
+  console.assert(bodyA.setIndex == b2SetType.b2_awakeSet || bodyB.setIndex == b2SetType.b2_awakeSet, `bodyA.setIndex = ${bodyA.setIndex}, bodyB.setIndex = ${bodyB.setIndex}`);
   const setA = world.solverSetArray[bodyA.setIndex];
   const setB = world.solverSetArray[bodyB.setIndex];
   const localIndexA = bodyA.localIndex;
   const localIndexB = bodyB.localIndex;
+  console.assert(0 <= localIndexA && localIndexA <= setA.sims.count);
+  console.assert(0 <= localIndexB && localIndexB <= setB.sims.count);
   const bodySimA = setA.sims.data[bodyA.localIndex];
   const bodySimB = setB.sims.data[bodyB.localIndex];
   const mA = bodySimA.invMass;
@@ -7645,6 +7856,7 @@ function b2PrepareRevoluteJoint(base, context) {
   }
 }
 function b2WarmStartRevoluteJoint(base, context) {
+  console.assert(base.type == b2JointType.b2_revoluteJoint);
   const mA = base.invMassA;
   const mB = base.invMassB;
   const iA = base.invIA;
@@ -7662,6 +7874,7 @@ function b2WarmStartRevoluteJoint(base, context) {
   stateB.angularVelocity += iB * (b2Cross(rB, joint.linearImpulse) + axialImpulse);
 }
 function b2SolveRevoluteJoint(base, context, useBias) {
+  console.assert(base.type == b2JointType.b2_revoluteJoint);
   const mA = base.invMassA;
   const mB = base.invMassB;
   const iA = base.invIA;
@@ -7781,6 +7994,7 @@ function b2SolveRevoluteJoint(base, context, useBias) {
   stateB.angularVelocity = wB;
 }
 function b2DrawRevoluteJoint(draw, base, transformA, transformB, drawSize) {
+  console.assert(base.type == b2JointType.b2_revoluteJoint);
   const pA = b2TransformPoint(transformA, base.localOriginAnchorA);
   const pB = b2TransformPoint(transformB, base.localOriginAnchorB);
   const c1 = b2HexColor.b2_colorRed;
@@ -7898,16 +8112,20 @@ function b2GetWheelJointTorque(world, base) {
   return world.inv_h * base.wheelJoint.motorImpulse;
 }
 function b2PrepareWheelJoint(base, context) {
+  console.assert(base.type == b2JointType.b2_wheelJoint);
   const idA = base.bodyIdA;
   const idB = base.bodyIdB;
   const world = context.world;
   const bodies = world.bodyArray;
   const bodyA = bodies[idA];
   const bodyB = bodies[idB];
+  console.assert(bodyA.setIndex == b2SetType.b2_awakeSet || bodyB.setIndex == b2SetType.b2_awakeSet);
   const setA = world.solverSetArray[bodyA.setIndex];
   const setB = world.solverSetArray[bodyB.setIndex];
   const localIndexA = bodyA.localIndex;
   const localIndexB = bodyB.localIndex;
+  console.assert(0 <= localIndexA && localIndexA <= setA.sims.count);
+  console.assert(0 <= localIndexB && localIndexB <= setB.sims.count);
   const bodySimA = setA.sims.data[bodyA.localIndex];
   const bodySimB = setB.sims.data[bodyB.localIndex];
   const mA = bodySimA.invMass;
@@ -7952,6 +8170,7 @@ function b2PrepareWheelJoint(base, context) {
   }
 }
 function b2WarmStartWheelJoint(base, context) {
+  console.assert(base.type == b2JointType.b2_wheelJoint);
   const mA = base.invMassA;
   const mB = base.invMassB;
   const iA = base.invIA;
@@ -8108,6 +8327,7 @@ function b2SolveWheelJoint(base, context, useBias) {
   stateB.angularVelocity = wB;
 }
 function b2DrawWheelJoint(draw, base, transformA, transformB) {
+  console.assert(base.type == b2JointType.b2_wheelJoint);
   const joint = base.wheelJoint;
   const pA = b2TransformPoint(transformA, base.localOriginAnchorA);
   const pB = b2TransformPoint(transformB, base.localOriginAnchorB);
@@ -8181,16 +8401,20 @@ function b2GetMotorJointTorque(world, base) {
   return world.inv_h * base.motorJoint.angularImpulse;
 }
 function b2PrepareMotorJoint(base, context) {
+  console.assert(base.type == b2JointType.b2_motorJoint);
   const idA = base.bodyIdA;
   const idB = base.bodyIdB;
   const world = context.world;
   const bodies = world.bodyArray;
   const bodyA = bodies[idA];
   const bodyB = bodies[idB];
+  console.assert(bodyA.setIndex == b2SetType.b2_awakeSet || bodyB.setIndex == b2SetType.b2_awakeSet);
   const setA = world.solverSetArray[bodyA.setIndex];
   const setB = world.solverSetArray[bodyB.setIndex];
   const localIndexA = bodyA.localIndex;
   const localIndexB = bodyB.localIndex;
+  console.assert(0 <= localIndexA && localIndexA <= setA.sims.count);
+  console.assert(0 <= localIndexB && localIndexB <= setB.sims.count);
   const bodySimA = setA.sims.data[bodyA.localIndex];
   const bodySimB = setB.sims.data[bodyB.localIndex];
   const mA = bodySimA.invMass;
@@ -8244,6 +8468,7 @@ function b2WarmStartMotorJoint(base, context) {
   bodyB.angularVelocity += iB * (b2Cross(rB, joint.linearImpulse) + joint.angularImpulse);
 }
 function b2SolveMotorJoint(base, context, useBias) {
+  console.assert(base.type == b2JointType.b2_motorJoint);
   const mA = base.invMassA;
   const mB = base.invMassB;
   const iA = base.invIA;
@@ -8672,6 +8897,7 @@ function b2DefaultWheelJointDef() {
 function b2GetJointFullId(world, jointId) {
   const id = jointId.index1 - 1;
   const joint = world.jointArray[id];
+  console.assert(joint.revision === jointId.revision);
   return joint;
 }
 function b2GetJoint(world, jointId) {
@@ -8681,19 +8907,25 @@ function b2GetJointSim(world, joint) {
   if (joint.setIndex === b2SetType.b2_awakeSet) {
     const color = world.constraintGraph.colors[joint.colorIndex];
     if (joint.jointId !== color.joints.data[joint.localIndex].jointId) {
+      console.error("jointId " + joint.jointId + " localIndex " + joint.localIndex + " jointSim.jointId " + color.joints.data[joint.localIndex].jointId);
     }
     return color.joints.data[joint.localIndex];
   }
   const set = world.solverSetArray[joint.setIndex];
+  console.assert(0 <= joint.localIndex && joint.localIndex < set.joints.count);
+  console.assert(joint.jointId == set.joints.data[joint.localIndex].jointId);
   return set.joints.data[joint.localIndex];
 }
 function b2GetJointSimCheckType(jointId, type) {
   const world = b2GetWorld(jointId.world0);
+  console.assert(world.locked === false);
   if (world.locked) {
     return null;
   }
   const joint = b2GetJointFullId(world, jointId);
+  console.assert(joint.type === type);
   const jointSim = b2GetJointSim(world, joint);
+  console.assert(jointSim.type === type);
   return jointSim;
 }
 var b2JointPair = class {
@@ -8708,6 +8940,7 @@ function b2CreateJoint(world, bodyA, bodyB, userData, drawSize, type, collideCon
   const bodyIdB = bodyB.id;
   const maxSetIndex = Math.max(bodyA.setIndex, bodyB.setIndex);
   const jointId = b2AllocId(world.jointIdPool);
+  console.assert(jointId != B2_NULL_INDEX);
   while (jointId >= world.jointArray.length) {
     world.jointArray.push(new b2Joint());
   }
@@ -8775,6 +9008,8 @@ function b2CreateJoint(world, bodyA, bodyB, userData, drawSize, type, collideCon
     jointSim.bodyIdA = bodyIdA;
     jointSim.bodyIdB = bodyIdB;
   } else {
+    console.assert(bodyA.setIndex >= b2SetType.b2_firstSleepingSet || bodyB.setIndex >= b2SetType.b2_firstSleepingSet);
+    console.assert(bodyA.setIndex !== b2SetType.b2_staticSet || bodyB.setIndex !== b2SetType.b2_staticSet);
     let setIndex = maxSetIndex;
     const set = world.solverSetArray[setIndex];
     joint.setIndex = setIndex;
@@ -8785,10 +9020,15 @@ function b2CreateJoint(world, bodyA, bodyB, userData, drawSize, type, collideCon
     jointSim.bodyIdB = bodyIdB;
     if (bodyA.setIndex !== bodyB.setIndex && bodyA.setIndex >= b2SetType.b2_firstSleepingSet && bodyB.setIndex >= b2SetType.b2_firstSleepingSet) {
       b2MergeSolverSets(world, bodyA.setIndex, bodyB.setIndex);
+      console.assert(bodyA.setIndex === bodyB.setIndex);
       setIndex = bodyA.setIndex;
       jointSim = world.solverSetArray[setIndex].joints[joint.localIndex];
     }
+    console.assert(joint.setIndex === setIndex);
   }
+  console.assert(jointSim.jointId === jointId);
+  console.assert(jointSim.bodyIdA === bodyIdA);
+  console.assert(jointSim.bodyIdB === bodyIdB);
   if (joint.setIndex > b2SetType.b2_disabledSet) {
     b2LinkJoint(world, joint);
   }
@@ -8820,9 +9060,13 @@ function b2DestroyContactsBetweenBodies(world, bodyA, bodyB) {
 }
 function b2CreateDistanceJoint(worldId, def) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked === false);
   if (world.locked) {
     return new b2JointId();
   }
+  console.assert(b2Body_IsValid(def.bodyIdA));
+  console.assert(b2Body_IsValid(def.bodyIdB));
+  console.assert(b2IsValid(def.length) && def.length > 0);
   const bodyA = b2GetBodyFullId(world, def.bodyIdA);
   const bodyB = b2GetBodyFullId(world, def.bodyIdB);
   const pair = b2CreateJoint(world, bodyA, bodyB, def.userData, 1, b2JointType.b2_distanceJoint, def.collideConnected);
@@ -8853,6 +9097,7 @@ function b2CreateDistanceJoint(worldId, def) {
 }
 function b2CreateMotorJoint(worldId, def) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked === false);
   if (world.locked) {
     return new b2JointId();
   }
@@ -8877,6 +9122,7 @@ function b2CreateMotorJoint(worldId, def) {
 }
 function b2CreateMouseJoint(worldId, def) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return new b2JointId();
   }
@@ -8899,6 +9145,7 @@ function b2CreateMouseJoint(worldId, def) {
 }
 function b2CreateRevoluteJoint(worldId, def) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return new b2JointId();
   }
@@ -8936,6 +9183,7 @@ function b2CreateRevoluteJoint(worldId, def) {
 }
 function b2CreatePrismaticJoint(worldId, def) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return new b2JointId();
   }
@@ -8972,6 +9220,7 @@ function b2CreatePrismaticJoint(worldId, def) {
 }
 function b2CreateWeldJoint(worldId, def) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return new b2JointId();
   }
@@ -8998,6 +9247,7 @@ function b2CreateWeldJoint(worldId, def) {
 }
 function b2CreateWheelJoint(worldId, def) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return new b2JointId();
   }
@@ -9080,6 +9330,7 @@ function b2DestroyJointInternal(world, joint, wakeBodies) {
       const movedJointSim = set.joints.data[localIndex];
       const movedId = movedJointSim.jointId;
       const movedJoint = world.jointArray[movedId];
+      console.assert(movedJoint.localIndex === movedIndex);
       movedJoint.localIndex = localIndex;
     }
   }
@@ -9097,6 +9348,7 @@ function b2DestroyJointInternal(world, joint, wakeBodies) {
 }
 function b2DestroyJoint(jointId) {
   const world = b2GetWorld(jointId.world0);
+  console.assert(world.locked === false);
   if (world.locked) {
     return;
   }
@@ -9203,6 +9455,7 @@ function b2Joint_GetConstraintForce(jointId) {
     case b2JointType.b2_wheelJoint:
       return b2GetWheelJointForce(world, base);
     default:
+      console.assert(false);
       return new b2Vec2(0, 0);
   }
 }
@@ -9226,6 +9479,7 @@ function b2Joint_GetConstraintTorque(jointId) {
     case b2JointType.b2_wheelJoint:
       return b2GetWheelJointTorque(world, base);
     default:
+      console.assert(false);
       return 0;
   }
 }
@@ -9253,6 +9507,7 @@ function b2PrepareJoint(joint, context) {
       b2PrepareWheelJoint(joint, context);
       break;
     default:
+      console.assert(false);
   }
 }
 function b2WarmStartJoint(joint, context) {
@@ -9279,6 +9534,7 @@ function b2WarmStartJoint(joint, context) {
       b2WarmStartWheelJoint(joint, context);
       break;
     default:
+      console.assert(false);
   }
 }
 function b2SolveJoint(joint, context, useBias) {
@@ -9305,6 +9561,7 @@ function b2SolveJoint(joint, context, useBias) {
       b2SolveWheelJoint(joint, context, useBias);
       break;
     default:
+      console.assert(false);
   }
 }
 function b2PrepareOverflowJoints(context) {
@@ -9341,6 +9598,7 @@ function b2DrawJoint(draw, world, joint) {
     return;
   }
   const jointSim = b2GetJointSim(world, joint);
+  console.assert(jointSim);
   const transformA = b2GetBodyTransformQuick(world, bodyA);
   const transformB = b2GetBodyTransformQuick(world, bodyB);
   const pA = b2TransformPoint(transformA, jointSim.localOriginAnchorA);
@@ -9817,12 +10075,14 @@ var b2IslandSim = class {
   islandId = 0;
 };
 function b2CreateIsland(world, setIndex) {
+  console.assert(setIndex === b2SetType.b2_awakeSet || setIndex >= b2SetType.b2_firstSleepingSet);
   const islandId = b2AllocId(world.islandIdPool);
   if (islandId === world.islandArray.length) {
     const emptyIsland = new b2Island();
     emptyIsland.setIndex = B2_NULL_INDEX;
     world.islandArray.push(emptyIsland);
   } else {
+    console.assert(world.islandArray[islandId].setIndex === B2_NULL_INDEX);
   }
   const set = world.solverSetArray[setIndex];
   const island = world.islandArray[islandId];
@@ -9852,6 +10112,7 @@ function b2DestroyIsland(world, islandId) {
     const movedElement = set.islands.data[island.localIndex];
     const movedId = movedElement.islandId;
     const movedIsland = world.islandArray[movedId];
+    console.assert(movedIsland.localIndex === movedIndex);
     movedIsland.localIndex = island.localIndex;
   }
   island.islandId = B2_NULL_INDEX;
@@ -9863,6 +10124,9 @@ function b2GetIsland(world, islandId) {
   return world.islandArray[islandId];
 }
 function b2AddContactToIsland(world, islandId, contact) {
+  console.assert(contact.islandId === B2_NULL_INDEX);
+  console.assert(contact.islandPrev === B2_NULL_INDEX);
+  console.assert(contact.islandNext === B2_NULL_INDEX);
   const island = world.islandArray[islandId];
   if (island.headContact !== B2_NULL_INDEX) {
     contact.islandNext = island.headContact;
@@ -9878,10 +10142,13 @@ function b2AddContactToIsland(world, islandId, contact) {
   b2ValidateIsland(world, islandId);
 }
 function b2LinkContact(world, contact) {
+  console.assert((contact.flags & b2ContactFlags.b2_contactTouchingFlag) !== 0 && (contact.flags & b2ContactFlags.b2_contactSensorFlag) === 0);
   const bodyIdA = contact.edges[0].bodyId;
   const bodyIdB = contact.edges[1].bodyId;
   const bodyA = b2GetBody(world, bodyIdA);
   const bodyB = b2GetBody(world, bodyIdB);
+  console.assert(bodyA.setIndex !== b2SetType.b2_disabledSet && bodyB.setIndex !== b2SetType.b2_disabledSet);
+  console.assert(bodyA.setIndex !== b2SetType.b2_staticSet || bodyB.setIndex !== b2SetType.b2_staticSet);
   if (bodyA.setIndex === b2SetType.b2_awakeSet && bodyB.setIndex >= b2SetType.b2_firstSleepingSet) {
     b2WakeSolverSet(world, bodyB.setIndex);
   }
@@ -9890,6 +10157,9 @@ function b2LinkContact(world, contact) {
   }
   let islandIdA = bodyA.islandId;
   let islandIdB = bodyB.islandId;
+  console.assert(bodyA.setIndex !== b2SetType.b2_staticSet || islandIdA === B2_NULL_INDEX);
+  console.assert(bodyB.setIndex !== b2SetType.b2_staticSet || islandIdB === B2_NULL_INDEX);
+  console.assert(islandIdA !== B2_NULL_INDEX || islandIdB !== B2_NULL_INDEX);
   if (islandIdA === islandIdB) {
     b2AddContactToIsland(world, islandIdA, contact);
     return;
@@ -9922,7 +10192,10 @@ function b2LinkContact(world, contact) {
       parentId = islandB.parentIsland;
     }
   }
+  console.assert(islandA !== null || islandB !== null);
   if (islandA !== islandB && islandA !== null && islandB !== null) {
+    console.assert(islandA !== islandB);
+    console.assert(islandB.parentIsland === B2_NULL_INDEX);
     islandB.parentIsland = islandIdA;
   }
   if (islandA !== null) {
@@ -9932,14 +10205,18 @@ function b2LinkContact(world, contact) {
   }
 }
 function b2UnlinkContact(world, contact) {
+  console.assert((contact.flags & b2ContactFlags.b2_contactSensorFlag) === 0);
+  console.assert(contact.islandId !== B2_NULL_INDEX);
   const islandId = contact.islandId;
   const island = b2GetIsland(world, islandId);
   if (contact.islandPrev !== B2_NULL_INDEX) {
     const prevContact = world.contactArray[contact.islandPrev];
+    console.assert(prevContact.islandNext === contact.contactId);
     prevContact.islandNext = contact.islandNext;
   }
   if (contact.islandNext !== B2_NULL_INDEX) {
     const nextContact = world.contactArray[contact.islandNext];
+    console.assert(nextContact.islandPrev === contact.contactId);
     nextContact.islandPrev = contact.islandPrev;
   }
   if (island.headContact === contact.contactId) {
@@ -9948,6 +10225,7 @@ function b2UnlinkContact(world, contact) {
   if (island.tailContact === contact.contactId) {
     island.tailContact = contact.islandPrev;
   }
+  console.assert(island.contactCount > 0);
   island.contactCount -= 1;
   island.constraintRemoveCount += 1;
   contact.islandId = B2_NULL_INDEX;
@@ -9956,6 +10234,9 @@ function b2UnlinkContact(world, contact) {
   b2ValidateIsland(world, islandId);
 }
 function b2AddJointToIsland(world, islandId, joint) {
+  console.assert(joint.islandId === B2_NULL_INDEX);
+  console.assert(joint.islandPrev === B2_NULL_INDEX);
+  console.assert(joint.islandNext === B2_NULL_INDEX);
   const island = world.islandArray[islandId];
   if (island.headJoint !== B2_NULL_INDEX) {
     joint.islandNext = island.headJoint;
@@ -9980,6 +10261,7 @@ function b2LinkJoint(world, joint) {
   }
   let islandIdA = bodyA.islandId;
   let islandIdB = bodyB.islandId;
+  console.assert(islandIdA !== B2_NULL_INDEX || islandIdB !== B2_NULL_INDEX);
   if (islandIdA === islandIdB) {
     b2AddJointToIsland(world, islandIdA, joint);
     return;
@@ -10008,7 +10290,10 @@ function b2LinkJoint(world, joint) {
       islandB = parent;
     }
   }
+  console.assert(islandA !== null || islandB !== null);
   if (islandA !== islandB && islandA !== null && islandB !== null) {
+    console.assert(islandA !== islandB);
+    console.assert(islandB.parentIsland === B2_NULL_INDEX);
     islandB.parentIsland = islandIdA;
   }
   if (islandA !== null) {
@@ -10018,14 +10303,17 @@ function b2LinkJoint(world, joint) {
   }
 }
 function b2UnlinkJoint(world, joint) {
+  console.assert(joint.islandId !== B2_NULL_INDEX);
   const islandId = joint.islandId;
   const island = world.islandArray[islandId];
   if (joint.islandPrev !== B2_NULL_INDEX) {
     const prevJoint = b2GetJoint(world, joint.islandPrev);
+    console.assert(prevJoint.islandNext === joint.jointId);
     prevJoint.islandNext = joint.islandNext;
   }
   if (joint.islandNext !== B2_NULL_INDEX) {
     const nextJoint = b2GetJoint(world, joint.islandNext);
+    console.assert(nextJoint.islandPrev === joint.jointId);
     nextJoint.islandPrev = joint.islandPrev;
   }
   if (island.headJoint === joint.jointId) {
@@ -10034,6 +10322,7 @@ function b2UnlinkJoint(world, joint) {
   if (island.tailJoint === joint.jointId) {
     island.tailJoint = joint.islandPrev;
   }
+  console.assert(island.jointCount > 0);
   island.jointCount -= 1;
   island.constraintRemoveCount += 1;
   joint.islandId = B2_NULL_INDEX;
@@ -10042,8 +10331,10 @@ function b2UnlinkJoint(world, joint) {
   b2ValidateIsland(world, islandId);
 }
 function b2MergeIsland(world, island) {
+  console.assert(island.parentIsland !== B2_NULL_INDEX);
   const rootId = island.parentIsland;
   const rootIsland = world.islandArray[rootId];
+  console.assert(rootIsland.parentIsland === B2_NULL_INDEX);
   let bodyId = island.headBody;
   while (bodyId !== B2_NULL_INDEX) {
     const body = b2GetBody(world, bodyId);
@@ -10062,32 +10353,46 @@ function b2MergeIsland(world, island) {
     joint.islandId = rootId;
     jointId = joint.islandNext;
   }
+  console.assert(rootIsland.tailBody !== B2_NULL_INDEX);
   const tailBody = b2GetBody(world, rootIsland.tailBody);
+  console.assert(tailBody.islandNext === B2_NULL_INDEX);
   tailBody.islandNext = island.headBody;
+  console.assert(island.headBody !== B2_NULL_INDEX);
   const headBody = b2GetBody(world, island.headBody);
+  console.assert(headBody.islandPrev === B2_NULL_INDEX);
   headBody.islandPrev = rootIsland.tailBody;
   rootIsland.tailBody = island.tailBody;
   rootIsland.bodyCount += island.bodyCount;
   if (rootIsland.headContact === B2_NULL_INDEX) {
+    console.assert(rootIsland.tailContact === B2_NULL_INDEX && rootIsland.contactCount === 0);
     rootIsland.headContact = island.headContact;
     rootIsland.tailContact = island.tailContact;
     rootIsland.contactCount = island.contactCount;
   } else if (island.headContact !== B2_NULL_INDEX) {
+    console.assert(island.tailContact !== B2_NULL_INDEX && island.contactCount > 0);
+    console.assert(rootIsland.tailContact !== B2_NULL_INDEX && rootIsland.contactCount > 0);
     const tailContact = world.contactArray[rootIsland.tailContact];
+    console.assert(tailContact.islandNext === B2_NULL_INDEX);
     tailContact.islandNext = island.headContact;
     const headContact = world.contactArray[island.headContact];
+    console.assert(headContact.islandPrev === B2_NULL_INDEX);
     headContact.islandPrev = rootIsland.tailContact;
     rootIsland.tailContact = island.tailContact;
     rootIsland.contactCount += island.contactCount;
   }
   if (rootIsland.headJoint === B2_NULL_INDEX) {
+    console.assert(rootIsland.tailJoint === B2_NULL_INDEX && rootIsland.jointCount === 0);
     rootIsland.headJoint = island.headJoint;
     rootIsland.tailJoint = island.tailJoint;
     rootIsland.jointCount = island.jointCount;
   } else if (island.headJoint !== B2_NULL_INDEX) {
+    console.assert(island.tailJoint !== B2_NULL_INDEX && island.jointCount > 0);
+    console.assert(rootIsland.tailJoint !== B2_NULL_INDEX && rootIsland.jointCount > 0);
     const tailJoint = b2GetJoint(world, rootIsland.tailJoint);
+    console.assert(tailJoint.islandNext === B2_NULL_INDEX);
     tailJoint.islandNext = island.headJoint;
     const headJoint = b2GetJoint(world, island.headJoint);
+    console.assert(headJoint.islandPrev === B2_NULL_INDEX);
     headJoint.islandPrev = rootIsland.tailJoint;
     rootIsland.tailJoint = island.tailJoint;
     rootIsland.jointCount += island.jointCount;
@@ -10150,6 +10455,7 @@ function b2SplitIsland(world, baseId) {
     body.isMarked = false;
     nextBody = body.islandNext;
   }
+  console.assert(bodyIds.length === bodyCount);
   let nextContactId = baseIsland.headContact;
   while (nextContactId !== B2_NULL_INDEX) {
     const contact = contacts[nextContactId];
@@ -10166,6 +10472,7 @@ function b2SplitIsland(world, baseId) {
   for (let i = 0; i < bodyCount; ++i) {
     const seedIndex = bodyIds[i];
     const seed = bodies[seedIndex];
+    console.assert(seed.setIndex === setIndex);
     if (seed.isMarked === true) {
       continue;
     }
@@ -10176,6 +10483,8 @@ function b2SplitIsland(world, baseId) {
     while (stack2.length > 0) {
       const bodyId = stack2.pop();
       const body = bodies[bodyId];
+      console.assert(body.setIndex === b2SetType.b2_awakeSet);
+      console.assert(body.isMarked === true);
       body.islandId = islandId;
       if (island.tailBody !== B2_NULL_INDEX) {
         bodies[island.tailBody].islandNext = bodyId;
@@ -10192,6 +10501,7 @@ function b2SplitIsland(world, baseId) {
         const contactId = contactKey >> 1;
         const edgeIndex = contactKey & 1;
         const contact = world.contactArray[contactId];
+        console.assert(contact.contactId === contactId);
         contactKey = contact.edges[edgeIndex].nextKey;
         if (contact.isMarked) {
           continue;
@@ -10207,6 +10517,7 @@ function b2SplitIsland(world, baseId) {
         const otherBodyId = contact.edges[otherEdgeIndex].bodyId;
         const otherBody = bodies[otherBodyId];
         if (otherBody.isMarked === false && otherBody.setIndex !== b2SetType.b2_staticSet) {
+          console.assert(stack2.length < bodyCount);
           stack2.push(otherBodyId);
           otherBody.isMarked = true;
         }
@@ -10228,6 +10539,7 @@ function b2SplitIsland(world, baseId) {
         const jointId = jointKey >> 1;
         const edgeIndex = jointKey & 1;
         const joint = b2GetJoint(world, jointId);
+        console.assert(joint.jointId === jointId);
         jointKey = joint.edges[edgeIndex].nextKey;
         if (joint.isMarked) {
           continue;
@@ -10266,50 +10578,80 @@ function b2ValidateIsland(world, islandId) {
   }
   b2CheckIndex(world.islandArray, islandId);
   const island = world.islandArray[islandId];
+  console.assert(island.islandId == islandId);
+  console.assert(island.setIndex != B2_NULL_INDEX);
+  console.assert(island.headBody != B2_NULL_INDEX);
   {
     const bodies = world.bodyArray;
+    console.assert(island.tailBody != B2_NULL_INDEX);
+    console.assert(island.bodyCount > 0);
     if (island.bodyCount > 1) {
+      console.assert(island.tailBody != island.headBody);
     }
+    console.assert(island.bodyCount <= b2GetIdCount(world.bodyIdPool));
     let count = 0;
     let bodyId = island.headBody;
     while (bodyId != B2_NULL_INDEX) {
       b2CheckIndex(bodies, bodyId);
       const body = bodies[bodyId];
+      console.assert(body.islandId == islandId);
+      console.assert(body.setIndex == island.setIndex);
       count += 1;
       if (count == island.bodyCount) {
+        console.assert(bodyId == island.tailBody);
       }
       bodyId = body.islandNext;
     }
+    console.assert(count == island.bodyCount);
   }
   if (island.headContact != B2_NULL_INDEX) {
+    console.assert(island.tailContact != B2_NULL_INDEX);
+    console.assert(island.contactCount > 0);
     if (island.contactCount > 1) {
+      console.assert(island.tailContact != island.headContact);
     }
+    console.assert(island.contactCount <= b2GetIdCount(world.contactIdPool));
     let count = 0;
     let contactId = island.headContact;
     while (contactId != B2_NULL_INDEX) {
       b2CheckIndex(world.contactArray, contactId);
       const contact = world.contactArray[contactId];
+      console.assert(contact.setIndex == island.setIndex);
+      console.assert(contact.islandId == islandId);
       count += 1;
       if (count == island.contactCount) {
+        console.assert(contactId == island.tailContact);
       }
       contactId = contact.islandNext;
     }
+    console.assert(count == island.contactCount);
   } else {
+    console.assert(island.tailContact == B2_NULL_INDEX);
+    console.assert(island.contactCount == 0);
   }
   if (island.headJoint != B2_NULL_INDEX) {
+    console.assert(island.tailJoint != B2_NULL_INDEX);
+    console.assert(island.jointCount > 0);
     if (island.jointCount > 1) {
+      console.assert(island.tailJoint != island.headJoint);
     }
+    console.assert(island.jointCount <= b2GetIdCount(world.jointIdPool));
     let count = 0;
     let jointId = island.headJoint;
     while (jointId != B2_NULL_INDEX) {
       b2CheckIndex(world.jointArray, jointId);
       const joint = world.jointArray[jointId];
+      console.assert(joint.setIndex == island.setIndex);
       count += 1;
       if (count == island.jointCount) {
+        console.assert(jointId == island.tailJoint);
       }
       jointId = joint.islandNext;
     }
+    console.assert(count == island.jointCount);
   } else {
+    console.assert(island.tailJoint == B2_NULL_INDEX);
+    console.assert(island.jointCount == 0);
   }
 }
 
@@ -10327,11 +10669,19 @@ function b2GetBody(world, bodyId) {
   return world.bodyArray[bodyId];
 }
 function b2GetBodyFullId(world, bodyId) {
+  console.assert(b2Body_IsValid(bodyId), `invalid bodyId ${JSON.stringify(bodyId)}
+${new Error().stack}`);
   return b2GetBody(world, bodyId.index1 - 1);
 }
 function b2GetBodyTransformQuick(world, body) {
+  console.assert(0 <= body.setIndex && body.setIndex < world.solverSetArray.length);
   const set = world.solverSetArray[body.setIndex];
+  console.assert(0 <= body.localIndex && body.localIndex <= set.sims.count);
   const bodySim = set.sims.data[body.localIndex];
+  console.assert(bodySim.transform != null);
+  console.assert(bodySim.transform.p != null);
+  console.assert(!Number.isNaN(bodySim.transform.p.x));
+  console.assert(!Number.isNaN(bodySim.transform.q.c));
   return bodySim.transform;
 }
 function b2GetBodyTransform(world, bodyId) {
@@ -10343,10 +10693,13 @@ function b2MakeBodyId(world, bodyId) {
   return new b2BodyId(bodyId + 1, world.worldId, body.revision);
 }
 function b2GetBodySim(world, body) {
+  console.assert(body.setIndex >= 0);
   const set = world.solverSetArray[body.setIndex];
+  console.assert(0 <= body.localIndex && body.localIndex < set.sims.count);
   return set.sims.data[body.localIndex];
 }
 function b2GetBodyState(world, body) {
+  console.assert(body.setIndex >= 0);
   if (body.setIndex === b2SetType.b2_awakeSet) {
     const set = world.solverSetArray[b2SetType.b2_awakeSet];
     return set.states.data[body.localIndex];
@@ -10354,6 +10707,10 @@ function b2GetBodyState(world, body) {
   return null;
 }
 function b2CreateIslandForBody(world, setIndex, body) {
+  console.assert(body.islandId === B2_NULL_INDEX);
+  console.assert(body.islandPrev === B2_NULL_INDEX);
+  console.assert(body.islandNext === B2_NULL_INDEX);
+  console.assert(setIndex !== b2SetType.b2_disabledSet);
   const island = b2CreateIsland(world, setIndex);
   body.islandId = island.islandId;
   island.headBody = body.id;
@@ -10374,11 +10731,16 @@ function b2RemoveBodyFromIsland(world, body) {
     const nextBody = b2GetBody(world, body.islandNext);
     nextBody.islandPrev = body.islandPrev;
   }
+  console.assert(island.bodyCount > 0);
   island.bodyCount -= 1;
   let islandDestroyed = false;
   if (island.headBody === body.id) {
     island.headBody = body.islandNext;
     if (island.headBody === B2_NULL_INDEX) {
+      console.assert(island.tailBody === body.id);
+      console.assert(island.bodyCount === 0);
+      console.assert(island.contactCount === 0);
+      console.assert(island.jointCount === 0);
       b2DestroyIsland(world, island.islandId);
       islandDestroyed = true;
     }
@@ -10404,8 +10766,17 @@ function b2DestroyBodyContacts(world, body, wakeBodies) {
   b2ValidateSolverSets(world);
 }
 function b2CreateBody(worldId, def) {
+  console.assert(b2Vec2_IsValid(def.position));
+  console.assert(b2Rot_IsValid(def.rotation));
+  console.assert(b2Vec2_IsValid(def.linearVelocity));
+  console.assert(b2IsValid(def.angularVelocity));
+  console.assert(b2IsValid(def.linearDamping) && def.linearDamping >= 0);
+  console.assert(b2IsValid(def.angularDamping) && def.angularDamping >= 0);
+  console.assert(b2IsValid(def.sleepThreshold) && def.sleepThreshold >= 0);
+  console.assert(b2IsValid(def.gravityScale));
   const world = b2GetWorldFromId(worldId);
   if (world.locked) {
+    console.warn("Cannot create body while world is locked (are you adding a body during PreSolve callback?)");
     return new b2BodyId(0, 0, 0);
   }
   const isAwake = (def.isAwake || def.enableSleep === false) && def.isEnabled;
@@ -10418,11 +10789,13 @@ function b2CreateBody(worldId, def) {
     setId = b2SetType.b2_awakeSet;
   } else {
     setId = b2AllocId(world.solverSetIdPool);
+    console.warn("new set for a sleeping body " + setId);
     if (setId === world.solverSetArray.length) {
       const set2 = new b2SolverSet();
       set2.setIndex = setId;
       world.solverSetArray.push(set2);
     } else {
+      console.assert(world.solverSetArray[setId].setIndex === B2_NULL_INDEX);
     }
     world.solverSetArray[setId].setIndex = setId;
   }
@@ -10454,8 +10827,10 @@ function b2CreateBody(worldId, def) {
     isFast: false,
     isSpeedCapped: false
   });
+  console.assert(bodySim.transform);
   if (setId === b2SetType.b2_awakeSet) {
     const bodyState = b2AddBodyState(set.states);
+    console.assert((bodyState & 31) === 0);
     Object.assign(bodyState, {
       linearVelocity: def.linearVelocity,
       angularVelocity: def.angularVelocity,
@@ -10465,6 +10840,7 @@ function b2CreateBody(worldId, def) {
   while (bodyId >= world.bodyArray.length) {
     world.bodyArray.push(new b2Body());
   }
+  console.assert(world.bodyArray[bodyId].id === B2_NULL_INDEX, "bodyId " + bodyId + " id " + world.bodyArray[bodyId].id);
   const body = world.bodyArray[bodyId];
   Object.assign(body, {
     userData: def.userData,
@@ -10540,16 +10916,19 @@ function b2DestroyBody(bodyId) {
     chainId = chain.nextChainId;
   }
   b2RemoveBodyFromIsland(world, body);
+  console.assert(body.setIndex != B2_NULL_INDEX);
   const set = world.solverSetArray[body.setIndex];
   const movedIndex = b2RemoveBodySim(set.sims, body.localIndex);
   if (movedIndex !== B2_NULL_INDEX) {
     const movedSim = set.sims.data[body.localIndex];
     const movedId = movedSim.bodyId;
     const movedBody = world.bodyArray[movedId];
+    console.assert(movedBody.localIndex === movedIndex);
     movedBody.localIndex = body.localIndex;
   }
   if (body.setIndex === b2SetType.b2_awakeSet) {
     const result = b2RemoveBodyState(set.states, body.localIndex);
+    console.assert(result === movedIndex);
   } else if (set.setIndex >= b2SetType.b2_firstSleepingSet && set.sims.count == 0) {
     b2DestroySolverSet(world, set.setIndex);
   }
@@ -10590,6 +10969,7 @@ function b2Body_GetContactData(bodyId, contactData, capacity) {
     }
     contactKey = contact.edges[edgeIndex].nextKey;
   }
+  console.assert(index <= capacity);
   return index;
 }
 function b2Body_ComputeAABB(bodyId) {
@@ -10646,12 +11026,14 @@ function b2UpdateBodyMassData(world, body) {
     localCenter = b2MulAdd(localCenter, massData.mass, massData.center);
     bodySim.inertia += massData.rotationalInertia;
   }
+  console.assert(bodySim.mass > 0, "A body has zero mass, check both density and size!");
   if (bodySim.mass > 0) {
     bodySim.invMass = 1 / bodySim.mass;
     localCenter = b2MulSV(bodySim.invMass, localCenter);
   }
   if (bodySim.inertia > 0 && body.fixedRotation === false) {
     bodySim.inertia -= bodySim.mass * b2Dot(localCenter, localCenter);
+    console.assert(bodySim.inertia > 0);
     bodySim.invInertia = 1 / bodySim.inertia;
   } else {
     bodySim.inertia = 0;
@@ -10716,9 +11098,13 @@ function b2Body_GetWorldVector(bodyId, localVector) {
   return b2RotateVector(transform.q, localVector);
 }
 function b2Body_SetTransform(bodyId, position, rotation) {
+  console.assert(b2Vec2_IsValid(position));
+  console.assert(b2Body_IsValid(bodyId));
   const world = b2GetWorld(bodyId.world0);
+  console.assert(world.locked === false);
   const body = b2GetBodyFullId(world, bodyId);
   const bodySim = b2GetBodySim(world, body);
+  console.assert(b2Rot_IsValid(rotation) || b2Rot_IsValid(bodySim.transform.q));
   bodySim.transform.p = position;
   if (rotation !== void 0) {
     bodySim.transform.q = rotation;
@@ -10846,6 +11232,7 @@ function b2Body_ApplyLinearImpulse(bodyId, impulse, point, wake) {
   if (body.setIndex === b2SetType.b2_awakeSet) {
     const localIndex = body.localIndex;
     const set = world.solverSetArray[b2SetType.b2_awakeSet];
+    console.assert(0 <= localIndex && localIndex < set.states.count);
     const state = set.states.data[localIndex];
     const bodySim = set.sims.data[localIndex];
     state.linearVelocity = b2MulAdd(state.linearVelocity, bodySim.invMass, impulse);
@@ -10861,21 +11248,25 @@ function b2Body_ApplyLinearImpulseToCenter(bodyId, impulse, wake) {
   if (body.setIndex === b2SetType.b2_awakeSet) {
     const localIndex = body.localIndex;
     const set = world.solverSetArray[b2SetType.b2_awakeSet];
+    console.assert(0 <= localIndex && localIndex < set.states.count);
     const state = set.states.data[localIndex];
     const bodySim = set.sims.data[localIndex];
     state.linearVelocity = b2MulAdd(state.linearVelocity, bodySim.invMass, impulse);
   }
 }
 function b2Body_ApplyAngularImpulse(bodyId, impulse, wake) {
+  console.assert(b2Body_IsValid(bodyId));
   const world = b2GetWorld(bodyId.world0);
   const id = bodyId.index1 - 1;
   const body = world.bodyArray[id];
+  console.assert(body.revision === bodyId.revision);
   if (wake && body.setIndex >= b2SetType.b2_firstSleepingSet) {
     b2WakeBody(world, body);
   }
   if (body.setIndex === b2SetType.b2_awakeSet) {
     const localIndex = body.localIndex;
     const set = world.solverSetArray[b2SetType.b2_awakeSet];
+    console.assert(0 <= localIndex && localIndex < set.states.count);
     const state = set.states.data[localIndex];
     const sim = set.sims.data[localIndex];
     state.angularVelocity += sim.invInertia * impulse;
@@ -10919,6 +11310,7 @@ function b2Body_SetType(bodyId, type) {
   }
   body.type = type;
   if (originalType === b2BodyType.staticBody) {
+    console.assert(body.setIndex === b2SetType.b2_staticSet);
     const staticSet = world.solverSetArray[b2SetType.b2_staticSet];
     const awakeSet = world.solverSetArray[b2SetType.b2_awakeSet];
     b2TransferBody(world, awakeSet, staticSet, body);
@@ -10934,6 +11326,7 @@ function b2Body_SetType(bodyId, type) {
         b2TransferJoint(world, staticSet, awakeSet, joint);
         b2TransferJoint(world, awakeSet, staticSet, joint);
       } else {
+        console.assert(joint.setIndex === b2SetType.b2_disabledSet);
       }
       jointKey = joint.edges[edgeIndex].nextKey;
     }
@@ -10948,6 +11341,7 @@ function b2Body_SetType(bodyId, type) {
       b2CreateShapeProxy(shape, world.broadPhase, proxyType, transform, forcePairCreation);
     }
   } else if (type === b2BodyType.b2_staticBody) {
+    console.assert(body.setIndex === b2SetType.b2_awakeSet);
     const staticSet = world.solverSetArray[b2SetType.b2_staticSet];
     const awakeSet = world.solverSetArray[b2SetType.b2_awakeSet];
     b2TransferBody(world, staticSet, awakeSet, body);
@@ -10961,11 +11355,15 @@ function b2Body_SetType(bodyId, type) {
       const otherEdgeIndex = edgeIndex ^ 1;
       const otherBody = world.bodyArray[joint.edges[otherEdgeIndex].bodyId];
       if (joint.setIndex === b2SetType.b2_disabledSet) {
+        console.assert(otherBody.setIndex === b2SetType.b2_disabledSet);
         continue;
       }
+      console.assert(joint.setIndex === b2SetType.b2_awakeSet);
       if (otherBody.setIndex === b2SetType.b2_staticSet) {
         b2TransferJoint(world, staticSet, awakeSet, joint);
       } else {
+        console.assert(otherBody.setIndex === b2SetType.b2_awakeSet);
+        console.assert(0 <= joint.colorIndex && joint.colorIndex < b2_graphColorCount);
         b2TransferJoint(world, staticSet, awakeSet, joint);
         b2TransferJoint(world, awakeSet, staticSet, joint);
       }
@@ -10980,6 +11378,8 @@ function b2Body_SetType(bodyId, type) {
       b2CreateShapeProxy(shape, world.broadPhase, b2BodyType.b2_staticBody, transform, forcePairCreation);
     }
   } else {
+    console.assert(originalType === b2BodyType.b2_dynamicBody || originalType === b2BodyType.b2_kinematicBody);
+    console.assert(type === b2BodyType.b2_dynamicBody || type === b2BodyType.b2_kinematicBody);
     const transform = b2GetBodyTransformQuick(world, body);
     let shapeId = body.headShapeId;
     while (shapeId !== B2_NULL_INDEX) {
@@ -11049,6 +11449,9 @@ function b2Body_GetWorldCenterOfMass(bodyId) {
   return bodySim.center.clone();
 }
 function b2Body_SetMassData(bodyId, massData) {
+  console.assert(b2IsValid(massData.mass) && massData.mass >= 0);
+  console.assert(b2IsValid(massData.rotationalInertia) && massData.rotationalInertia >= 0);
+  console.assert(b2Vec2_IsValid(massData.center));
   const world = b2GetWorldLocked(bodyId.world0);
   if (world === null) {
     return;
@@ -11084,6 +11487,7 @@ function b2Body_ApplyMassFromShapes(bodyId) {
   b2UpdateBodyMassData(world, body);
 }
 function b2Body_SetLinearDamping(bodyId, linearDamping) {
+  console.assert(b2IsValid(linearDamping) && linearDamping >= 0);
   const world = b2GetWorldLocked(bodyId.world0);
   if (world === null) {
     return;
@@ -11099,6 +11503,7 @@ function b2Body_GetLinearDamping(bodyId) {
   return bodySim.linearDamping;
 }
 function b2Body_SetAngularDamping(bodyId, angularDamping) {
+  console.assert(b2IsValid(angularDamping) && angularDamping >= 0);
   const world = b2GetWorldLocked(bodyId.world0);
   if (world === null) {
     return;
@@ -11114,6 +11519,8 @@ function b2Body_GetAngularDamping(bodyId) {
   return bodySim.angularDamping;
 }
 function b2Body_SetGravityScale(bodyId, gravityScale) {
+  console.assert(b2Body_IsValid(bodyId));
+  console.assert(b2IsValid(gravityScale));
   const world = b2GetWorldLocked(bodyId.world0);
   if (world === null) {
     return;
@@ -11123,6 +11530,7 @@ function b2Body_SetGravityScale(bodyId, gravityScale) {
   bodySim.gravityScale = gravityScale;
 }
 function b2Body_GetGravityScale(bodyId) {
+  console.assert(b2Body_IsValid(bodyId));
   const world = b2GetWorld(bodyId.world0);
   const body = b2GetBodyFullId(world, bodyId);
   const bodySim = b2GetBodySim(world, body);
@@ -11210,6 +11618,7 @@ function b2Body_Disable(bodyId) {
     if (joint.setIndex === b2SetType.b2_disabledSet) {
       continue;
     }
+    console.assert(joint.setIndex === set.setIndex || set.setIndex === b2SetType.b2_staticSet);
     if (joint.islandId !== B2_NULL_INDEX) {
       b2UnlinkJoint(world, joint);
     }
@@ -11249,6 +11658,8 @@ function b2Body_Enable(bodyId) {
     const jointId = jointKey >> 1;
     const edgeIndex = jointKey & 1;
     const joint = world.jointArray[jointId];
+    console.assert(joint.setIndex === b2SetType.b2_disabledSet);
+    console.assert(joint.islandId === B2_NULL_INDEX);
     jointKey = joint.edges[edgeIndex].nextKey;
     const bodyA = world.bodyArray[joint.edges[0].bodyId];
     const bodyB = world.bodyArray[joint.edges[1].bodyId];
@@ -11577,6 +11988,7 @@ function b2CreateJointArray(capacity) {
 }
 function b2AddBodySim(array) {
   if (array.capacity === 0) {
+    console.assert(array.count === 0);
     array.data = b2Alloc(B2_INITIAL_CAPACITY, () => {
       return new b2BodySim();
     });
@@ -11596,6 +12008,7 @@ function b2AddBodySim(array) {
 }
 function b2AddBodyState(array) {
   if (array.capacity === 0) {
+    console.assert(array.count === 0);
     array.data = b2Alloc(B2_INITIAL_CAPACITY, () => {
       return new b2BodyState();
     });
@@ -11615,6 +12028,7 @@ function b2AddBodyState(array) {
 }
 function b2AddContact(array) {
   if (array.capacity === 0) {
+    console.assert(array.count === 0);
     array.data = b2Alloc(B2_INITIAL_CAPACITY, () => {
       return new b2ContactSim();
     });
@@ -11636,6 +12050,7 @@ function b2AddContact(array) {
 }
 function b2AddJoint(array) {
   if (array.capacity === 0) {
+    console.assert(array.count === 0);
     array.data = b2Alloc(B2_INITIAL_CAPACITY, () => {
       return new b2JointSim();
     });
@@ -11651,10 +12066,12 @@ function b2AddJoint(array) {
     resetProperties(array.data[array.count]);
   }
   array.count += 1;
+  console.assert(array.data[array.count - 1].type !== void 0, `${new Error().stack}`);
   return array.data[array.count - 1];
 }
 function b2AddIsland(array) {
   if (array.capacity === 0) {
+    console.assert(array.count === 0);
     array.data = b2Alloc(B2_INITIAL_CAPACITY, () => {
       return new b2IslandSim();
     });
@@ -11674,6 +12091,7 @@ function b2AddIsland(array) {
   return array.data[array.count - 1];
 }
 function removeArrayIndex(array, index) {
+  console.assert(0 <= index && index < array.count);
   if (index < array.count - 1) {
     const swapA = array.data[array.count - 1];
     const swapB = array.data[index];
@@ -11939,6 +12357,7 @@ function b2CollideCapsules(capsuleA, xfA, capsuleB, xfB, manifold) {
   const d2Y = q2.y - p2.y;
   const dd1 = d1X * d1X + d1Y * d1Y;
   const dd2 = d2X * d2X + d2Y * d2Y;
+  console.assert(dd1 > epsSqr && dd2 > epsSqr, `dd1=${dd1} dd2=${dd2} (both should be > epsilon squared)`);
   const rX = p12.x - p2.x;
   const rY = p12.y - p2.y;
   const rd1 = rX * d1X + rY * d1Y;
@@ -12359,6 +12778,7 @@ function b2CollidePolygons(polygonA, xfA, polygonB, xfB, manifold) {
     if (result.fraction1 === 0 && result.fraction2 === 0) {
       let normalX = v21.x - v11.x;
       let normalY = v21.y - v11.y;
+      console.assert(result.distanceSquared > 0);
       const distance = Math.sqrt(result.distanceSquared);
       if (distance > b2_speculativeDistance + radius) {
         return manifold.clear();
@@ -12381,6 +12801,7 @@ function b2CollidePolygons(polygonA, xfA, polygonB, xfB, manifold) {
     } else if (result.fraction1 === 0 && result.fraction2 === 1) {
       let normalX = v22.x - v11.x;
       let normalY = v22.y - v11.y;
+      console.assert(result.distanceSquared > 0);
       const distance = Math.sqrt(result.distanceSquared);
       if (distance > b2_speculativeDistance + radius) {
         return manifold.clear();
@@ -12404,6 +12825,7 @@ function b2CollidePolygons(polygonA, xfA, polygonB, xfB, manifold) {
     } else if (result.fraction1 === 1 && result.fraction2 === 0) {
       let normalX = v21.x - v12.x;
       let normalY = v21.y - v12.y;
+      console.assert(result.distanceSquared > 0);
       const distance = Math.sqrt(result.distanceSquared);
       if (distance > b2_speculativeDistance + radius) {
         return manifold.clear();
@@ -12427,6 +12849,7 @@ function b2CollidePolygons(polygonA, xfA, polygonB, xfB, manifold) {
     } else if (result.fraction1 === 1 && result.fraction2 === 1) {
       let normalX = v22.x - v12.x;
       let normalY = v22.y - v12.y;
+      console.assert(result.distanceSquared > 0);
       const distance = Math.sqrt(result.distanceSquared);
       if (distance > b2_speculativeDistance + radius) {
         return manifold.clear();
@@ -12697,11 +13120,13 @@ function b2CollideChainSegmentAndPolygon(chainSegmentA, xfA, polygonB, xfB, cach
       }
       incidentIndex = cache.indexB[0];
     } else {
+      console.assert(cache.count == 2);
       const ia1 = cache.indexA[0];
       const ia2 = cache.indexA[1];
       let ib12 = cache.indexB[0];
       let ib22 = cache.indexB[1];
       if (ia1 == ia2) {
+        console.assert(ib12 != ib22);
         let normalB = b2Sub(output.pointA, output.pointB);
         let dot1 = b2Dot(normalB, normals[ib12]);
         let dot2 = b2Dot(normalB, normals[ib22]);
@@ -12841,6 +13266,7 @@ function b2CollideChainSegmentAndPolygon(chainSegmentA, xfA, polygonB, xfB, cach
       return manifold.clear();
     }
   }
+  console.assert(incidentNormal != -1 || incidentIndex != -1);
   let b1, b2;
   let ib1, ib2;
   if (incidentNormal != -1) {
@@ -13009,6 +13435,8 @@ function b2ChainSegmentAndPolygonManifold(shapeA, xfA, shapeB, xfB, cache, manif
   return b2CollideChainSegmentAndPolygon(shapeA.chainSegment, xfA, shapeB.polygon, xfB, cache, manifold);
 }
 function b2AddType(fcn, type1, type2) {
+  console.assert(0 <= type1 && type1 < b2ShapeType.b2_shapeTypeCount);
+  console.assert(0 <= type2 && type2 < b2ShapeType.b2_shapeTypeCount);
   s_registers[type1][type2].fcn = fcn;
   s_registers[type1][type2].primary = true;
   if (type1 != type2) {
@@ -13111,6 +13539,7 @@ function b2CreateContact(world, shapeA, shapeB) {
   contactSim.contactId = contactId;
   contactSim._bodyIdA = shapeA.bodyId;
   contactSim._bodyIdB = shapeB.bodyId;
+  console.assert(contactSim._bodyIdA !== contactSim._bodyIdB);
   contactSim.bodySimIndexA = B2_NULL_INDEX;
   contactSim.bodySimIndexB = B2_NULL_INDEX;
   contactSim.invMassA = 0;
@@ -13144,10 +13573,14 @@ function b2DestroyContact(world, contact, wakeBodies) {
     const shapeIdA = new b2ShapeId(shapeA.id + 1, worldId, shapeA.revision);
     const shapeIdB = new b2ShapeId(shapeB.id + 1, worldId, shapeB.revision);
     if ((flags & b2ContactFlags.b2_contactTouchingFlag) != 0 && (flags & b2ContactFlags.b2_contactEnableContactEvents) != 0) {
+      console.assert((flags & b2ContactFlags.b2_contactSensorFlag) == 0);
       const event = new b2ContactEndTouchEvent(shapeIdA, shapeIdB);
       world.contactEndArray.push(event);
     }
     if ((flags & b2ContactFlags.b2_contactSensorTouchingFlag) != 0 && (flags & b2ContactFlags.b2_contactEnableSensorEvents) != 0) {
+      console.assert((flags & b2ContactFlags.b2_contactSensorFlag) != 0);
+      console.assert(shapeA.isSensor == true || shapeB.isSensor == true);
+      console.assert(shapeA.isSensor != shapeB.isSensor);
       const event = new b2SensorEndTouchEvent();
       if (shapeA.isSensor) {
         event.sensorShapeId = shapeIdA;
@@ -13194,8 +13627,10 @@ function b2DestroyContact(world, contact, wakeBodies) {
     b2UnlinkContact(world, contact);
   }
   if (contact.colorIndex !== B2_NULL_INDEX) {
+    console.assert(contact.setIndex == b2SetType.b2_awakeSet);
     b2RemoveContactFromGraph(world, bodyIdA, bodyIdB, contact.colorIndex, contact.localIndex);
   } else {
+    console.assert(contact.setIndex != b2SetType.b2_awakeSet || (contact.flags & b2ContactFlags.b2_contactTouchingFlag) == 0 || (contact.flags & b2ContactFlags.b2_contactSensorFlag) != 0);
     const set = world.solverSetArray[contact.setIndex];
     const movedIndex = b2RemoveContact(set.contacts, contact.localIndex);
     if (movedIndex !== B2_NULL_INDEX) {
@@ -13215,11 +13650,14 @@ function b2DestroyContact(world, contact, wakeBodies) {
 }
 function b2GetContactSim(world, contact) {
   if (contact.setIndex === b2SetType.b2_awakeSet && contact.colorIndex !== B2_NULL_INDEX) {
+    console.assert(0 <= contact.colorIndex && contact.colorIndex < b2_graphColorCount);
     const color = world.constraintGraph.colors[contact.colorIndex];
+    console.assert(0 <= contact.localIndex && contact.localIndex < color.contacts.count);
     const sim = color.contacts.data[contact.localIndex];
     return sim;
   }
   const set = world.solverSetArray[contact.setIndex];
+  console.assert(0 <= contact.localIndex && contact.localIndex <= set.contacts.count);
   return set.contacts.data[contact.localIndex];
 }
 function b2ShouldShapesCollide(filterA, filterB) {
@@ -13365,6 +13803,7 @@ function b2UnBufferMove(bp, proxyKey) {
   }
 }
 function b2BroadPhase_CreateProxy(bp, proxyType, aabb, categoryBits, shapeIndex, forcePairCreation) {
+  console.assert(0 <= proxyType && proxyType < b2BodyType.b2_bodyTypeCount);
   const proxyId = b2DynamicTree_CreateProxy(bp.trees[proxyType], aabb, categoryBits, shapeIndex);
   const proxyKey = B2_PROXY_KEY(proxyId, proxyType);
   if (proxyType !== b2BodyType.b2_staticBody || forcePairCreation) {
@@ -13373,9 +13812,11 @@ function b2BroadPhase_CreateProxy(bp, proxyType, aabb, categoryBits, shapeIndex,
   return proxyKey;
 }
 function b2BroadPhase_DestroyProxy(bp, proxyKey) {
+  console.assert(bp.moveArray.length === bp.moveSet.size);
   b2UnBufferMove(bp, proxyKey);
   const proxyType = B2_PROXY_TYPE(proxyKey);
   const proxyId = B2_PROXY_ID(proxyKey);
+  console.assert(0 <= proxyType && proxyType <= b2BodyType.b2_bodyTypeCount);
   b2DynamicTree_DestroyProxy(bp.trees[proxyType], proxyId);
 }
 function b2BroadPhase_MoveProxy(bp, proxyKey, aabb) {
@@ -13385,8 +13826,10 @@ function b2BroadPhase_MoveProxy(bp, proxyKey, aabb) {
   b2BufferMove(bp, proxyKey);
 }
 function b2BroadPhase_EnlargeProxy(bp, proxyKey, aabb) {
+  console.assert(proxyKey !== B2_NULL_INDEX);
   const typeIndex = B2_PROXY_TYPE(proxyKey);
   const proxyId = B2_PROXY_ID(proxyKey);
+  console.assert(typeIndex !== b2BodyType.b2_staticBody);
   b2DynamicTree_EnlargeProxy(bp.trees[typeIndex], proxyId, aabb);
   b2BufferMove(bp, proxyKey);
 }
@@ -13625,16 +14068,24 @@ var b2TaskContext = class {
   }
 };
 function b2GetWorldFromId(id) {
+  console.assert(1 <= id.index1 && id.index1 <= B2_MAX_WORLDS);
   const world = b2_worlds[id.index1 - 1];
+  console.assert(id.index1 === world.worldId + 1);
+  console.assert(id.revision === world.revision);
   return world;
 }
 function b2GetWorld(index) {
+  console.assert(0 <= index && index < B2_MAX_WORLDS);
   const world = b2_worlds[index];
+  console.assert(world.worldId === index);
   return world;
 }
 function b2GetWorldLocked(index) {
+  console.assert(0 <= index && index < B2_MAX_WORLDS);
   const world = b2_worlds[index];
+  console.assert(world.worldId === index);
   if (world.locked) {
+    console.assert(false);
     return null;
   }
   return world;
@@ -13678,12 +14129,15 @@ function b2CreateWorld(def) {
   set = new b2SolverSet();
   set.setIndex = b2AllocId(world.solverSetIdPool);
   world.solverSetArray.push(set);
+  console.assert(world.solverSetArray[b2SetType.b2_staticSet].setIndex === b2SetType.b2_staticSet);
   set = new b2SolverSet();
   set.setIndex = b2AllocId(world.solverSetIdPool);
   world.solverSetArray.push(set);
+  console.assert(world.solverSetArray[b2SetType.b2_disabledSet].setIndex === b2SetType.b2_disabledSet);
   set = new b2SolverSet();
   set.setIndex = b2AllocId(world.solverSetIdPool);
   world.solverSetArray.push(set);
+  console.assert(world.solverSetArray[b2SetType.b2_awakeSet].setIndex === b2SetType.b2_awakeSet);
   world.shapeIdPool = b2CreateIdPool("shapeId");
   world.shapeArray = [];
   world.chainIdPool = b2CreateIdPool("chainId");
@@ -13756,6 +14210,7 @@ function b2DestroyWorld(worldId) {
     if (chain.id !== B2_NULL_INDEX) {
       chain.shapeIndices = null;
     } else {
+      console.assert(chain.shapeIndices === null);
     }
   }
   world.bodyArray = null;
@@ -13792,10 +14247,12 @@ var centerOffsetB = new b2Vec2();
 function b2CollideTask(startIndex, endIndex, threadIndex, context) {
   const stepContext = context;
   const world = stepContext.world;
+  console.assert(threadIndex < world.workerCount);
   const taskContext = world.taskContextArray[threadIndex];
   const contactSims = stepContext.contacts;
   const shapes = world.shapeArray;
   const bodies = world.bodyArray;
+  console.assert(startIndex < endIndex);
   for (let i = startIndex; i < endIndex; ++i) {
     const contactSim = contactSims[i];
     const contactId = contactSim.contactId;
@@ -13836,6 +14293,7 @@ function b2CollideTask(startIndex, endIndex, threadIndex, context) {
   }
 }
 function b2AddNonTouchingContact(world, contact, contactSim) {
+  console.assert(contact.setIndex === b2SetType.b2_awakeSet);
   const set = world.solverSetArray[b2SetType.b2_awakeSet];
   contact.colorIndex = B2_NULL_INDEX;
   contact.localIndex = set.contacts.count;
@@ -13848,11 +14306,15 @@ function b2RemoveNonTouchingContact(world, setIndex, localIndex) {
   if (movedIndex !== B2_NULL_INDEX) {
     const movedContactSim = set.contacts.data[localIndex];
     const movedContact = world.contactArray[movedContactSim.contactId];
+    console.assert(movedContact.setIndex === setIndex);
+    console.assert(movedContact.localIndex === movedIndex);
+    console.assert(movedContact.colorIndex === B2_NULL_INDEX);
     movedContact.localIndex = localIndex;
   }
 }
 function b2Collide(context) {
   const world = context.world;
+  console.assert(world.workerCount > 0);
   b2BroadPhase_RebuildTrees(world.broadPhase);
   let contactCount = 0;
   const graphColors = world.constraintGraph.colors;
@@ -13871,6 +14333,8 @@ function b2Collide(context) {
     const count = color.contacts.count;
     const base = color.contacts.data;
     for (let j = 0; j < count; ++j) {
+      console.assert(base[j]._bodyIdA !== B2_NULL_INDEX, `${j} ${i} ${color} ${contactIndex}`);
+      console.assert(base[j]._bodyIdB !== B2_NULL_INDEX, `${j} ${i} ${color} ${contactIndex}`);
       contactSims.push(base[j]);
       contactIndex += 1;
     }
@@ -13878,10 +14342,15 @@ function b2Collide(context) {
   {
     const base = world.solverSetArray[b2SetType.b2_awakeSet].contacts.data;
     for (let i = 0; i < nonTouchingCount; ++i) {
+      console.assert(base[i]._bodyIdA !== B2_NULL_INDEX, `${i} ${contactIndex}`);
+      console.assert(base[i]._bodyIdB !== B2_NULL_INDEX, `${i} ${contactIndex}`);
       contactSims.push(base[i]);
+      console.assert(contactSims[contactIndex]._bodyIdA !== B2_NULL_INDEX, `${i} ${contactIndex}`);
+      console.assert(contactSims[contactIndex]._bodyIdB !== B2_NULL_INDEX, `${i} ${contactIndex}`);
       contactIndex += 1;
     }
   }
+  console.assert(contactIndex == contactCount);
   context.contacts = contactSims;
   const contactIdCapacity = b2GetIdCapacity(world.contactIdPool);
   for (let i = 0; i < world.workerCount; ++i) {
@@ -13903,13 +14372,17 @@ function b2Collide(context) {
       const ctz = b2CTZ64(bits);
       const contactId = 64 * k + ctz;
       const contact = contacts[contactId];
+      console.assert(contact.setIndex == b2SetType.b2_awakeSet);
       const colorIndex = contact.colorIndex;
       const localIndex = contact.localIndex;
       let contactSim;
       if (colorIndex != B2_NULL_INDEX) {
+        console.assert(0 <= colorIndex && colorIndex < b2_graphColorCount);
         const color = graphColors[colorIndex];
+        console.assert(0 <= localIndex && localIndex < color.contacts.count);
         contactSim = color.contacts.data[localIndex];
       } else {
+        console.assert(0 <= localIndex && localIndex < awakeSet.contacts.count);
         contactSim = awakeSet.contacts.data[localIndex];
       }
       const shapeA = shapes[contact.shapeIdA];
@@ -13928,6 +14401,7 @@ function b2Collide(context) {
         contact.flags &= ~b2ContactFlags.b2_contactTouchingFlag;
         b2DestroyContact(world, contact, false);
       } else if (simFlags & b2ContactSimFlags.b2_simStartedTouching) {
+        console.assert(contact.islandId == B2_NULL_INDEX);
         if ((flags & b2ContactFlags.b2_contactSensorFlag) != 0) {
           if ((flags & b2ContactFlags.b2_contactEnableSensorEvents) != 0) {
             if (shapeA.isSensor) {
@@ -13953,8 +14427,13 @@ function b2Collide(context) {
             event.manifold = contactSim.manifold;
             world.contactBeginArray.push(event);
           }
+          console.assert(contactSim.manifold.pointCount > 0);
+          console.assert(contact.setIndex == b2SetType.b2_awakeSet);
           contact.flags |= b2ContactFlags.b2_contactTouchingFlag;
           b2LinkContact(world, contact);
+          console.assert(contact.colorIndex == B2_NULL_INDEX);
+          console.assert(contact.localIndex == localIndex);
+          console.assert(0 <= localIndex && localIndex < awakeSet.contacts.count);
           contactSim = awakeSet.contacts.data[localIndex];
           contactSim.simFlags &= ~b2ContactSimFlags.b2_simStartedTouching;
           b2AddContactToGraph(world, contactSim, contact);
@@ -13986,6 +14465,7 @@ function b2Collide(context) {
             event.shapeIdB = shapeIdB;
             world.contactEndArray.push(event);
           }
+          console.assert(contactSim.manifold.pointCount == 0);
           b2UnlinkContact(world, contact);
           const bodyIdA = contact.edges[0].bodyId;
           const bodyIdB = contact.edges[1].bodyId;
@@ -14014,6 +14494,7 @@ GlobalDebug.b2SweepCount = 0;
 function b2World_Step(worldId, timeStep, subStepCount) {
   GlobalDebug.b2FrameCount++;
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
@@ -14055,6 +14536,7 @@ function b2World_Step(worldId, timeStep, subStepCount) {
     b2Solve(world, context);
   }
   world.locked = false;
+  console.assert(b2GetStackAllocation(world.stackAllocator) == 0, `world.stackAllocator entries not empty ${b2GetStackAllocation(world.stackAllocator)}`);
 }
 var p13 = new b2Vec2();
 var p22 = new b2Vec2();
@@ -14176,6 +14658,7 @@ function DrawQueryCallback(proxyId, shapeId, context) {
   return true;
 }
 function b2DrawWithBounds(world, draw) {
+  console.assert(b2AABB_IsValid(draw.drawingBounds));
   const k_impulseScale = 1;
   const k_axisScale = 0.3;
   const speculativeColor = b2HexColor.b2_colorGray3;
@@ -14256,7 +14739,9 @@ function b2DrawWithBounds(world, draw) {
             continue;
           }
           if (b2GetBit2(world.debugContactSet, contactId) === false) {
+            console.assert(0 <= contact.colorIndex && contact.colorIndex < b2_graphColorCount);
             const gc = world.constraintGraph.colors[contact.colorIndex];
+            console.assert(0 <= contact.localIndex && contact.localIndex < gc.contacts.count);
             const contactSim = gc.contacts.data[contact.localIndex];
             const pointCount = contactSim.manifold.pointCount;
             const normal = new b2Vec2(contactSim.manifold.normalX, contactSim.manifold.normalY);
@@ -14303,6 +14788,7 @@ function b2DrawWithBounds(world, draw) {
 }
 function b2World_Draw(worldId, draw) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked === false);
   if (world.locked) {
     return;
   }
@@ -14317,7 +14803,9 @@ function b2World_Draw(worldId, draw) {
       const bodyCount = set.sims.count;
       for (let bodyIndex = 0; bodyIndex < bodyCount; ++bodyIndex) {
         const bodySim = set.sims.data[bodyIndex];
+        console.assert(bodySim.transform != null, "transform is null for body " + bodySim.bodyId + " " + setIndex + " " + bodyIndex);
         const body = world.bodyArray[bodySim.bodyId];
+        console.assert(body.setIndex === setIndex, `body.setIndex is wrong: ${body.setIndex} != ${setIndex}`);
         const xf2 = bodySim.transform;
         let shapeId = body.headShapeId;
         while (shapeId !== B2_NULL_INDEX) {
@@ -14374,6 +14862,7 @@ function b2World_Draw(worldId, draw) {
         const bodySim = set.sims.data[bodyIndex];
         const xf2 = b2Transform.identity();
         const body = world.bodyArray[bodySim.bodyId];
+        console.assert(body.setIndex === setIndex);
         let shapeId = body.headShapeId;
         while (shapeId !== B2_NULL_INDEX) {
           const shape = world.shapeArray[shapeId];
@@ -14475,6 +14964,7 @@ function b2World_Draw(worldId, draw) {
 }
 function b2World_GetBodyEvents(worldId) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return new b2BodyEvents();
   }
@@ -14486,6 +14976,7 @@ function b2World_GetBodyEvents(worldId) {
 }
 function b2World_GetSensorEvents(worldId) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return new b2SensorEvents();
   }
@@ -14500,6 +14991,7 @@ function b2World_GetSensorEvents(worldId) {
 }
 function b2World_GetContactEvents(worldId) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return new b2ContactEvents();
   }
@@ -14533,6 +15025,8 @@ function b2Body_IsValid(id) {
     return false;
   }
   if (!(id instanceof b2BodyId)) {
+    console.error(`Invalid ID:
+${new Error().stack}`);
     return false;
   }
   if (id.world0 < 0 || B2_MAX_WORLDS <= id.world0) {
@@ -14549,6 +15043,7 @@ function b2Body_IsValid(id) {
   if (body.setIndex === B2_NULL_INDEX) {
     return false;
   }
+  console.assert(body.localIndex != B2_NULL_INDEX);
   if (body.revision !== id.revision) {
     return false;
   }
@@ -14573,6 +15068,7 @@ function b2Shape_IsValid(id) {
   if (shape.id === B2_NULL_INDEX) {
     return false;
   }
+  console.assert(shape.id == shapeId);
   return id.revision === shape.revision;
 }
 function b2Chain_IsValid(id) {
@@ -14594,6 +15090,7 @@ function b2Chain_IsValid(id) {
   if (chain.id === B2_NULL_INDEX) {
     return false;
   }
+  console.assert(chain.id == chainId);
   return id.revision === chain.revision;
 }
 function b2Joint_IsValid(id) {
@@ -14615,10 +15112,12 @@ function b2Joint_IsValid(id) {
   if (joint.jointId === B2_NULL_INDEX) {
     return false;
   }
+  console.assert(joint.jointId == jointId);
   return id.revision === joint.revision;
 }
 function b2World_EnableSleeping(worldId, flag) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
@@ -14638,6 +15137,7 @@ function b2World_EnableSleeping(worldId, flag) {
 }
 function b2World_EnableWarmStarting(worldId, flag) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
@@ -14645,6 +15145,7 @@ function b2World_EnableWarmStarting(worldId, flag) {
 }
 function b2World_EnableContinuous(worldId, flag) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
@@ -14652,6 +15153,7 @@ function b2World_EnableContinuous(worldId, flag) {
 }
 function b2World_SetRestitutionThreshold(worldId, value) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
@@ -14659,6 +15161,7 @@ function b2World_SetRestitutionThreshold(worldId, value) {
 }
 function b2World_SetHitEventThreshold(worldId, value) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
@@ -14666,6 +15169,7 @@ function b2World_SetHitEventThreshold(worldId, value) {
 }
 function b2World_SetContactTuning(worldId, hertz, dampingRatio, pushOut) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
@@ -14696,9 +15200,11 @@ var WorldQueryContext = class {
 };
 function b2World_OverlapAABB(worldId, aabb, filter, fcn, context) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
+  console.assert(b2AABB_IsValid(aabb));
   const worldContext = new WorldQueryContext(world, fcn, filter, context);
   for (let i = 0; i < b2BodyType.b2_bodyTypeCount; ++i) {
     b2DynamicTree_Query(world.broadPhase.trees[i], aabb, filter.maskBits, TreeQueryCallback, worldContext);
@@ -14732,9 +15238,12 @@ function TreeOverlapCallback(proxyId, shapeId, context) {
 }
 function b2World_OverlapCircle(worldId, circle, transform, filter, fcn, context) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
+  console.assert(b2Vec2_IsValid(transform.p));
+  console.assert(b2Rot_IsValid(transform.q));
   const aabb = b2ComputeCircleAABB(circle, transform);
   const worldContext = new WorldOverlapContext();
   worldContext.world = world;
@@ -14749,9 +15258,12 @@ function b2World_OverlapCircle(worldId, circle, transform, filter, fcn, context)
 }
 function b2World_OverlapCapsule(worldId, capsule, transform, filter, fcn, context) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
+  console.assert(b2Vec2_IsValid(transform.p));
+  console.assert(b2Rot_IsValid(transform.q));
   const aabb = b2ComputeCapsuleAABB(capsule, transform);
   const worldContext = new WorldOverlapContext();
   worldContext.world = world;
@@ -14766,9 +15278,12 @@ function b2World_OverlapCapsule(worldId, capsule, transform, filter, fcn, contex
 }
 function b2World_OverlapPolygon(worldId, polygon, transform, filter, fcn, context) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
+  console.assert(b2Vec2_IsValid(transform.p));
+  console.assert(b2Rot_IsValid(transform.q));
   const aabb = b2ComputePolygonAABB(polygon, transform);
   const worldContext = new WorldOverlapContext();
   worldContext.world = world;
@@ -14804,9 +15319,12 @@ function RayCastCallback(input, proxyId, shapeId, context) {
 }
 function b2World_CastRay(worldId, origin, translation, filter, fcn, context) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
+  console.assert(b2Vec2_IsValid(origin));
+  console.assert(b2Vec2_IsValid(translation));
   const input = new b2RayCastInput();
   input.origin = origin;
   input.translation = translation;
@@ -14837,9 +15355,12 @@ function b2RayCastClosestFcn(shapeId, point, normal, fraction, context) {
 function b2World_CastRayClosest(worldId, origin, translation, filter) {
   const result = new b2RayResult();
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return result;
   }
+  console.assert(b2Vec2_IsValid(origin));
+  console.assert(b2Vec2_IsValid(translation));
   const input = new b2RayCastInput();
   input.origin = origin;
   input.translation = translation;
@@ -14880,9 +15401,13 @@ function ShapeCastCallback(input, proxyId, shapeId, context) {
 }
 function b2World_CastCircle(worldId, circle, originTransform, translation, filter, fcn, context) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
+  console.assert(b2Vec2_IsValid(originTransform.p));
+  console.assert(b2Rot_IsValid(originTransform.q));
+  console.assert(b2Vec2_IsValid(translation));
   const input = new b2ShapeCastInput();
   input.points = [b2TransformPoint(originTransform, circle.center)];
   input.count = 1;
@@ -14905,9 +15430,13 @@ function b2World_CastCircle(worldId, circle, originTransform, translation, filte
 }
 function b2World_CastCapsule(worldId, capsule, originTransform, translation, filter, fcn, context) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
+  console.assert(b2Vec2_IsValid(originTransform.p));
+  console.assert(b2Rot_IsValid(originTransform.q));
+  console.assert(b2Vec2_IsValid(translation));
   const input = new b2ShapeCastInput();
   input.points = [b2TransformPoint(originTransform, capsule.center1), b2TransformPoint(originTransform, capsule.center2)];
   input.count = 2;
@@ -14930,9 +15459,13 @@ function b2World_CastCapsule(worldId, capsule, originTransform, translation, fil
 }
 function b2World_CastPolygon(worldId, polygon, originTransform, translation, filter, fcn, context) {
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked == false);
   if (world.locked) {
     return;
   }
+  console.assert(b2Vec2_IsValid(originTransform.p));
+  console.assert(b2Rot_IsValid(originTransform.q));
+  console.assert(b2Vec2_IsValid(translation));
   const input = new b2ShapeCastInput();
   input.points = polygon.vertices.map((vertex) => b2TransformPoint(originTransform, vertex));
   input.count = polygon.count;
@@ -15015,6 +15548,7 @@ function ExplosionCallback(proxyId, shapeId, context) {
   const impulse = b2MulSV(magnitude, direction);
   const localIndex = body.localIndex;
   const set = world.solverSetArray[b2SetType.b2_awakeSet];
+  console.assert(0 <= localIndex && localIndex < set.states.count);
   const state = set.states.data[localIndex];
   const bodySim = set.sims.data[localIndex];
   state.linearVelocity = b2MulAdd(state.linearVelocity, bodySim.invMass, impulse);
@@ -15022,7 +15556,11 @@ function ExplosionCallback(proxyId, shapeId, context) {
   return true;
 }
 function b2World_Explode(worldId, position, radius, magnitude) {
+  console.assert(b2Vec2_IsValid(position));
+  console.assert(b2IsValid(radius) && radius > 0);
+  console.assert(b2IsValid(magnitude));
   const world = b2GetWorldFromId(worldId);
+  console.assert(world.locked === false);
   if (world.locked) {
     return;
   }
@@ -15050,10 +15588,13 @@ function b2GetRootIslandId(world, islandId) {
   return rootId;
 }
 function b2CheckId(a, id) {
+  console.assert(0 <= id && id < a.length && a[id].id == id);
 }
 function b2CheckIndex(a, i) {
   if (Array.isArray(a)) {
+    console.assert(0 <= i && i < a.length);
   } else {
+    console.assert(0 <= i && i < a.count);
   }
 }
 function b2ValidateConnectivity(world) {
@@ -15066,6 +15607,7 @@ function b2ValidateConnectivity(world) {
     if (body.id === B2_NULL_INDEX) {
       continue;
     }
+    console.assert(bodyIndex === body.id);
     const bodyIslandId = b2GetRootIslandId(world, body.islandId);
     const bodySetIndex = body.setIndex;
     let contactKey = body.headContactKey;
@@ -15077,8 +15619,10 @@ function b2ValidateConnectivity(world) {
       if (touching && (contact.flags & b2ContactFlags.b2_contactSensorFlag) === 0) {
         if (bodySetIndex !== b2SetType.b2_staticSet) {
           const contactIslandId = b2GetRootIslandId(world, contact.islandId);
+          console.assert(contactIslandId === bodyIslandId);
         }
       } else {
+        console.assert(contact.islandId === B2_NULL_INDEX);
       }
       contactKey = contact.edges[edgeIndex].nextKey;
     }
@@ -15090,11 +15634,14 @@ function b2ValidateConnectivity(world) {
       const otherEdgeIndex = edgeIndex ^ 1;
       const otherBody = world.bodyArray[joint.edges[otherEdgeIndex].bodyId];
       if (bodySetIndex === b2SetType.b2_disabledSet || otherBody.setIndex === b2SetType.b2_disabledSet) {
+        console.assert(joint.islandId === B2_NULL_INDEX);
       } else if (bodySetIndex === b2SetType.b2_staticSet) {
         if (otherBody.setIndex === b2SetType.b2_staticSet) {
+          console.assert(joint.islandId === B2_NULL_INDEX);
         }
       } else {
         const jointIslandId = b2GetRootIslandId(world, joint.islandId);
+        console.assert(jointIslandId === bodyIslandId);
       }
       jointKey = joint.edges[edgeIndex].nextKey;
     }
@@ -15115,29 +15662,45 @@ function b2ValidateSolverSets(world) {
     if (set.setIndex !== B2_NULL_INDEX) {
       activeSetCount += 1;
       if (setIndex === b2SetType.b2_staticSet) {
+        console.assert(set.contacts.count === 0);
+        console.assert(set.islands.count === 0);
+        console.assert(set.states.count === 0);
       } else if (setIndex === b2SetType.b2_awakeSet) {
+        console.assert(set.sims.count === set.states.count);
+        console.assert(set.joints.count === 0);
       } else if (setIndex === b2SetType.b2_disabledSet) {
+        console.assert(set.islands.count === 0);
+        console.assert(set.states.count === 0);
       } else {
+        console.assert(set.states.count === 0);
       }
       {
         const bodies = world.bodyArray;
+        console.assert(set.sims.count >= 0);
         totalBodyCount += set.sims.count;
         for (let i = 0; i < set.sims.count; ++i) {
           const bodySim = set.sims.data[i];
           const bodyId = bodySim.bodyId;
           b2CheckIndex(bodies, bodyId);
           const body = bodies[bodyId];
+          console.assert(body.setIndex === setIndex);
+          console.assert(body.localIndex === i);
           if (setIndex === b2SetType.b2_disabledSet) {
+            console.assert(body.headContactKey === B2_NULL_INDEX);
           }
           let prevShapeId = B2_NULL_INDEX;
           let shapeId = body.headShapeId;
           while (shapeId !== B2_NULL_INDEX) {
             b2CheckId(world.shapeArray, shapeId);
             const shape = world.shapeArray[shapeId];
+            console.assert(shape.prevShapeId === prevShapeId);
             if (setIndex === b2SetType.b2_disabledSet) {
+              console.assert(shape.proxyKey === B2_NULL_INDEX);
             } else if (setIndex === b2SetType.b2_staticSet) {
+              console.assert(B2_PROXY_TYPE(shape.proxyKey) === b2BodyType.b2_staticBody);
             } else {
               const proxyType = B2_PROXY_TYPE(shape.proxyKey);
+              console.assert(proxyType === b2BodyType.b2_kinematicBody || proxyType === b2BodyType.b2_dynamicBody);
             }
             prevShapeId = shapeId;
             shapeId = shape.nextShapeId;
@@ -15148,6 +15711,8 @@ function b2ValidateSolverSets(world) {
             const edgeIndex = contactKey & 1;
             b2CheckIndex(world.contactArray, contactId);
             const contact = world.contactArray[contactId];
+            console.assert(contact.setIndex !== b2SetType.b2_staticSet);
+            console.assert(contact.edges[0].bodyId === bodyId || contact.edges[1].bodyId === bodyId);
             contactKey = contact.edges[edgeIndex].nextKey;
           }
           let jointKey = body.headJointKey;
@@ -15156,60 +15721,96 @@ function b2ValidateSolverSets(world) {
             const edgeIndex = jointKey & 1;
             b2CheckIndex(world.jointArray, jointId);
             const joint = world.jointArray[jointId];
+            console.assert(joint.jointId == jointId);
             const otherEdgeIndex = edgeIndex ^ 1;
             b2CheckIndex(world.bodyArray, joint.edges[otherEdgeIndex].bodyId);
             const otherBody = world.bodyArray[joint.edges[otherEdgeIndex].bodyId];
             if (setIndex === b2SetType.b2_disabledSet || otherBody.setIndex === b2SetType.b2_disabledSet) {
+              console.assert(joint.setIndex === b2SetType.b2_disabledSet);
             } else if (setIndex === b2SetType.b2_staticSet && otherBody.setIndex === b2SetType.b2_staticSet) {
+              console.assert(joint.setIndex === b2SetType.b2_staticSet);
             } else if (setIndex === b2SetType.b2_awakeSet) {
+              console.assert(joint.setIndex === b2SetType.b2_awakeSet);
             } else if (setIndex >= b2SetType.b2_firstSleepingSet) {
+              console.assert(joint.setIndex === setIndex);
             }
             const jointSim = b2GetJointSim(world, joint);
+            console.assert(jointSim.jointId === jointId);
+            console.assert(jointSim.bodyIdA === joint.edges[0].bodyId);
+            console.assert(jointSim.bodyIdB === joint.edges[1].bodyId);
             jointKey = joint.edges[edgeIndex].nextKey;
           }
         }
       }
       {
         const contacts = world.contactArray;
+        console.assert(set.contacts.count >= 0);
         totalContactCount += set.contacts.count;
         for (let i = 0; i < set.contacts.count; ++i) {
           const contactSim = set.contacts.data[i];
+          console.assert(0 <= contactSim.contactId && contactSim.contactId < contacts.length);
           const contact = contacts[contactSim.contactId];
           if (setIndex === b2SetType.b2_awakeSet) {
+            console.assert(contactSim.manifold.pointCount === 0 || (contactSim.simFlags & b2ContactSimFlags.b2_simStartedTouching) !== 0);
           }
+          console.assert(contact.setIndex === setIndex);
+          console.assert(contact.colorIndex === B2_NULL_INDEX);
+          console.assert(contact.localIndex === i);
         }
       }
       {
         const joints = world.jointArray;
+        console.assert(set.joints.count >= 0);
         totalJointCount += set.joints.count;
         for (let i = 0; i < set.joints.count; ++i) {
           const jointSim = set.joints.data[i];
+          console.assert(0 <= jointSim.jointId && jointSim.jointId < joints.length);
           const joint = joints[jointSim.jointId];
+          console.assert(joint.setIndex === setIndex);
+          console.assert(joint.colorIndex === B2_NULL_INDEX);
+          console.assert(joint.localIndex === i);
         }
       }
       {
         const islands = world.islandArray;
+        console.assert(set.islands.count >= 0);
         totalIslandCount += set.islands.count;
         for (let i = 0; i < set.islands.count; ++i) {
           const islandSim = set.islands.data[i];
+          console.assert(0 <= islandSim.islandId && islandSim.islandId < islands.length);
           const island = islands[islandSim.islandId];
+          console.assert(island.setIndex === setIndex);
+          console.assert(island.localIndex === i);
         }
       }
     } else {
+      console.assert(set.sims.count === 0);
+      console.assert(set.contacts.count === 0);
+      console.assert(set.joints.count === 0);
+      console.assert(set.islands.count === 0);
+      console.assert(set.states.count === 0);
     }
   }
   const setIdCount = b2GetIdCount(world.solverSetIdPool);
+  console.assert(activeSetCount === setIdCount);
   const bodyIdCount = b2GetIdCount(world.bodyIdPool);
+  console.assert(totalBodyCount === bodyIdCount);
   const islandIdCount = b2GetIdCount(world.islandIdPool);
+  console.assert(totalIslandCount === islandIdCount);
   for (let colorIndex = 0; colorIndex < b2_graphColorCount; ++colorIndex) {
     const color = world.constraintGraph.colors[colorIndex];
     {
       const contacts = world.contactArray;
+      console.assert(color.contacts.count >= 0);
       totalContactCount += color.contacts.count;
       for (let i = 0; i < color.contacts.count; ++i) {
         const contactSim = color.contacts.data[i];
         b2CheckIndex(contacts, contactSim.contactId);
         const contact = contacts[contactSim.contactId];
+        console.assert(contactSim.manifold.pointCount > 0 || (contactSim.simFlags & (b2ContactSimFlags.b2_simStoppedTouching | b2ContactSimFlags.b2_simDisjoint)) !== 0);
+        console.assert(contact.setIndex === b2SetType.b2_awakeSet);
+        console.assert(contact.colorIndex === colorIndex);
+        console.assert(contact.localIndex === i);
         const bodyIdA = contact.edges[0].bodyId;
         const bodyIdB = contact.edges[1].bodyId;
         b2CheckIndex(world.bodyArray, bodyIdA);
@@ -15217,16 +15818,22 @@ function b2ValidateSolverSets(world) {
         if (colorIndex < b2_overflowIndex) {
           const bodyA = world.bodyArray[bodyIdA];
           const bodyB = world.bodyArray[bodyIdB];
+          console.assert(b2GetBit2(color.bodySet, bodyIdA) === (bodyA.type !== b2BodyType.b2_staticBody));
+          console.assert(b2GetBit2(color.bodySet, bodyIdB) === (bodyB.type !== b2BodyType.b2_staticBody));
         }
       }
     }
     {
       const joints = world.jointArray;
+      console.assert(color.joints.count >= 0);
       totalJointCount += color.joints.count;
       for (let i = 0; i < color.joints.count; ++i) {
         const jointSim = color.joints.data[i];
         b2CheckIndex(joints, jointSim.jointId);
         const joint = joints[jointSim.jointId];
+        console.assert(joint.setIndex === b2SetType.b2_awakeSet);
+        console.assert(joint.colorIndex === colorIndex);
+        console.assert(joint.localIndex === i);
         const bodyIdA = joint.edges[0].bodyId;
         const bodyIdB = joint.edges[1].bodyId;
         b2CheckIndex(world.bodyArray, bodyIdA);
@@ -15234,12 +15841,17 @@ function b2ValidateSolverSets(world) {
         if (colorIndex < b2_overflowIndex) {
           const bodyA = world.bodyArray[bodyIdA];
           const bodyB = world.bodyArray[bodyIdB];
+          console.assert(b2GetBit2(color.bodySet, bodyIdA) === (bodyA.type !== b2BodyType.b2_staticBody));
+          console.assert(b2GetBit2(color.bodySet, bodyIdB) === (bodyB.type !== b2BodyType.b2_staticBody));
         }
       }
     }
   }
   const contactIdCount = b2GetIdCount(world.contactIdPool);
+  console.assert(totalContactCount === contactIdCount);
+  console.assert(totalContactCount === world.broadPhase.pairSet.size, `totalContactCount ${totalContactCount} != pairSet.size ${world.broadPhase.pairSet.size}`);
   const jointIdCount = b2GetIdCount(world.jointIdPool);
+  console.assert(totalJointCount === jointIdCount);
 }
 function b2GetBit2(bitSet, bitIndex) {
   const blockIndex = Math.floor(bitIndex / 64);
@@ -15253,36 +15865,54 @@ function b2ValidateContacts(world) {
     return;
   }
   const contactCount = world.contactArray.length;
+  console.assert(contactCount >= b2GetIdCapacity(world.contactIdPool));
   let allocatedContactCount = 0;
   for (let contactIndex = 0; contactIndex < contactCount; ++contactIndex) {
     const contact = world.contactArray[contactIndex];
     if (contact.contactId === B2_NULL_INDEX) {
       continue;
     }
+    console.assert(contact.contactId === contactIndex);
     allocatedContactCount += 1;
     const touching = (contact.flags & b2ContactFlags.b2_contactTouchingFlag) !== 0;
     const sensorTouching = (contact.flags & b2ContactFlags.b2_contactSensorTouchingFlag) !== 0;
     const isSensor = (contact.flags & b2ContactFlags.b2_contactSensorFlag) !== 0;
+    console.assert(touching === false || sensorTouching === false);
+    console.assert(touching === false || isSensor === false);
     const setId = contact.setIndex;
     if (setId === b2SetType.b2_awakeSet) {
       if (touching && isSensor === false) {
+        console.assert(0 <= contact.colorIndex && contact.colorIndex < b2_graphColorCount);
       } else {
+        console.assert(contact.colorIndex === B2_NULL_INDEX);
       }
     } else if (setId >= b2SetType.b2_firstSleepingSet) {
+      console.assert(touching === true && isSensor === false);
     } else {
+      console.assert(touching === false && setId === b2SetType.b2_disabledSet);
     }
     const contactSim = b2GetContactSim(world, contact);
+    console.assert(contactSim.contactId === contactIndex);
+    console.assert(contactSim._bodyIdA === contact.edges[0].bodyId, contact);
+    console.assert(contactSim._bodyIdB === contact.edges[1].bodyId);
     const simTouching = (contactSim.simFlags & b2ContactSimFlags.b2_simTouchingFlag) !== 0;
+    console.assert(touching == simTouching || sensorTouching == simTouching, `failed: ${touching} or ${sensorTouching} == ${simTouching}`);
+    console.assert(0 <= contactSim.manifold.pointCount && contactSim.manifold.pointCount <= 2);
   }
   const contactIdCount = b2GetIdCount(world.contactIdPool);
+  console.assert(allocatedContactCount === contactIdCount);
 }
 
 // src/include/world_h.js
+var b2_maxWorkers = 1;
 function b2World_GetProfile() {
+  console.warn("b2World_GetProfile not supported");
 }
 function b2World_GetCounters() {
+  console.warn("b2World_GetCounters not supported");
 }
 function b2World_DumpMemoryStats() {
+  console.warn("b2World_DumpMemoryStats not supported");
 }
 
 // src/physics.js
@@ -15583,6 +16213,7 @@ function CreateBoxPolygon(data) {
 }
 function CreateNGonPolygon(data) {
   if (data.sides < 3 || data.sides > B2_MAX_POLYGON_VERTICES) {
+    console.warn(`WARNING: invalid number of sides for a polygon (${data.sides}).`);
     return null;
   }
   const bodyDef = data.bodyDef || b2DefaultBodyDef();
@@ -15619,6 +16250,7 @@ function CreateNGonPolygon(data) {
 }
 function CreatePolygon(data) {
   if (data.vertices.length < 3 || data.vertices.length > B2_MAX_POLYGON_VERTICES) {
+    console.warn(`WARNING: invalid number of sides for a polygon (${data.vertices.length}).`);
     return null;
   }
   const bodyDef = data.bodyDef || b2DefaultBodyDef();
@@ -15647,6 +16279,7 @@ function CreatePolygon(data) {
 }
 function CreatePolygonFromEarcut(data) {
   if (data.vertices.length < 3) {
+    console.warn(`WARNING: invalid number of sides for a polygon (${data.vertices.length}).`);
     return null;
   }
   const bodyDef = data.bodyDef || b2DefaultBodyDef();
@@ -15697,6 +16330,7 @@ function CreatePolygonFromEarcut(data) {
 }
 function CreatePolygonFromVertices(data) {
   if (data.vertices.length < 3) {
+    console.warn(`WARNING: invalid number of sides for a polygon (${data.vertices.length}).`);
     return null;
   }
   const bodyDef = data.bodyDef || b2DefaultBodyDef();
@@ -15757,6 +16391,7 @@ function CreatePhysicsEditorShape(data) {
       const xmlDoc = parser.parseFromString(xmlText, "text/xml");
       return xmlDoc;
     } catch (error) {
+      console.error("Error loading XML:", error);
       throw error;
     }
   }
@@ -15805,11 +16440,14 @@ function CreatePhysicsEditorShape(data) {
       const result = createPolygons(polygons);
       resolve(result);
     } catch (error) {
+      console.error("Error:", error);
       reject(error);
     }
   });
 }
 function CreateRevoluteJoint(data) {
+  console.assert(data.worldId != void 0);
+  console.assert(data.bodyIdA != void 0 && data.bodyIdB != void 0);
   let jointDef = data.jointDef;
   if (!jointDef) {
     jointDef = new b2RevoluteJointDef();
@@ -15833,6 +16471,8 @@ function CreateRevoluteJoint(data) {
   return { jointId };
 }
 function CreateWeldJoint(data) {
+  console.assert(data.worldId != void 0);
+  console.assert(data.bodyIdA != void 0 && data.bodyIdB != void 0);
   let jointDef = data.jointDef;
   if (!jointDef) {
     jointDef = new b2WeldJointDef();
@@ -15852,6 +16492,8 @@ function CreateWeldJoint(data) {
   return { jointId };
 }
 function CreateDistanceJoint(data) {
+  console.assert(data.worldId != void 0);
+  console.assert(data.bodyIdA != void 0 && data.bodyIdB != void 0);
   let jointDef = data.jointDef;
   if (!jointDef) {
     jointDef = new b2DistanceJointDef();
@@ -15872,6 +16514,8 @@ function CreateDistanceJoint(data) {
   return { jointId };
 }
 function CreateWheelJoint(data) {
+  console.assert(data.worldId != void 0);
+  console.assert(data.bodyIdA != void 0 && data.bodyIdB != void 0);
   let jointDef = data.jointDef;
   if (!jointDef) {
     jointDef = new b2WheelJointDef();
@@ -15895,6 +16539,8 @@ function CreateWheelJoint(data) {
   return { jointId };
 }
 function CreatePrismaticJoint(data) {
+  console.assert(data.worldId != void 0);
+  console.assert(data.bodyIdA != void 0 && data.bodyIdB != void 0);
   let jointDef = data.jointDef;
   if (!jointDef) {
     jointDef = new b2PrismaticJointDef();
@@ -15919,6 +16565,8 @@ function CreatePrismaticJoint(data) {
   return { jointId };
 }
 function CreateMotorJoint(data) {
+  console.assert(data.worldId != void 0);
+  console.assert(data.bodyIdA != void 0 && data.bodyIdB != void 0);
   let jointDef = data.jointDef;
   if (!jointDef) {
     jointDef = new b2MotorJointDef();
@@ -15935,6 +16583,8 @@ function CreateMotorJoint(data) {
   return { jointId };
 }
 function CreateMouseJoint(data) {
+  console.assert(data.worldId != void 0);
+  console.assert(data.bodyIdA != void 0 && data.bodyIdB != void 0);
   let jointDef = data.jointDef;
   if (!jointDef) {
     jointDef = new b2MouseJointDef();
@@ -15954,27 +16604,8 @@ function CreateMouseJoint(data) {
 var p02 = new b2Vec2();
 var disableDrawing = false;
 function CreateDebugDraw(canvas, ctx, scale = 20) {
-  let wide = 1280;
-  let high = 720;
-  if (canvas) {
-    let resizeCanvas = function() {
-      if (window.innerWidth < window.innerHeight) {
-        wide = canvas.width = 720;
-        high = canvas.height = 1280;
-      } else {
-        wide = canvas.width = 1280;
-        high = canvas.height = 720;
-      }
-      const dpi = window.devicePixelRatio;
-      canvas.width = wide * dpi;
-      canvas.height = high * dpi;
-      canvas.style.width = wide + "px";
-      canvas.style.height = high + "px";
-      ctx.scale(dpi, dpi);
-    };
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
-  }
+  let wide = canvas.width;
+  let high = canvas.height;
   const draw = new b2DebugDraw();
   if (disableDrawing) {
     draw.DrawCapsule = () => {
@@ -16362,6 +16993,7 @@ function AttachImage(worldId, bodyId, path, imgName, drawOffset = null, drawScal
   loadPNGImage(fullPath).then((loadedImage) => {
     shape.image = loadedImage;
   }).catch((error) => {
+    console.error("Error loading local image:", error);
   });
   return shape;
 }
@@ -17255,4 +17887,4 @@ export {
   pxm,
   pxmVec2
 };
-//# sourceMappingURL=PhaserBox2D-Render.js.map
+//# sourceMappingURL=PhaserBox2D-Debug.js.map

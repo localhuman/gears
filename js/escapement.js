@@ -81,9 +81,9 @@ export class Escapement {
 
   get_fill = () => {
     if(this.is_selected) {
-        return "rgba(3, 0, 187, 0.67)"
+        return "rgb(111, 157, 226)"
     }
-    return "rgba(0, 70, 200, 0.6)"
+    return "rgb(111, 157, 226)"
   }
 
   get_center_style = () => {
@@ -313,9 +313,7 @@ let svg =
     let radInc = (Math.PI *2) / this.total_teeth
     let rads=0
 
-    let tooth_rads = (this.tooth_angle / 90 ) * radInc
-
-    this.tooth_points =[]
+    this.tooth_points = []
 
     for(let i=0; i< this.total_teeth; i++) {
       let innerx = this.center.x +  Math.cos(rads) * this.radius
@@ -346,18 +344,19 @@ let svg =
       pts.push(new Point(tp1x, tp1y))
       pts.push(new Point(tp2x, tp2y))
       pts.push(new Point(ip1x, ip1y))
-//      pts.push(new Point(lastx, lasty))
 
-      if(this.tooth_points.length == 0) {
-        this.tooth_points.push(...pts)
-      }
-
+      this.tooth_points.push([new Point(innerx, innery),new Point(tp1x, tp1y),new Point(tp2x, tp2y),new Point(ip1x, ip1y)])
       rads+=radInc      
     }
+
     this.shape_points = pts
     this.p = points_to_path(pts)
     this.path = new Path2D(this.p)
   }
+
+
+
+
 }
 
 
@@ -378,6 +377,21 @@ export class GrahamPallet {
 
   fillStyle = 'rgb(36, 63, 154)'
 
+  part1 = null 
+  part2 = null
+  part3 = null
+  part4 = null 
+
+
+
+  pendulum_spine = null
+  pendulum_ball = null 
+
+  pendulum_offset = 3.2
+  pendulum_radius = 92
+
+  finger_offset = 1.5
+
   constructor(escapement) {
     this.escapement = escapement
     this.render()
@@ -385,7 +399,18 @@ export class GrahamPallet {
 
   render = () => {
     this.draw_pallet()
+    this.draw_pendulum()
   }
+
+  draw_pendulum = () => {
+    this.pendulum_spine = new Path2D()
+    this.pendulum_spine.rect(this.pallet_center.x -5, this.pallet_center.y + 5, 10, 800)
+
+    let offsetY = this.total_radius * this.pendulum_offset
+    this.pendulum_ball = new Path2D()
+    this.pendulum_ball.arc(this.pallet_center.x, this.pallet_center.y + offsetY, this.pendulum_radius, 0, Constants.TWOPI )
+  }
+
 
   draw_pallet = () =>{
     this.total_radius = this.escapement.total_radius
@@ -397,8 +422,11 @@ export class GrahamPallet {
     
     let length = this.total_radius * 1.3
   
-    const a45 = Math.PI/4
-    const a135 = Math.PI * 3/4
+
+    let fo = Constants.PIOVERONEEIGHTY * this.finger_offset
+
+    const a45 = ( Math.PI * 1/4 ) - fo
+    const a135 = ( Math.PI * 3/4 ) + fo
     const a315 = Constants.TWOPI - a45
     const a225 = Constants.TWOPI - a135
     let mThree = this.fork_degrees * Constants.PIOVERONEEIGHTY
@@ -564,6 +592,69 @@ export class GrahamPallet {
 
     this.center_path = new Path2D()
     this.center_path.arc(pallet_center.x, pallet_center.y, 5, 0, Constants.TWOPI)
+
+
+
+    // //inside right curve
+    curve = points_from_arc(pallet_center, d4, a25, a45-mThree, true)
+    //inside rightCorner
+    let insideRightCorner = curve.reverse()[0]    
+    // back to bottom center
+    curve = points_from_arc(pallet_center, d1, a135 + mThree, Math.PI - a20, false)
+    let outsideLeftCorner = curve.reverse()[0]
+    curve = points_from_arc(pallet_center, d2, a135 - mThree, Math.PI - a25, true)
+    let insideLeftCorner = curve[0]
+
+    // top right arm
+    this.part1 = [
+      new Point(pallet_center.x, pallet_center.y - pallet_size), 
+      new Point(pallet_center.x + Math.cos(a20) * d3, pallet_center.y + Math.sin(a20) * d3),    
+      insideRightCorner,
+      new Point(pallet_center.x, pallet_center.y + pallet_size),
+    ]
+
+    // top left arm
+    this.part2 = [
+      new Point(pallet_center.x, pallet_center.y - pallet_size), 
+      outsideLeftCorner,    
+      insideLeftCorner,
+      new Point(pallet_center.x, pallet_center.y + pallet_size),
+    ]
+
+
+    // right finger outside
+    curve = points_from_arc(pallet_center,d3, a20, a45+mThree, false,3)
+    //right finger inside
+    let curve2 = points_from_arc(pallet_center, d4, a25, a45-mThree, true, 3)
+
+    this.part3 = [
+      curve[0],
+      curve[1],
+      curve[2],
+      new Point(i4.x, i4.y),
+      //    plist.push(new Point(i3.x, i3.y))
+      new Point(i3.x, i3.y),      
+      curve2[0],
+      curve2[1],
+      curve2[2],
+    ]
+
+    // left finger
+    curve = points_from_arc(pallet_center, d2, a135 - mThree, Math.PI - a25, true, 4)
+    curve2 = points_from_arc(pallet_center, d1, a135 + mThree, Math.PI - a20, false, 4)
+
+
+    this.part4 = [
+      curve[0],
+      curve[1],
+      curve[2],
+      curve[3],
+      curve2[0],
+      curve2[1],
+      curve2[2],
+      curve2[3],
+
+    ]
 
 
   }
