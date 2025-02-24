@@ -6,11 +6,11 @@ export class Escapement {
 
   total_teeth  = 30
   tooth_height = 50
-  tooth_angle = 15
+  tooth_angle = 17
 
   tooth_undercut_angle = 90
 
-  tooth_width = 0.05
+  tooth_width = 0.02
   total_radius = 0
   radius = 200
 
@@ -371,7 +371,7 @@ export class GrahamPallet {
   path = null
   center_path = null 
 
-  fork_degrees = 3
+  fork_degrees = 2.25
 
   rotation = 0
 
@@ -387,8 +387,8 @@ export class GrahamPallet {
   pendulum_spine = null
   pendulum_ball = null 
 
-  pendulum_offset = 3.2
-  pendulum_radius = 92
+  pendulum_offset = 3.31
+  pendulum_radius = 63
 
   finger_offset = 1.5
 

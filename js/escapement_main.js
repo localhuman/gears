@@ -34,34 +34,34 @@ let mouseJoint = null
 let mouseBody = null 
 let mouseDown = false    
 
-let escapementShape = null
+// parts
+let escapement = null 
 let escapementBody = null 
-let escapementParts = null
+
 let palletBody = null
+
 let palletDensity = 0.8
-let leftRightFactor = 0.72
-let palletFriction = 0.2
+let leftRightFactor = 0.445
+let palletFriction = 0.3
+
+let escapementDensity = 0.5
+let escapementFriction = 0.01
+let motorSpeed = 0.66
+let motorTorque = 6500
 
 let lastContactTime = Date.now()
+let lastContactPositive = true
+let contactTimes = []
 
-var mousePosPixel = {
-  x: 0,
-  y: 0
-};      
 var mousePosWorld = {
   x: 0,
   y: 0
 };        
-var canvasOffset = {
+
+var mousePosPixel = {
   x: 0,
   y: 0
-};        
-
-
-// parts
-let escapement = null 
-let is_dragging = false 
-let start_drag_point = null
+}
 
 
 
@@ -77,11 +77,6 @@ const update_state = () =>{
   createEscapementPhysics()
 }
 
-const getWorldB2Vec = (point) => {
-  let pt = getWorldPointFromPixelPoint(point.x, point.y)
-//  console.log("pt: ",point, pt, canvasOffset.y, canvas.height)
-  return new b2Vec2(pt.x, pt.y * -1)
-}
 
 const getWorldPointFromPixelPoint =(mx, my) => {
   return {                
@@ -106,8 +101,6 @@ const initialize = () => {
 
 const initializeBox2d = () =>{
 
-  canvasOffset.x = 0;
-  canvasOffset.y = 0;
   
   m_draw = CreateDebugDraw(canvas, ctx, PTM);
   m_draw.DrawSolidPolygon = () => {}
@@ -120,28 +113,6 @@ const initializeBox2d = () =>{
   worldId = world.worldId;
 
   mouseBody = CreateCircle({ worldId, type: STATIC, radius: 0.3, position: new b2Vec2(-100, -100) });
-
-  // let ptY = escapement.pallet.pallet_center.y / -PTM
-  // console.log("ptY", ptY)
-  // let testBody = CreateCircle({ worldId, type: STATIC, radius: 0.3, position: new b2Vec2(0, ptY) });
-
-  let scaledWidth = canvas.width/PTM
-  let scaledHegiht = canvas.height/PTM
-
-
-  // bottom
-  //const groundBodyDef = b2DefaultBodyDef();
-  // ground = CreateBoxPolygon({ worldId:world.worldId, type:b2BodyType.b2_staticBody, 
-  //   position:new b2Vec2(scaledWidth/2, -scaledHegiht/2), size:new b2Vec2(scaledWidth, 1), density:1.0, friction:0.5, color:b2HexColor.b2_colorLawnGreen });
-
-    // left
-  // leftSde = CreateBoxPolygon({ worldId:world.worldId, type:b2BodyType.b2_staticBody, 
-  //   position:new b2Vec2(-scaledWidth/2 + .1, -scaledHegiht/2), size:new b2Vec2(.1, scaledHegiht), density:1.0, friction:0.5, color:b2HexColor.b2_colorLawnGreen });
-
-  // // right
-  // rightSide= CreateBoxPolygon({ worldId:world.worldId, type:b2BodyType.b2_staticBody,
-  //   position:new b2Vec2(scaledWidth/2 -.1, -scaledHegiht/2), size:new b2Vec2(.1, scaledHegiht), density:1.0, friction:0.5, color:b2HexColor.b2_colorLawnGreen });
-
 
 }
 
@@ -166,8 +137,8 @@ const createEscapementPhysics = () => {
   bodyDef.type = b2BodyType.b2_dynamicBody; // this will be a dynamic body
 //  bodyDef.position =  new b2Vec2(0,0) 
   const shapeDef = b2DefaultShapeDef();
-  shapeDef.density = 0.6
-  shapeDef.friction = 0.05
+  shapeDef.density = escapementDensity
+  shapeDef.friction = escapementFriction
   escapementBody = b2CreateBody(worldId, bodyDef);
   b2Body_SetUserData(escapementBody, "wheel")
   const circle = {
@@ -185,8 +156,8 @@ const createEscapementPhysics = () => {
   jointDef.localAnchorA = new b2Vec2(0, 0); 
   jointDef.localAnchorB = new b2Vec2(0,0)  // center of the circle
   jointDef.enableMotor = true;
-  jointDef.maxMotorTorque = 600;
-  jointDef.motorSpeed = 0.15//
+  jointDef.maxMotorTorque = motorTorque;
+  jointDef.motorSpeed = motorSpeed
 
   const joint = b2CreateRevoluteJoint(worldId, jointDef);
 
@@ -364,12 +335,37 @@ const animate = () => {
 
     //b2World_Draw(worldId, m_draw);
     const contactEvents = b2World_GetContactEvents(worldId);
-    // const beginEvents = contactEvents.beginContacts;
     if(contactEvents.beginCount) {
-      let newContactTime = Date.now()
-      let period = newContactTime - lastContactTime
-      lastContactTime = newContactTime
-      dqs('#period_label').textContent = `Elapsed: ${period} ms`
+      const begin = contactEvents.beginEvents[0]
+      const collisionX = begin.manifold.points[0].pointX
+      let periodSwitched = false 
+      if(collisionX > 0 && !lastContactPositive) {
+        periodSwitched = true
+        lastContactPositive = true
+      } else if(collisionX < 0 && lastContactPositive) {
+        periodSwitched = true 
+        lastContactPositive = false
+      }
+      if(periodSwitched) {
+        let newContactTime = Date.now()
+        let period = newContactTime - lastContactTime
+        lastContactTime = newContactTime
+
+        // if you leave the window and come back the contact time will be a lot
+        if(contactTimes < 5000)
+          contactTimes.push(period)
+
+        if(contactTimes.length > 50) {
+          contactTimes.shift()
+        }
+        let average = contactTimes.reduce((acc=0, i) => {
+          return i + acc
+        }) / contactTimes.length
+//        console.log("Average: ", ave)
+        dqs('#period_label').textContent = `Elapsed: ${period} ms`
+        dqs('#average_label').textContent = `Average: ${parseInt(average)} ms`
+  
+      }
     }
 
     ctx.restore();  
@@ -464,17 +460,7 @@ dqs("#spokes").addEventListener("input", (event) => {
 });
 
 
-dqs("#rotation").addEventListener("input", (event) => {
-  dqs("#rotation_label").textContent = 'Rotation: ' + event.target.value;
-  escapement.rotation_animation_value = Constants.PIOVERONEEIGHTY * parseFloat(event.target.value)
-  update_state()  
-});
 
-dqs("#pallet_rotation").addEventListener("input", (event) => {
-  dqs("#pallet_rotation_label").textContent = 'Pallet Rotation: ' + event.target.value;
-  escapement.pallet.rotation = Constants.PIOVERONEEIGHTY * parseFloat(event.target.value)
-  update_state()  
-});
 
 dqs("#pallet_fork_width").addEventListener("input", (event) => {
   dqs("#pallet_fork_width_label").textContent = 'Fork Width: ' + event.target.value;
@@ -517,17 +503,28 @@ dqs("#pallet_density").addEventListener("input", (event) => {
 });
 
 dqs("#pallet_lr").addEventListener("input", (event) => {
-  dqs("#pallet_lr_label").textContent = 'Pallet L/R ' + event.target.value;
+  dqs("#pallet_lr_label").textContent = 'Pallet L/R: ' + event.target.value;
   leftRightFactor = parseFloat(event.target.value)
   update_state()
 });
 
 dqs("#pallet_friction").addEventListener("input", (event) => {
-  dqs("#pallet_friction_label").textContent = 'Pallet friction ' + event.target.value;
+  dqs("#pallet_friction_label").textContent = 'Pallet friction: ' + event.target.value;
   palletFriction = parseFloat(event.target.value)
   update_state()
 });
 
+dqs("#motor_speed").addEventListener("input", (event) => {
+  dqs("#motor_speed_label").textContent = 'motor speed: ' + event.target.value;
+  motorSpeed = parseFloat(event.target.value)
+  update_state()
+});
+
+dqs("#motor_torque").addEventListener("input", (event) => {
+  dqs("#motor_torque_label").textContent = 'motor torque: ' + event.target.value;
+  motorTorque = parseInt(event.target.value)
+  update_state()
+});
 
 
 dqs("#export_svg").addEventListener("click", (event)=> {
@@ -603,7 +600,6 @@ const startMouseJoint = () => {
   // Perform query
   b2World_OverlapAABB(worldId, aabb, filter, queryCallback, null);
   if(foundBody) {
-    console.log("Found body!!!")
     let found_position = b2Body_GetPosition(foundBody);
     mouseJoint = CreateMouseJoint({ worldId,
       bodyIdA: mouseBody.bodyId,
