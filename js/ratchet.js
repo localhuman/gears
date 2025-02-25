@@ -50,26 +50,34 @@ export class Ratchet{
     this.update()
 }
 
+// colors:
+// #002E2C
+// #035E7B
+// #EFF1C5
+// #A2A77F
+// #E3E7AF
+
+
   get_stroke = () => {
     if(this.is_selected) {
-        return "rgba(8, 8, 66, 0.75)"
+      return "#A2A77F"
     }
-    return "black"
+    return "#A2A77F"
   }
 
   get_fill = () => {
     if(this.is_selected) {
-        return "rgba(3, 0, 187, 0.67)"
+      return "#A2A77F"
     }
-    return "rgba(0, 70, 200, 0.6)"
+    return "#A2A77F"
   }
 
   get_center_style = () => {
-    return "white"
+    return "#EFF1C5"
   }
 
   get_guide_style = () => {
-    return "rgba(84, 84, 98, 0.5)"
+    return "#002E2C"
   }
 
 

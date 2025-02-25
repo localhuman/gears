@@ -13,6 +13,14 @@ import { Exporter } from "/js/export.js";
 import { Constants } from "./gear.js";
 import { b2DestroyJoint,b2DestroyBody,b2DefaultRevoluteJointDef,b2CreateRevoluteJoint,b2Body_SetUserData, b2World_GetContactEvents } from './box2d/PhaserBox2D-Debug.js';
 
+
+// colors:
+// #002E2C
+// #035E7B
+// #EFF1C5
+// #A2A77F
+// #E3E7AF
+
 // canvas!
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d")
@@ -292,11 +300,11 @@ const animate = () => {
   ctx.rotate(-rotationPallet)
   ctx.translate(-escapement.pallet.pallet_center.x, -escapement.pallet.pallet_center.y)
 
-  ctx.strokeStyle = "black"
+  ctx.strokeStyle = escapement.pallet.strokeStyle
   ctx.fillStyle = escapement.pallet.fillStyle
   ctx.stroke(escapement.pallet.path)  
   ctx.fill(escapement.pallet.path)
-  ctx.fillStyle = "white"
+  ctx.fillStyle = "rgb(27, 27, 27)"
   ctx.stroke(escapement.pallet.center_path)  
   ctx.fill(escapement.pallet.center_path)
 
@@ -352,7 +360,7 @@ const animate = () => {
         lastContactTime = newContactTime
 
         // if you leave the window and come back the contact time will be a lot
-        if(contactTimes < 5000)
+        if(period < 5000)
           contactTimes.push(period)
 
         if(contactTimes.length > 50) {
@@ -361,7 +369,7 @@ const animate = () => {
         let average = contactTimes.reduce((acc=0, i) => {
           return i + acc
         }) / contactTimes.length
-//        console.log("Average: ", ave)
+
         dqs('#period_label').textContent = `Elapsed: ${period} ms`
         dqs('#average_label').textContent = `Average: ${parseInt(average)} ms`
   
@@ -475,14 +483,13 @@ dqs("#radius").addEventListener("input", (event) => {
 });
 
 
-//finger_angle
-
-dqs("#finger_angle").addEventListener("input", (event) => {
-  dqs("#finger_angle_label").textContent = 'Finger Angle: ' + event.target.value;
-  let value = 45 - parseFloat(event.target.value)
-  escapement.pallet.finger_offset = value
-  update_state()
-});
+//f
+// dqs("#finger_angle").addEventListener("input", (event) => {
+//   dqs("#finger_angle_label").textContent = 'Finger Angle: ' + event.target.value;
+//   let value = 45 - parseFloat(event.target.value)
+//   escapement.pallet.finger_offset = value
+//   update_state()
+// });
 
 dqs("#pendulum_offset").addEventListener("input", (event) => {
   dqs("#pendulum_offset_label").textContent = 'Pendulum Offset: ' + event.target.value;

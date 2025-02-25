@@ -14,7 +14,7 @@ export class Escapement {
   total_radius = 0
   radius = 200
 
-  total_spokes = 6
+  total_spokes = 5
 
   center = null
   position = null 
@@ -73,17 +73,11 @@ export class Escapement {
 }
 
   get_stroke = () => {
-    if(this.is_selected) {
-        return "rgba(8, 8, 66, 0.75)"
-    }
-    return "black"
+    return "#E0DFD5"
   }
 
   get_fill = () => {
-    if(this.is_selected) {
-        return "rgb(111, 157, 226)"
-    }
-    return "rgb(111, 157, 226)"
+    return "#E0DFD5"
   }
 
   get_center_style = () => {
@@ -204,7 +198,7 @@ let svg =
     viewBox="${this.center.x -this.total_radius} ${this.center.y -this.total_radius} ${this.total_radius*2} ${this.total_radius*2}"
     fill="none"
     fill-rule="evenodd">
-    <path d="${this.p} ${this.spoke_path}" stroke="black" stroke-width="1" fill="${this.get_fill()}"/>
+    <path d="${this.p} ${this.spoke_path}" stroke="${this.get_stroke()}" stroke-width="1" fill="${this.get_fill()}"/>
 </svg>`
 
     if(svg == this.last_svg){
@@ -375,7 +369,8 @@ export class GrahamPallet {
 
   rotation = 0
 
-  fillStyle = 'rgb(36, 63, 154)'
+  fillStyle = '#F09D51'
+  strokeStyle = '#F09D51'
 
   part1 = null 
   part2 = null
@@ -391,6 +386,8 @@ export class GrahamPallet {
   pendulum_radius = 63
 
   finger_offset = 1.5
+
+  right_finger_length = 1.05
 
   constructor(escapement) {
     this.escapement = escapement
@@ -438,6 +435,8 @@ export class GrahamPallet {
     let lpxB = pallet_center.x + Math.cos(a135+mThree) * length
     let lpyB = pallet_center.y + Math.sin(a135+mThree) * length
   
+    // for the right point we want
+    // it to be just a bit farther out
     let rpxA = pallet_center.x + Math.cos(a45-mThree) * length
     let rpyA = pallet_center.y + Math.sin(a45-mThree) * length
     let rpx = pallet_center.x + Math.cos(a45) * length
@@ -526,6 +525,7 @@ export class GrahamPallet {
     let d1 = Math.hypot(i1.x - pallet_center.x, i1.y - pallet_center.y)
     // get distance to center point for left side outer
     let d2 = Math.hypot(i2.x - pallet_center.x, i2.y - pallet_center.y)  
+
     // distance to center for right side outer
     let d3 = Math.hypot(i3.x - pallet_center.x, i3.y - pallet_center.y)
     let d4 = Math.hypot(i4.x - pallet_center.x, i4.y - pallet_center.y)
