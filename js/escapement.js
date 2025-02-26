@@ -36,8 +36,6 @@ export class Escapement {
   guide_path = null
   text_path = null
 
-  debug_path = null
-
   svg_path = null 
 
   svg_to_draw = null 
@@ -382,12 +380,15 @@ export class GrahamPallet {
   pendulum_spine = null
   pendulum_ball = null 
 
+  counterweight_center = null 
+  counterweight = null
+  counterweight_radius = 31.50
+
   pendulum_offset = 3.31
-  pendulum_radius = 63
+  pendulum_radius = 59
 
   finger_offset = 1.5
 
-  right_finger_length = 1.05
 
   constructor(escapement) {
     this.escapement = escapement
@@ -397,6 +398,7 @@ export class GrahamPallet {
   render = () => {
     this.draw_pallet()
     this.draw_pendulum()
+    this.draw_counterweight()
   }
 
   draw_pendulum = () => {
@@ -408,6 +410,10 @@ export class GrahamPallet {
     this.pendulum_ball.arc(this.pallet_center.x, this.pallet_center.y + offsetY, this.pendulum_radius, 0, Constants.TWOPI )
   }
 
+  draw_counterweight = () => {
+    this.counterweight = new Path2D()
+    this.counterweight.arc(this.counterweight_center.x, this.counterweight_center.y, this.counterweight_radius, 0, Constants.TWOPI)
+  }
 
   draw_pallet = () =>{
     this.total_radius = this.escapement.total_radius
@@ -461,38 +467,6 @@ export class GrahamPallet {
     let brpA = new Point(this.center.x + Math.cos(a315-mThree) * length, this.center.y + Math.sin(a315-mThree) * length)
     let brpB = new Point(this.center.x + Math.cos(a315+mThree) * length, this.center.y + Math.sin(a315+mThree) * length)
   
-
-    this.debug_path = `
-    M${pallet_center.x} ${pallet_center.y} 
-    L${lp1.x} ${lp1.y} Z 
-    M${pallet_center.x} ${pallet_center.y} 
-    L${lpA.x} ${lpA.y} Z 
-    M${pallet_center.x} ${pallet_center.y} 
-    L${lpB.x} ${lpB.y} Z 
-  
-    M${pallet_center.x} ${pallet_center.y} 
-    L${rp1.x} ${rp1.y} Z
-    M${pallet_center.x} ${pallet_center.y} 
-    L${rpA.x} ${rpA.y} Z
-    M${pallet_center.x} ${pallet_center.y} 
-    L${rpB.x} ${rpB.y} Z
-  
-  
-  
-    M${this.center.x} ${this.center.y}
-    L${blp.x} ${blp.y} Z
-    M${this.center.x} ${this.center.y}
-    L${blpA.x} ${blpA.y} Z
-    M${this.center.x} ${this.center.y}
-    L${blpB.x} ${blpB.y} Z
-  
-    M${this.center.x} ${this.center.y}
-    L${brp.x} ${brp.y} Z
-    M${this.center.x} ${this.center.y}
-    L${brpA.x} ${brpA.y} Z
-    M${this.center.x} ${this.center.y}
-    L${brpB.x} ${brpB.y} Z`
-  
   
     // this is the left palate finger left side
     let i1 = InterSection2D.intersect2D(
@@ -530,24 +504,10 @@ export class GrahamPallet {
     let d3 = Math.hypot(i3.x - pallet_center.x, i3.y - pallet_center.y)
     let d4 = Math.hypot(i4.x - pallet_center.x, i4.y - pallet_center.y)
   
-  
-  //    this.dd = new Path2D(this.debug_path)
-    let d = new Path2D()
-  
-  
+    
     let a20 = 13 * Constants.PIOVERONEEIGHTY
     let a25 = 20 * Constants.PIOVERONEEIGHTY
     let pallet_size = this.total_radius / 10
-
-    // d.moveTo(pallet_center.x, pallet_center.y - pallet_size)
-    // d.lineTo(pallet_center.x + Math.cos(a20) * d3, pallet_center.y + Math.sin(a20) * d3)
-    // d.arc(pallet_center.x, pallet_center.y, d3, a20, a45+mThree, false)
-    // d.lineTo(i4.x, i4.y)
-    // d.arc(pallet_center.x, pallet_center.y, d4, a45 - mThree, a25, true)
-    // d.lineTo(pallet_center.x, pallet_center.y + pallet_size)
-    // d.lineTo(pallet_center.x + Math.cos(Math.PI - a25) * d2, pallet_center.y + Math.sin(Math.PI - a25) * d2)
-    // d.arc(pallet_center.x, pallet_center.y, d2, Math.PI - a25, a135-mThree, true)
-    // d.lineTo(i1.x, i1.y)
 
     let plist = [
       // top center
@@ -595,6 +555,8 @@ export class GrahamPallet {
 
 
 
+    let outsideRightCorner = new Point(pallet_center.x + Math.cos(a20) * d3, pallet_center.y + Math.sin(a20) * d3)
+
     // //inside right curve
     curve = points_from_arc(pallet_center, d4, a25, a45-mThree, true)
     //inside rightCorner
@@ -608,7 +570,7 @@ export class GrahamPallet {
     // top right arm
     this.part1 = [
       new Point(pallet_center.x, pallet_center.y - pallet_size), 
-      new Point(pallet_center.x + Math.cos(a20) * d3, pallet_center.y + Math.sin(a20) * d3),    
+      outsideRightCorner,  
       insideRightCorner,
       new Point(pallet_center.x, pallet_center.y + pallet_size),
     ]
@@ -655,6 +617,7 @@ export class GrahamPallet {
       curve2[3],
 
     ]
+    this.counterweight_center = outsideRightCorner
 
 
   }

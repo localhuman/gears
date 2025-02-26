@@ -98,11 +98,11 @@ dqs("#total_spokes").addEventListener("input", (event) => {
   reset()
 });
 
-dqs("#display_scale").addEventListener("input", (event) => {
-  dqs("#display_scale_label").textContent = 'View Scale: ' + event.target.value;
-  view_scale = parseFloat(event.target.value)
-  reset()
-});
+// dqs("#display_scale").addEventListener("input", (event) => {
+//   dqs("#display_scale_label").textContent = 'View Scale: ' + event.target.value;
+//   view_scale = parseFloat(event.target.value)
+//   reset()
+// });
 
 
 dqs("#show_guides").addEventListener("input", (event) => {
@@ -267,7 +267,7 @@ window.addEventListener('click', (event) => {
   }
   if(event.shiftKey) {
 
-    let point = new Point(event.x, event.y)  
+    let point = new Point(event.x * view_scale, event.y * view_scale)  
     let new_gear = new Gear(selected_gear.total_teeth, selected_gear.pressure_angle, selected_gear.m, new Point(0,0), point)
     new_gear.total_spokes = parseInt(dqs("#total_spokes").value)
 
@@ -287,6 +287,7 @@ window.addEventListener('mousedown', (event) => {
   }
 
   let point = new Point(event.x, event.y)
+  //console.log("point: ", event.x, event.y, point.x, point.y)
   start_drag_point = point
   let found_dragger = false
   gearsets.forEach(set => {
@@ -311,8 +312,8 @@ window.addEventListener('mousedown', (event) => {
 
 window.addEventListener('mousemove', (event) => {
   if(is_dragging){
-    let dx = event.x - start_drag_point.x
-    let dy = event.y - start_drag_point.y
+    let dx = (event.x) - start_drag_point.x
+    let dy = (event.y) - start_drag_point.y
     let initial_gear = selected_gearset[0]
     initial_gear.move_with_drag(new Point(dx, dy))
   }
@@ -332,7 +333,6 @@ window.addEventListener('mouseup', (event) => {
 
 
 const select_gear = (gear, gearset) => {
-  console.log("selecting gear!!!")
   if(selected_gear) selected_gear.deselect()   
   selected_gear = gear
   selected_gearset = gearset
@@ -445,7 +445,7 @@ const animate = () => {
       ctx.strokeStyle = g.get_stroke()
       ctx.fillStyle = g.get_fill()
 
-      ctx.scale(view_scale, view_scale)
+      //ctx.scale(view_scale, view_scale)
 
       ctx.translate(g.position.x, g.position.y)
       ctx.rotate(g.rotation_animation_value)

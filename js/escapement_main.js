@@ -49,7 +49,7 @@ let escapementBody = null
 let palletBody = null
 
 let palletDensity = 0.8
-let leftRightFactor = 0.445
+let palletCounterweight = 31.50
 let palletFriction = 0.3
 
 let escapementDensity = 0.5
@@ -111,9 +111,9 @@ const initializeBox2d = () =>{
 
   
   m_draw = CreateDebugDraw(canvas, ctx, PTM);
-  m_draw.DrawSolidPolygon = () => {}
-  m_draw.DrawSolidCircle = () => {}
-  m_draw.flags = 0x0001 && 0x0002
+  // m_draw.DrawSolidPolygon = () => {}
+  // m_draw.DrawSolidCircle = () => {}
+  // m_draw.flags = 0x0001 && 0x0002
   worldDef = b2DefaultWorldDef();
   worldDef.gravity = new b2Vec2(0, -GRAVITY);
   // create a world and save the ID which will access it
@@ -133,10 +133,6 @@ const createEscapementPhysics = () => {
     b2DestroyBody(escapementBody)
     b2DestroyBody(palletBody)
   }
-
-
-  let scaledWidth = canvas.width/PTM
-  let scaledHegiht = canvas.height/PTM
 
   const groundBodyDef = b2DefaultBodyDef()
   const groundId = b2CreateBody(worldId, groundBodyDef);
@@ -197,11 +193,6 @@ const createEscapementPhysics = () => {
   ///left side mass = 25.243
   // multiply left side by 0.9207701145
 
-  let palletShapeDefLeft = b2DefaultShapeDef();
-  palletShapeDefLeft.density = palletDensity * leftRightFactor;
-  palletShapeDefLeft.friction = palletFriction
-
-
   let palletShapeDef = b2DefaultShapeDef();
   palletShapeDef.density = palletDensity;
   palletShapeDef.friction = palletFriction
@@ -211,11 +202,21 @@ const createEscapementPhysics = () => {
   let pendulumOffset = escapement.total_radius * escapement.pallet.pendulum_offset
   let pendulumShapeDef = b2DefaultShapeDef()
   pendulumShapeDef.density = 1
+
   const pendulum = {
     center: new b2Vec2(0, pendulumOffset / -PTM), // position, relative to body position
     radius: escapement.pallet.pendulum_radius / PTM // radius
   };  
   b2CreateCircleShape(palletBody, pendulumShapeDef, pendulum);  
+
+  let cwcenter = new b2Vec2(escapement.pallet.counterweight_center.x/PTM, escapement.pallet.counterweight_center.y / -PTM)
+  console.log("cw cnter: ", cwcenter)
+  const counterweight = {
+    center: cwcenter, // position, relative to body position
+    radius: palletCounterweight / PTM // radius
+  };  
+  b2CreateCircleShape(palletBody, pendulumShapeDef, counterweight);  
+
 
 
   let p1verts = escapement.pallet.part1.map(p => { 
@@ -227,7 +228,7 @@ const createEscapementPhysics = () => {
   let palletHull = b2ComputeHull(p1verts, p1verts.length);
   let palletPolygon = b2MakePolygon(palletHull, 0);
   b2CreatePolygonShape(palletBody, palletShapeDef, palletPolygon);
-  console.log("Mass: 1 ", b2ComputePolygonMass(palletPolygon, 1).mass)
+  //console.log("Mass: 1 ", b2ComputePolygonMass(palletPolygon, 1).mass)
 
   let p2verts = escapement.pallet.part2.map(p => { 
     p.translate( new Point(0, -escapement.pallet.pallet_center.y))
@@ -236,8 +237,7 @@ const createEscapementPhysics = () => {
   })
   palletHull = b2ComputeHull(p2verts, p2verts.length);
   palletPolygon = b2MakePolygon(palletHull, 0);
-  b2CreatePolygonShape(palletBody, palletShapeDefLeft, palletPolygon);
-  console.log("Mass: 2 ", b2ComputePolygonMass(palletPolygon, 1).mass)
+  b2CreatePolygonShape(palletBody, palletShapeDef, palletPolygon);
 
   let p3verts = escapement.pallet.part3.map(p => { 
     p.translate( new Point(0, -escapement.pallet.pallet_center.y))
@@ -247,7 +247,6 @@ const createEscapementPhysics = () => {
   palletHull = b2ComputeHull(p3verts, p3verts.length);
   palletPolygon = b2MakePolygon(palletHull, 0);
   b2CreatePolygonShape(palletBody, palletShapeDef, palletPolygon);
-  console.log("Mass: 3 ", b2ComputePolygonMass(palletPolygon, 1).mass)
 
   let p4verts = escapement.pallet.part4.map(p => { 
     p.translate( new Point(0, -escapement.pallet.pallet_center.y))
@@ -256,8 +255,7 @@ const createEscapementPhysics = () => {
   })
   palletHull = b2ComputeHull(p4verts, p4verts.length);
   palletPolygon = b2MakePolygon(palletHull, 0);
-  b2CreatePolygonShape(palletBody, palletShapeDefLeft, palletPolygon);
-  console.log("Mass: 4 ", b2ComputePolygonMass(palletPolygon, 1).mass)
+  b2CreatePolygonShape(palletBody, palletShapeDef, palletPolygon);
 
 
 
@@ -315,6 +313,10 @@ const animate = () => {
   ctx.stroke(escapement.pallet.pendulum_ball)
   ctx.fill(escapement.pallet.pendulum_ball)
 
+  ctx.stroke(escapement.pallet.counterweight)
+  ctx.fill(escapement.pallet.counterweight)
+
+
   ctx.resetTransform()
 
 
@@ -341,7 +343,7 @@ const animate = () => {
   if(world != null) {
     WorldStep({ worldId: worldId, deltaTime: 30 });
 
-    //b2World_Draw(worldId, m_draw);
+//    b2World_Draw(worldId, m_draw);
     const contactEvents = b2World_GetContactEvents(worldId);
     if(contactEvents.beginCount) {
       const begin = contactEvents.beginEvents[0]
@@ -510,8 +512,9 @@ dqs("#pallet_density").addEventListener("input", (event) => {
 });
 
 dqs("#pallet_lr").addEventListener("input", (event) => {
-  dqs("#pallet_lr_label").textContent = 'Pallet L/R: ' + event.target.value;
-  leftRightFactor = parseFloat(event.target.value)
+  dqs("#pallet_lr_label").textContent = 'Pallet Balance: ' + event.target.value;
+  palletCounterweight = parseFloat(event.target.value) * 10
+  escapement.pallet.counterweight_radius = palletCounterweight
   update_state()
 });
 
