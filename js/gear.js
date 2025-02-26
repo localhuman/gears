@@ -182,7 +182,11 @@ export class Gear{
 
     svg_to_draw = null
 
-   constructor(total_teeth= 20, pressure_angle = 14.5, m=2, center=new Point(0, 0), position = new Point(0, 0), parent = null, canvas_id = "canvas"){
+
+    total_spokes = 5
+    spoke_path = null
+
+    constructor(total_teeth= 20, pressure_angle = 14.5, m=2, center=new Point(0, 0), position = new Point(0, 0), parent = null, canvas_id = "canvas"){
 
         this.name = generate_gear_name()
 
@@ -204,16 +208,16 @@ export class Gear{
 
     get_stroke = () => {
         if(this.is_selected) {
-            return "rgba(8, 8, 66, 0.75)"
+            return "rgba(255, 69, 69, .9)"
         }
-        return "black"
+        return "rgba(255, 69, 69, .7)"
     }
 
     get_fill = () => {
         if(this.is_selected) {
-            return "rgba(3, 0, 187, 0.67)"
+            return "rgba(255, 69, 69, .9)"
         }
-        return "rgba(0, 70, 200, 0.6)"
+        return "rgba(255, 69, 69, .7)"
     }
 
     get_center_style = () => {
@@ -221,7 +225,7 @@ export class Gear{
     }
 
     get_guide_style = () => {
-        return "rgba(84, 84, 98, 0.5)"
+        return "rgba(252, 245, 150, .3)"
     }
 
     to_string = () => {
@@ -313,6 +317,8 @@ export class Gear{
             this.draw_center()
             this.draw_text()
             this.draw_gear()
+            this.draw_spokes()
+            this.to_svg()
         } catch (e) {
             console.log("Colud not render: ", e)            
         }
@@ -354,6 +360,88 @@ export class Gear{
         this.guide_path = p 
     }
         
+
+
+    draw_spokes = () => {
+
+        const dedendum = this.m * 1.25
+        const root_radius = this.pitch_radius  - (2 * dedendum )
+
+        let radians_per_spoke = Constants.TWOPI / this.total_spokes
+
+        let padding_factor = .075
+        let radians = 0
+        let steps = 100
+        let step = radians_per_spoke / steps
+        let innerRadius = root_radius * ( padding_factor * 4)
+        let outerRadius = root_radius * ( 1 - padding_factor * 2.5)
+
+        let spoke_padding = root_radius * padding_factor
+
+        let paths = []
+        for(let i= 0; i< this.total_spokes; i++) {
+            let innerPts = []
+            let outerPts = []
+
+            let firstInnerPtX = this.center.x + Math.cos(radians) * innerRadius
+            let firstInnerPtY = this.center.y + Math.sin(radians) * innerRadius
+
+            let nextInnerPtX = this.center.x + Math.cos(radians + radians_per_spoke) * innerRadius
+            let nextInnerPtY = this.center.y + Math.sin(radians + radians_per_spoke) * innerRadius
+
+            let firstOuterPtX = this.center.x + Math.cos(radians) * outerRadius
+            let firstOuterPtY = this.center.y + Math.sin(radians) * outerRadius
+
+            let nextOuterPtX = this.center.x + Math.cos(radians + radians_per_spoke) * outerRadius
+            let nextOuterPtY = this.center.y + Math.sin(radians + radians_per_spoke) * outerRadius
+
+            let ip1 = new Point(firstInnerPtX, firstInnerPtY)
+            let ip2 = new Point(nextInnerPtX, nextInnerPtY)
+            let op1 = new Point(firstOuterPtX, firstOuterPtY)
+            let op2 = new Point(nextOuterPtX, nextOuterPtY)
+
+            for(let j=0; j < steps; j++) {
+                radians += step
+
+                let ipx = this.center.x + Math.cos(radians) * innerRadius
+                let ipy = this.center.y + Math.sin(radians) * innerRadius
+
+                let opx = this.center.x + Math.cos(radians) * outerRadius
+                let opy = this.center.y + Math.sin(radians) * outerRadius
+
+                let innerPoint = new Point(ipx, ipy)
+                let outerPoint = new Point(opx, opy)
+                if(innerPoint.distance(ip1) > spoke_padding && innerPoint.distance(ip2) > spoke_padding) {
+                    innerPts.push(new Point(ipx, ipy))
+                }
+
+                if(outerPoint.distance(op1) > spoke_padding && outerPoint.distance(op2) > spoke_padding) {
+                    outerPts.push(new Point(opx, opy))
+                }
+            }
+
+            outerPts.reverse()
+            let spokePoints = innerPts.concat(outerPts)
+            let spokePath = points_to_path(spokePoints)
+            paths.push(spokePath)
+        }
+        
+        let center_points = []
+        let center_rads = 0
+        let center_radius = root_radius * .1
+        step = Constants.TWOPI / steps
+        for(let i = 0; i<steps; i++) {
+            center_points.push(
+                new Point(this.center.x + Math.cos(center_rads) *  center_radius, this.center.y + Math.sin(center_rads) * center_radius)
+            )
+            center_rads += step
+        }
+        let center_path = points_to_path(center_points)
+        //paths.push(center_path)
+        this.spoke_path = paths.join(' ')
+    }
+
+
     draw_text = () => {
 
         this.text_img = new Image(this.outside_radius*2, this.outside_radius*2)
@@ -367,13 +455,19 @@ export class Gear{
             <textPath href="#textArc_${this.name}" textLength="auto" startOffset="0" font-family="Helvetica, sans-serif">${this.to_string()}</textPath>
          </text>`
 
+    }
+
+    to_svg = () => {
         let svg = 
         `<svg 
             xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
             viewBox="${this.center.x -this.outside_radius} ${this.center.y -this.outside_radius} ${this.outside_diameter} ${this.outside_diameter}" 
-            stroke="none">
-            ${this.text_path}
+            fill="none"
+            stroke="none"
+            fill-rule="evenodd">
+            
+            <path d="${this.svg_path} ${this.spoke_path}" stroke="${this.get_stroke()}" stroke-width="1" fill="${this.get_fill()}"/>
+
         </svg>`
 
 //        if(svg !== this.previous_svg) {

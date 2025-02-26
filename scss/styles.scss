@@ -28,6 +28,7 @@
 //$enable-gradients: true;
 //$enable-shadows: true;
 
+
 //$offcanvas-box-shadow: 0 1rem 3rem rgba(0, 0, 0, .175);
 
 // Include functions first
@@ -39,6 +40,14 @@
 // $border-radius: .4rem;
 // $success: #7952b3;
 $font-size-base:              .9rem; // Assumes the browser default, typically `16px`
+
+$form-range-thumb-bg:  rgb(255, 156, 115);
+$form-range-track-bg: rgb(251, 210, 136);
+$form-range-thumb-active-bg:  tint-color($form-range-thumb-bg, 70%);
+
+$form-check-input-checked-bg-color:  rgb(255, 156, 115);
+$form-check-input-focus-border:  rgb(255, 156, 115);
+$form-check-input-bg: rgb(251, 210, 136);
 
 // Required
 @import "bootstrap/scss/variables";
@@ -130,3 +139,4 @@ $font-size-base:              .9rem; // Assumes the browser default, typically `
 .btn {
   padding:.2rem .3rem;
 }
+
