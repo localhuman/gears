@@ -25,6 +25,7 @@
     "push-lhi": "npm run dist && rm -rf ../localhuman.industries/staticexport/gears && mkdir ../localhuman.industries/staticexport/gears && cp -R dist/* ../localhuman.industries/staticexport/gears && aws s3 sync ../localhuman.industries/staticexport s3://localhuman.industries"
   },
   "dependencies": {
+    "@jsonurl/jsonurl": "^1.1.8",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.3",
     "eslint": "^9.20.1"
