@@ -92,13 +92,11 @@ const loadFromUrl = () => {
   try {
     let statestr = decodeURI(location)
     let json = JSON.parse(statestr)    
-    console.log("settings!", json)
     updateUI(json)
     return json
   } catch(e) {
-    console.log("Could not decode state", e)
+    //console.log("Could not decode state", e)
     history.replaceState(undefined, undefined, "#")
-
     return default_settings
   }
 }
@@ -584,20 +582,19 @@ dqs("#export_svg").addEventListener("click", (event)=> {
   var myModal = new bootstrap.Modal(document.getElementById('export_modal'))
   myModal.show()
 
-  // dqs('#export_selected_gear').addEventListener('click', (event) => {
-  //   const filename = dqs('#svg_file_name').value
-  //   Exporter.export_gear_svg(selected_gear, filename)
-  //   myModal.hide()
-  // })  
-
-
-  // dqs('#export_all_gears').addEventListener('click', (event) => {
-  //   const filename = dqs('#svg_file_name').value
-  //   const separate = dqs('#show_separate_gearsets').checked
-  //   Exporter.export_all_gears_svg(gearsets, filename, separa)
-  //   myModal.hide()
-  // })  
+  dqs('#export_all_gears').addEventListener('click', (event) => {
+    const filename = dqs('#svg_file_name').value
+    const pendulum = dqs('#show_pendulum').checked
+    Exporter.export_escapement(escapement, filename, pendulum)
+    myModal.hide()
+  })  
 })
+
+dqs("#share_design").addEventListener("click", (event) => {
+  navigator.clipboard.writeText(window.location)
+  var myModal = new bootstrap.Modal(document.getElementById('share_modal'))
+  myModal.show()
+});
 
 
 // Mouse things 

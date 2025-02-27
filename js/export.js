@@ -81,4 +81,10 @@ ${paths.join('\n')}
       
         document.body.removeChild(element);
     },
+
+
+    export_escapement(escapement, name, include_pendulum=false) {
+
+        console.log("export escapmeent!", name)
+    }
 }
