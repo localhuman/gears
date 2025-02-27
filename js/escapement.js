@@ -48,16 +48,11 @@ export class Escapement {
 
   pallet = null
 
-  constructor(total_teeth= 30, tooth_height=50, tooth_angle=90, tooth_undercut_angle=15, tooth_width=0.05, radius=200, center, position){
+  settings = null
 
-    this.name = generate_gear_name('ratchet')
+  constructor(settings, center, position){
 
-    this.total_teeth = parseInt(total_teeth)
-    this.tooth_height = parseFloat(tooth_height)
-    this.tooth_angle = parseFloat(tooth_angle)
-    this.tooth_undercut_angle = parseFloat(tooth_undercut_angle)
-    this.tooth_width = parseFloat(tooth_width)
-    this.radius = parseInt(radius)
+    this.name = generate_gear_name('escapement')
 
     this.vertices = []
     this.center = center
@@ -65,9 +60,8 @@ export class Escapement {
 
     this.path = new Path2D()
 
-    this.pallet = new GrahamPallet(this)
-    //console.log("Created ratchet: ", this.total_teeth, this.pressure_angle, this.diametral_pitch, this.center, this.position)
-    this.update()
+    this.pallet = new GrahamPallet(this, settings)
+    this.update(settings)
 }
 
   get_stroke = () => {
@@ -121,11 +115,19 @@ export class Escapement {
   }
 
 
-  update = (new_position=null) =>{
-    if(new_position) {
-      this.position = new_position
-    }
+  update = (settings) =>{
 
+
+    this.settings = settings
+    this.total_teeth = settings.total_teeth
+    this.tooth_height = settings.tooth_height
+    this.tooth_angle = settings.tooth_angle
+    this.tooth_undercut_angle = settings.tooth_undercut_angle
+    this.tooth_width = settings.tooth_width
+    this.total_spokes = settings.spokes
+    this.radius = settings.radius
+
+    this.pallet.update(this.settings)
     this.render()
   }
 
@@ -389,10 +391,24 @@ export class GrahamPallet {
 
   finger_offset = 1.5
 
+  settings = null 
 
-  constructor(escapement) {
+  constructor(escapement, settings) {
     this.escapement = escapement
+    this.update(settings)
     this.render()
+  }
+
+  update = (settings) => {
+    this.settings = settings
+    this.fork_degrees = settings.fork_degrees
+    this.finger_offset = settings.finger_offset
+    this.pendulum_offset = settings.pendulum_offset
+    this.pendulum_radius = settings.pendulum_radius
+    this.counterweight_radius = settings.counterweight_radius
+
+
+
   }
 
   render = () => {
@@ -424,7 +440,6 @@ export class GrahamPallet {
     this.pallet_center = pallet_center
     
     let length = this.total_radius * 1.3
-  
 
     let fo = Constants.PIOVERONEEIGHTY * this.finger_offset
 

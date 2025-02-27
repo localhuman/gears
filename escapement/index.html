@@ -15,8 +15,10 @@
 
     <div class="d-flex flex-column flex-shrink-0 escapement-controls" id="controls">
 
-      <h1 class="p-1 pb-0 mb-0">Escapement!</h1>
-      <hr class="m-1">
+      <h1 class="p-2 pb-0 mb-0 fs-4">Graham Pallet!</h1>
+
+      <hr class="m-2">
+      <h2 class="p-2 pb-0 mb-0 fs-5">Escapment Settings</h2>
 
       <ul class="flex-column mb-auto list-unstyled p-2 pb-0">
         <li>
@@ -43,21 +45,28 @@
           <input type="range" id="spokes" name="spokes" min="0" max="12" value="5" step="1"/>
           <label for="spokes" id="spokes_label" class="w-100">Spokes: 5</label>
         </li>
-        <li>
-          <input type="range" id="pallet_fork_width" name="pallet_fork_width" min="1" max="4" value="2.25" step=".05"/>
-          <label for="pallet_fork_width" id="pallet_fork_width_label" class="w-100">Pallet Fork Width: 2.25</label>
-        </li>
 
         <li>
           <input type="range" id="radius" name="radius" min="10" max="600" value="200"/>
           <label for="radius" id="radius_label" class="w-100">Radius: 200</label>
         </li>
+        <li>
+          <input type="range" id="motor_speed" name="motor_speed" min=".01" max="1" value=".66" step="0.05"/>
+          <label for="motor_speed" id="motor_speed_label" class="w-100">Motor speed: 0.66</label>
+        </li>
+        <li>
+          <input type="range" id="motor_torque" name="motor_torque" min="100" max="10000" value="6500" step="10"/>
+          <label for="motor_speed" id="motor_torque_label" class="w-100">Motor torque: 6500</label>
+        </li>
 
-      <hr class="m-1">
+      </ul>
+
+      <hr class="m-2">
       <ul class="flex-column mb-auto list-unstyled p-2">
         <li class="">
           <button type="button" id="export_svg" class="btn btn-light lh-sm">Export SVG</button>
         </li>
+      
 <!--      
       <li class="">
         <button type="button" id="remove_gear" class="btn btn-light lh-sm">Remove Gear</button>
@@ -67,7 +76,7 @@
       </li>
 -->      
     </ul>
-    <hr class="m-1">
+    <hr class="m-2">
     </div>    
     
 
@@ -76,9 +85,7 @@
 
 
     <div class="flex-column flex-shrink-0 escapement-controls" id="controls-right">
-
-      <h1 class="p-1 pb-0 mb-0">Fun!</h1>
-      <hr class="m-1">
+      <h2 class="p-2 pb-0 mb-0 fs-5">Period Measurements</h2>
 
       <ul class="flex-column mb-auto list-unstyled p-2 pb-0">
         <li>
@@ -87,24 +94,34 @@
         <li>
           <span id="average_label"></span>
         </li>
-        <hr class="m-1">
-        
+        </ul>
+      <hr class="m-2">
+
+      <h2 class="p-2 pb-0 mb-0 fs-5">Pallet Settings</h2>
+
+      <ul class="flex-column mb-auto list-unstyled p-2 pb-0">
+<!--        
         <li>
           <input type="range" id="finger_angle" name="finger_angle" min="35" max="55" value="43.5" step="0.1"/>
           <label for="finger_angle" id="finger_angle_label" class="w-100">Finger Angle: 43.5</label>
         </li>
+      -->
+      <li>
+        <input type="range" id="pallet_fork_width" name="pallet_fork_width" min="1" max="4" value="2.25" step=".05"/>
+        <label for="pallet_fork_width" id="pallet_fork_width_label" class="w-100">Pallet Fork Width: 2.25</label>
+      </li>
 
         <li>
           <input type="range" id="pendulum_offset" name="pendulum_offset" min="2.5" max="4" value="3.31" step="0.005"/>
-          <label for="pendulum_offset" id="pendulum_offset_label" class="w-100">pendulum offset: 3.31</label>
+          <label for="pendulum_offset" id="pendulum_offset_label" class="w-100">Pendulum offset: 3.31</label>
         </li>
         <li>
           <input type="range" id="pendulum_radius" name="pendulum_radius" min="10" max="300" value="59" step=".25"/>
-          <label for="pendulum_radius" id="pendulum_radius_label" class="w-100">pendulum radius: 59</label>
+          <label for="pendulum_radius" id="pendulum_radius_label" class="w-100">Pendulum radius: 59</label>
         </li>
         <li>
           <input type="range" id="pallet_density" name="pallet_density" min=".1" max="1" value=".8" step="0.05"/>
-          <label for="pallet_density" id="pallet_density_label" class="w-100">pallet density: .8</label>
+          <label for="pallet_density" id="pallet_density_label" class="w-100">Pallet density: .8</label>
         </li>
         <li>
           <input type="range" id="pallet_lr" name="pallet_lr" min="0" max="10" value="3.15" step="0.05"/>
@@ -112,20 +129,13 @@
         </li>
         <li>
           <input type="range" id="pallet_friction" name="pallet_friction" min="0" max="1" value=".2" step="0.01"/>
-          <label for="pallet_friction" id="pallet_friction_label" class="w-100">pallet friction 0.3</label>
+          <label for="pallet_friction" id="pallet_friction_label" class="w-100">Pallet friction 0.3</label>
         </li>
 
 
-        <li>
-          <input type="range" id="motor_speed" name="motor_speed" min=".01" max="1" value=".66" step="0.05"/>
-          <label for="motor_speed" id="motor_speed_label" class="w-100">motor speed: 0.66</label>
-        </li>
-        <li>
-          <input type="range" id="motor_torque" name="motor_torque" min="100" max="10000" value="6500" step="10"/>
-          <label for="motor_speed" id="motor_torque_label" class="w-100">motor torque: 6500</label>
-        </li>
+      </ul>
 
-      <hr class="m-1">
+      <hr class="m-2">
     </div>    
 
 

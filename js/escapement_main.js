@@ -14,12 +14,6 @@ import { Constants } from "./gear.js";
 import { b2DestroyJoint,b2DestroyBody,b2DefaultRevoluteJointDef,b2CreateRevoluteJoint,b2Body_SetUserData, b2World_GetContactEvents } from './box2d/PhaserBox2D-Debug.js';
 
 
-// colors:
-// #002E2C
-// #035E7B
-// #EFF1C5
-// #A2A77F
-// #E3E7AF
 
 // canvas!
 const canvas = document.getElementById("canvas");
@@ -35,12 +29,6 @@ let m_draw
 let worldDef
 let world 
 let worldId
-let ground,leftSde,rightSide
-
-// Box 2d thngs
-let mouseJoint = null   
-let mouseBody = null 
-let mouseDown = false    
 
 // parts
 let escapement = null 
@@ -48,29 +36,36 @@ let escapementBody = null
 
 let palletBody = null
 
-let palletDensity = 0.8
-let palletCounterweight = 31.50
-let palletFriction = 0.3
+const default_settings = {
+  version: 'v1.0',
+  total_teeth: 30,
+  tooth_height: 50,
+  radius: 200,
+  spokes: 5,
+  tooth_angle: 17,
+  tooth_undercut_angle: 90,
+  tooth_width: 0.02,
+  fork_degrees: 2.25,
 
-let escapementDensity = 0.5
-let escapementFriction = 0.01
-let motorSpeed = 0.66
-let motorTorque = 6500
+  finger_offset: 1.5,
+  palletDensity : 0.8,
+  counterweight_radius : 31.50,
+  palletFriction : 0.3,
+
+  pendulum_offset: 3.31,
+  pendulum_radius: 59,
+
+  escapementDensity : 0.5,
+  escapementFriction : 0.01,
+  motorSpeed : 0.66,
+  motorTorque : 6500,
+}
+
+let settings = default_settings
 
 let lastContactTime = Date.now()
 let lastContactPositive = true
 let contactTimes = []
-
-var mousePosWorld = {
-  x: 0,
-  y: 0
-};        
-
-var mousePosPixel = {
-  x: 0,
-  y: 0
-}
-
 
 
 
@@ -80,19 +75,33 @@ const dqs = (id) =>{
 
 
 const update_state = () =>{
-  escapement.update()
+
+  let json = JSON.stringify(settings)
+  let urlified = `#${encodeURI(json)}`
+  history.replaceState(undefined, undefined, urlified)
+
+
+
+  escapement.update(settings)
 
   createEscapementPhysics()
 }
 
+const loadFromUrl = () => {
+  const location = window.location.hash.substring(1)
+  try {
+    let statestr = decodeURI(location)
+    let json = JSON.parse(statestr)    
+    console.log("settings!", json)
+    updateUI(json)
+    return json
+  } catch(e) {
+    console.log("Could not decode state", e)
+    history.replaceState(undefined, undefined, "#")
 
-const getWorldPointFromPixelPoint =(mx, my) => {
-  return {                
-      x: (mx - canvas.width/2)/PTM,
-      y: (my - canvas.height/2)/-PTM
-  };
+    return default_settings
+  }
 }
-
 
 
 const initialize = () => {
@@ -101,7 +110,11 @@ const initialize = () => {
   canvas.width = width
   canvas.height = height
   let center = new Point(width/2, height/2, 5);
-  escapement = new Escapement(dqs('#teeth').value, dqs('#tooth_height').value, dqs('#tooth_angle').value, dqs('#tooth_angle_undercut').value, dqs('#tooth_width').value, dqs('#radius').value, new Point(0,0), center)
+
+
+  settings = loadFromUrl()
+
+  escapement = new Escapement(settings, new Point(0, 0), center)
   initializeBox2d()
   createEscapementPhysics()
 
@@ -109,25 +122,21 @@ const initialize = () => {
 
 const initializeBox2d = () =>{
 
-  
-  m_draw = CreateDebugDraw(canvas, ctx, PTM);
+  //m_draw = CreateDebugDraw(canvas, ctx, PTM);
   // m_draw.DrawSolidPolygon = () => {}
   // m_draw.DrawSolidCircle = () => {}
-  // m_draw.flags = 0x0001 && 0x0002
+
   worldDef = b2DefaultWorldDef();
   worldDef.gravity = new b2Vec2(0, -GRAVITY);
+
   // create a world and save the ID which will access it
   world = CreateWorld({ worldDef: worldDef });
   worldId = world.worldId;
-
-  mouseBody = CreateCircle({ worldId, type: STATIC, radius: 0.3, position: new b2Vec2(-100, -100) });
 
 }
 
 
 const createEscapementPhysics = () => {
-
-  console.log("Recreating escapement!")
 
   if(escapementBody != null) {
     b2DestroyBody(escapementBody)
@@ -139,20 +148,18 @@ const createEscapementPhysics = () => {
 
   const bodyDef = b2DefaultBodyDef();
   bodyDef.type = b2BodyType.b2_dynamicBody; // this will be a dynamic body
-//  bodyDef.position =  new b2Vec2(0,0) 
   const shapeDef = b2DefaultShapeDef();
-  shapeDef.density = escapementDensity
-  shapeDef.friction = escapementFriction
+  shapeDef.density = settings.escapementDensity
+  shapeDef.friction = settings.escapementFriction
   escapementBody = b2CreateBody(worldId, bodyDef);
   b2Body_SetUserData(escapementBody, "wheel")
   const circle = {
       center: new b2Vec2(0, 0), // position, relative to body position
-      radius: escapement.radius/ PTM // radius
+      radius: settings.radius/ PTM // radius
   };
 
   b2CreateCircleShape(escapementBody, shapeDef, circle);  
 
-  console.log("circle anchor body, escapement body", groundId, escapementBody, world)
   const jointDef = b2DefaultRevoluteJointDef();
   jointDef.bodyIdA = escapementBody;
   jointDef.bodyIdB = groundId;
@@ -160,8 +167,8 @@ const createEscapementPhysics = () => {
   jointDef.localAnchorA = new b2Vec2(0, 0); 
   jointDef.localAnchorB = new b2Vec2(0,0)  // center of the circle
   jointDef.enableMotor = true;
-  jointDef.maxMotorTorque = motorTorque;
-  jointDef.motorSpeed = motorSpeed
+  jointDef.maxMotorTorque = settings.motorTorque;
+  jointDef.motorSpeed = settings.motorSpeed
 
   const joint = b2CreateRevoluteJoint(worldId, jointDef);
 
@@ -184,41 +191,42 @@ const createEscapementPhysics = () => {
 // //   // pallet
   let palletBodyDef = b2DefaultBodyDef();
   palletBodyDef.type = b2BodyType.b2_dynamicBody; // this will be a dynamic body
-  palletBodyDef.position =  new b2Vec2(10, 20) ; // set the starting position
+  palletBodyDef.position =  new b2Vec2(0, 20) ; // set the starting position
   palletBody = b2CreateBody(worldId, palletBodyDef)
   b2Body_SetUserData(palletBody, "pallet")
 
 
-  //right side mass = 23.243
-  ///left side mass = 25.243
-  // multiply left side by 0.9207701145
 
   let palletShapeDef = b2DefaultShapeDef();
-  palletShapeDef.density = palletDensity;
-  palletShapeDef.friction = palletFriction
+  palletShapeDef.density = settings.palletDensity;
+  palletShapeDef.friction = settings.palletFriction
 
 
   // pendulum!
-  let pendulumOffset = escapement.total_radius * escapement.pallet.pendulum_offset
+  let pendulumOffset = escapement.total_radius * settings.pendulum_offset
   let pendulumShapeDef = b2DefaultShapeDef()
   pendulumShapeDef.density = 1
 
   const pendulum = {
     center: new b2Vec2(0, pendulumOffset / -PTM), // position, relative to body position
-    radius: escapement.pallet.pendulum_radius / PTM // radius
+    radius: settings.pendulum_radius / PTM // radius
   };  
   b2CreateCircleShape(palletBody, pendulumShapeDef, pendulum);  
 
+
+  // counterweight provides abilit to change
+  // the period of left/rights swing
   let cwcenter = new b2Vec2(escapement.pallet.counterweight_center.x/PTM, escapement.pallet.counterweight_center.y / -PTM)
-  console.log("cw cnter: ", cwcenter)
   const counterweight = {
     center: cwcenter, // position, relative to body position
-    radius: palletCounterweight / PTM // radius
+    radius: settings.counterweight_radius / PTM // radius
   };  
   b2CreateCircleShape(palletBody, pendulumShapeDef, counterweight);  
 
 
 
+  // pallet is complex shape that needs to be drawn in 
+  // 4 different polygons
   let p1verts = escapement.pallet.part1.map(p => { 
     p.translate( new Point(0, -escapement.pallet.pallet_center.y))
     p.scaleNegY(1/PTM)
@@ -257,18 +265,12 @@ const createEscapementPhysics = () => {
   palletPolygon = b2MakePolygon(palletHull, 0);
   b2CreatePolygonShape(palletBody, palletShapeDef, palletPolygon);
 
-
-
+  // joint of pallet to wall
   const PjointDef = b2DefaultRevoluteJointDef();
   PjointDef.bodyIdA = palletBody;
   PjointDef.bodyIdB = PgroundId;
-  //jointDef.collideConnected = false;
   PjointDef.localAnchorA = new b2Vec2(0,0)
-//  PjointDef.localAnchorA =  new b2Vec2(escapement.pallet.pallet_center.x/PTM, escapement.pallet.pallet_center.y/PTM); 
   PjointDef.localAnchorB = new b2Vec2(0, escapement.pallet.pallet_center.y / -PTM) // center of the circle
-  // PjointDef.enableMotor = true;
-  // PjointDef.maxMotorTorque = 200;
-  // PjointDef.motorSpeed = 0.01 //
 
    const Pjoint = b2CreateRevoluteJoint(worldId, PjointDef);
 
@@ -430,109 +432,150 @@ animate()
  * UI Stuff
  */
 
+// on startup this is called with sesttings from url
+const updateUI = (settings) =>{
+  dqs("#teeth").value = settings.total_teeth
+  dqs("#teeth_label").textContent = 'Teeth: ' + settings.total_teeth
 
+  dqs("#tooth_angle").value = settings.tooth_angle
+  dqs("#tooth_angle_label").textContent = 'Tooth Angle: ' +settings.tooth_angle
+
+  dqs("#tooth_height").value = settings.tooth_height
+  dqs("#tooth_height_label").textContent = 'Tooth Height: ' + settings.tooth_height
+ 
+  dqs("#tooth_angle_undercut").value = settings.tooth_undercut_angle
+  dqs("#tooth_angle_undercut_label").textContent = 'Tooth Undercut Angle: ' + settings.tooth_undercut_angle
+
+  dqs("#tooth_width").value = settings.tooth_width
+  dqs("#tooth_width_label").textContent = 'Tooth Width: ' + settings.tooth_width
+
+  dqs("#spokes").value = settings.spokes
+  dqs("#spokes_label").textContent = 'Spokes: ' + settings.spokes
+
+  dqs("#pallet_fork_width").value = settings.fork_degrees
+  dqs("#pallet_fork_width_label").textContent = 'Fork Width: ' + settings.fork_degrees
+  
+  dqs("#radius").value = settings.radius
+  dqs("#radius_label").textContent = 'Radius: ' + settings.radius
+    
+
+  dqs("#pendulum_offset").value = settings.pendulum_offset
+  dqs("#pendulum_offset_label").textContent = 'Pendulum Offset: ' + settings.pendulum_offset
+
+  dqs("#pendulum_radius").value = settings.pendulum_radius
+  dqs("#pendulum_radius_label").textContent = 'Pendulum Radius: ' + settings.pendulum_radius
+
+ 
+  dqs("#pallet_density").value = settings.palletDensity
+  dqs("#pallet_density_label").textContent = 'Pallet Density: ' + settings.palletDensity
+
+  dqs("#pallet_lr").value = settings.counterweight_radius / 10
+  dqs("#pallet_lr_label").textContent = 'Pallet Balance: ' + settings.counterweight_radius / 10
+
+  dqs("#pallet_friction").value = settings.palletFriction
+  dqs("#pallet_friction_label").textContent = 'Pallet friction: ' + settings.palletFriction
+  
+  dqs("#motor_speed").value = settings.motorSpeed
+  dqs("#motor_speed_label").textContent = 'Motor speed: ' + settings.motorSpeed
+  
+  dqs("#motor_torque").value = settings.motorTorque
+  dqs("#motor_torque_label").textContent = 'motor torque: ' + settings.motorTorque
+  
+}
 
 dqs("#teeth").addEventListener("input", (event) => {
   dqs("#teeth_label").textContent = 'Teeth: ' + event.target.value;
-  escapement.total_teeth = parseInt(event.target.value)
+  settings.total_teeth = parseInt(event.target.value)
   update_state()
 });
 
 dqs("#tooth_angle").addEventListener("input", (event) => {
   dqs("#tooth_angle_label").textContent = 'Tooth Angle: ' + event.target.value;
-  escapement.tooth_angle = parseFloat(event.target.value)
+  settings.tooth_angle = parseFloat(event.target.value)
   update_state()
 });
 
 dqs("#tooth_angle_undercut").addEventListener("input", (event) => {
   dqs("#tooth_angle_undercut_label").textContent = 'Tooth Undercut Angle: ' + event.target.value;
-  escapement.tooth_undercut_angle = parseFloat(event.target.value)
+  settings.tooth_undercut_angle = parseFloat(event.target.value)
   update_state()
 });
 
 dqs("#tooth_width").addEventListener("input", (event) => {
   dqs("#tooth_width_label").textContent = 'Tooth Width: ' + event.target.value;
-  escapement.tooth_width = parseFloat(event.target.value)
+  settings.tooth_width = parseFloat(event.target.value)
   update_state()
 });
 
 
 dqs("#tooth_height").addEventListener("input", (event) => {
   dqs("#tooth_height_label").textContent = 'Tooth Height: ' + event.target.value;
-  escapement.tooth_height = parseFloat(event.target.value)
+  settings.tooth_height = parseFloat(event.target.value)
   update_state()  
 });
 
 dqs("#spokes").addEventListener("input", (event) => {
   dqs("#spokes_label").textContent = 'Spokes: ' + event.target.value;
-  escapement.total_spokes = parseInt(event.target.value)
+  settings.spokes = parseInt(event.target.value)
   update_state()  
 });
-
 
 
 
 dqs("#pallet_fork_width").addEventListener("input", (event) => {
   dqs("#pallet_fork_width_label").textContent = 'Fork Width: ' + event.target.value;
-  escapement.pallet.fork_degrees = parseFloat(event.target.value)
+  settings.fork_degrees = parseFloat(event.target.value)
   update_state()  
 });
 
 dqs("#radius").addEventListener("input", (event) => {
   dqs("#radius_label").textContent = 'Radius: ' + event.target.value;
-  escapement.radius = parseInt(event.target.value)
+  settings.radius = parseInt(event.target.value)
   update_state()
 });
 
 
-//f
-// dqs("#finger_angle").addEventListener("input", (event) => {
-//   dqs("#finger_angle_label").textContent = 'Finger Angle: ' + event.target.value;
-//   let value = 45 - parseFloat(event.target.value)
-//   escapement.pallet.finger_offset = value
-//   update_state()
-// });
+
 
 dqs("#pendulum_offset").addEventListener("input", (event) => {
   dqs("#pendulum_offset_label").textContent = 'Pendulum Offset: ' + event.target.value;
-  escapement.pallet.pendulum_offset = parseFloat(event.target.value)
+  settings.pendulum_offset = parseFloat(event.target.value)
   update_state()
 });
 
 dqs("#pendulum_radius").addEventListener("input", (event) => {
   dqs("#pendulum_radius_label").textContent = 'Pendulum Radius: ' + event.target.value;
-  escapement.pallet.pendulum_radius = parseFloat(event.target.value)
+  settings.pendulum_radius = parseFloat(event.target.value)
   update_state()
 });
 
 dqs("#pallet_density").addEventListener("input", (event) => {
   dqs("#pallet_density_label").textContent = 'Pallet Density: ' + event.target.value;
-  palletDensity = parseFloat(event.target.value)
+  settings.palletDensity = parseFloat(event.target.value)
   update_state()
 });
 
 dqs("#pallet_lr").addEventListener("input", (event) => {
   dqs("#pallet_lr_label").textContent = 'Pallet Balance: ' + event.target.value;
-  palletCounterweight = parseFloat(event.target.value) * 10
-  escapement.pallet.counterweight_radius = palletCounterweight
+  settings.counterweight_radius = parseFloat(event.target.value) * 10
   update_state()
 });
 
 dqs("#pallet_friction").addEventListener("input", (event) => {
   dqs("#pallet_friction_label").textContent = 'Pallet friction: ' + event.target.value;
-  palletFriction = parseFloat(event.target.value)
+  settings.palletFriction = parseFloat(event.target.value)
   update_state()
 });
 
 dqs("#motor_speed").addEventListener("input", (event) => {
   dqs("#motor_speed_label").textContent = 'motor speed: ' + event.target.value;
-  motorSpeed = parseFloat(event.target.value)
+  settings.motorSpeed = parseFloat(event.target.value)
   update_state()
 });
 
 dqs("#motor_torque").addEventListener("input", (event) => {
   dqs("#motor_torque_label").textContent = 'motor torque: ' + event.target.value;
-  motorTorque = parseInt(event.target.value)
+  settings.motorTorque = parseInt(event.target.value)
   update_state()
 });
 
@@ -567,95 +610,4 @@ window.addEventListener('load', (event) =>{
 window.addEventListener('resize', (event) =>{
   canvas.width = window.innerWidth
   canvas.height = window.innerHeight
-  let scaledWidth = canvas.width/PTM
-  let scaledHegiht = canvas.height/PTM
-
-  let xf = b2Body_GetTransform(ground.bodyId);
-  b2Body_SetTransform(ground.bodyId,  new b2Vec2(-scaledWidth/2, -scaledHegiht/2 +1),xf.q)
-  b2Body_SetTransform(leftSde.bodyId,  new b2Vec2(-scaledWidth/2, -scaledHegiht/2),xf.q)
-  b2Body_SetTransform(rightSide.bodyId,  new b2Vec2(scaledWidth/2 - 0.2, -scaledHegiht/2),xf.q)
-
 });
-
-const updateMousePos = (evt) => {
-  var rect = canvas.getBoundingClientRect();
-  mousePosPixel = {
-    x: evt.clientX - rect.left,
-    y: canvas.height - (evt.clientY - rect.top)
-  };
-  mousePosWorld = getWorldPointFromPixelPoint(evt.x, evt.y);
-
-}
-
-
-const startMouseJoint = () => {
-    
-  if ( mouseJoint != null )
-      return;
-  
-  let foundBody=null;
-  function queryCallback(shapeId, _context) {
-    const bodyId = b2Shape_GetBody(shapeId);
-    foundBody = bodyId
-    return true; // keep going to find all shapes in the query area
-  }
-
-  // Make a small box.
-  var d = 0.001;            
-  var aabb = new b2AABB(mousePosWorld.x - d,mousePosWorld.y - d, mousePosWorld.x + d, mousePosWorld.y + d);
-  
-  // Default filter to accept all shapes
-  const filter = b2DefaultQueryFilter();
-
-  // Perform query
-  b2World_OverlapAABB(worldId, aabb, filter, queryCallback, null);
-  if(foundBody) {
-    let found_position = b2Body_GetPosition(foundBody);
-    mouseJoint = CreateMouseJoint({ worldId,
-      bodyIdA: mouseBody.bodyId,
-      bodyIdB: foundBody,
-      collideConnected: false,
-      maxForce: 35000,
-      hertz: 5.0,
-      dampingRatio: 0.9,
-      target:  found_position 
-    });
-  }
-}
-
-
-window.addEventListener('mousedown', (event) => {
-
-  if(dqs('#controls').matches(':hover')){
-    return
-  }
-
-
-  updateMousePos( event);
-  if ( !mouseDown ) {
-    startMouseJoint();
-    mouseDown = true;
-  }
-})
-
-window.addEventListener('mousemove', (event) => {
-  updateMousePos(event)
-
-  if ( mouseDown && mouseJoint != null ) {
-    //const xf = b2Body_GetTransform(mouseBody.bodyId);
-    // //  Optional, but a much better 'feel'
-    //b2Body_SetTransform(mouseBody.bodyId, pxmVec2(mousePosWorld.x, mousePosWorld.y), xf.q);
-    b2MouseJoint_SetTarget(mouseJoint.jointId, new b2Vec2(mousePosWorld.x, mousePosWorld.y));
-  }
-})
-
-window.addEventListener('mouseup', (event) => {
-  mouseDown = false;
-  updateMousePos(event);
-  if ( mouseJoint != null ) {
-    b2DestroyJoint(mouseJoint.jointId);
-    mouseJoint = null;
-}
-})
-
-

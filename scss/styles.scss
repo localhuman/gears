@@ -41,13 +41,22 @@
 // $success: #7952b3;
 $font-size-base:              .9rem; // Assumes the browser default, typically `16px`
 
-$form-range-thumb-bg:  rgb(255, 156, 115);
-$form-range-track-bg: rgb(251, 210, 136);
-$form-range-thumb-active-bg:  tint-color($form-range-thumb-bg, 70%);
+$orange:  rgb(255, 156, 115);
+$peach:  rgb(251, 210, 136);
+$yellow: rgb(252, 245, 150);
+$red: rgb(255, 69, 69);
 
-$form-check-input-checked-bg-color:  rgb(255, 156, 115);
-$form-check-input-focus-border:  rgb(255, 156, 115);
-$form-check-input-bg: rgb(251, 210, 136);
+// $form-range-thumb-bg: $red;
+// $form-range-track-bg: $orange;
+// $form-range-thumb-active-bg:  tint-color($form-range-thumb-bg, 70%);
+
+// $form-check-input-checked-bg-color: $orange;
+// $form-check-input-focus-border:  $red;
+// $form-check-input-bg: $orange;
+// $form-check-input-active-filter: null;
+
+// $form-check-input-indeterminate-color: $red;
+// $form-check-input-indeterminate-bg-color:  $peach;
 
 // Required
 @import "bootstrap/scss/variables";
