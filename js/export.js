@@ -83,8 +83,37 @@ ${paths.join('\n')}
     },
 
 
-    export_escapement(escapement, name, include_pendulum=false) {
+    export_escapement(escapement, filename) {
 
         console.log("export escapmeent!", name)
+        let tr = escapement.total_radius
+        let pallet_size = tr / 10
+        let total_height = pallet_size + (tr * escapement.settings.pendulum_offset)
+        let total_width = tr * 2.2
+
+        let pallet_path = `${escapement.pallet.plistPath} ${escapement.pallet.crosshairPath}`
+
+        // if(include_pendulum) {
+        //     pallet_path += `${escapement.pallet.plistPath} ${escapement.pallet.crosshairPath} ${escapement.pallet.pendulum_path}`
+        // }
+        let pallet = `<path d="${pallet_path}" stroke="black" stroke-width="1"/>`
+
+
+        let svg = 
+        `<svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="${total_width}"
+    height="${total_height}"
+    viewBox="${-tr*1.1} ${escapement.pallet.pallet_center.y - pallet_size} ${total_width} ${total_height}"
+    fill="none">
+    
+    ${pallet}
+    
+
+    <path d="${escapement.p} ${escapement.spoke_path} ${escapement.center_path}" stroke="black" stroke-width="1"/>
+    </svg>`
+
+        Exporter.download(svg, filename, 'image/svg+xml')
+
     }
 }

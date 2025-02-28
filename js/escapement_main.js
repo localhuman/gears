@@ -298,17 +298,21 @@ const animate = () => {
   ctx.rotate(-rotationPallet)
   ctx.translate(-escapement.pallet.pallet_center.x, -escapement.pallet.pallet_center.y)
 
+  ctx.fillStyle = escapement.pallet.fillStyle
+  ctx.stroke(escapement.pallet.pendulum_spine)
+  ctx.fill(escapement.pallet.pendulum_spine)
+
   ctx.strokeStyle = escapement.pallet.strokeStyle
   ctx.fillStyle = escapement.pallet.fillStyle
   ctx.stroke(escapement.pallet.path)  
   ctx.fill(escapement.pallet.path)
-  ctx.fillStyle = "rgb(27, 27, 27)"
+
+  ctx.fillStyle = escapement.pallet.strokeStyle
   ctx.stroke(escapement.pallet.center_path)  
   ctx.fill(escapement.pallet.center_path)
 
+  ctx.strokeStyle = escapement.pallet.strokeStyle
   ctx.fillStyle = escapement.pallet.fillStyle
-  ctx.stroke(escapement.pallet.pendulum_spine)
-  ctx.fill(escapement.pallet.pendulum_spine)
 
   ctx.stroke(escapement.pallet.pendulum_ball)
   ctx.fill(escapement.pallet.pendulum_ball)
@@ -584,8 +588,8 @@ dqs("#export_svg").addEventListener("click", (event)=> {
 
   dqs('#export_all_gears').addEventListener('click', (event) => {
     const filename = dqs('#svg_file_name').value
-    const pendulum = dqs('#show_pendulum').checked
-    Exporter.export_escapement(escapement, filename, pendulum)
+//    const pendulum = dqs('#show_pendulum').checked
+    Exporter.export_escapement(escapement, filename)
     myModal.hide()
   })  
 })

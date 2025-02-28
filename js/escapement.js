@@ -65,15 +65,15 @@ export class Escapement {
 }
 
   get_stroke = () => {
-    return "#E0DFD5"
+    return "rgba(70,70,70,1)"
   }
 
   get_fill = () => {
-    return "#E0DFD5"
+    return "rgb(251, 210, 136)"
   }
 
   get_center_style = () => {
-    return "white"
+    return "black"
   }
 
   get_guide_style = () => {
@@ -177,13 +177,12 @@ export class Escapement {
   }
 
   draw_center = () => {
+    let center_radius = this.radius * .075
 
-    let length = 20
-    this.center_path = new Path2D()
-    this.center_path.moveTo(-length, 0)
-    this.center_path.lineTo(length, 0)
-    this.center_path.moveTo(0, -length)
-    this.center_path.lineTo(0, length)
+    this.center_path = 
+    `M${this.center.x - center_radius} ${this.center.y} L${this.center.x + center_radius} ${this.center.y}Z
+     M${this.center.x} ${this.center.y - center_radius} L${this.center.x} ${this.center.y + center_radius}Z`
+
   }
 
   to_svg = () => {
@@ -199,6 +198,8 @@ let svg =
     fill="none"
     fill-rule="evenodd">
     <path d="${this.p} ${this.spoke_path}" stroke="${this.get_stroke()}" stroke-width="1" fill="${this.get_fill()}"/>
+    <path d="${this.center_path}" stroke="${this.get_center_style()}" stroke-width="1"/>
+
 </svg>`
 
     if(svg == this.last_svg){
@@ -280,18 +281,6 @@ let svg =
       paths.push(spokePath)
     }
     
-    let center_points = []
-    let center_rads = 0
-    let center_radius = this.radius * .1
-    step = Constants.TWOPI / steps
-      for(let i = 0; i<steps; i++) {
-      center_points.push(
-        new Point(this.center.x + Math.cos(center_rads) *  center_radius, this.center.y + Math.sin(center_rads) * center_radius)
-      )
-      center_rads += step
-    }
-    let center_path = points_to_path(center_points)
-    paths.push(center_path)
     this.spoke_path = paths.join(' ')
   }
 
@@ -362,6 +351,8 @@ export class GrahamPallet {
   center = null 
   pallet_center = null
 
+  crosshairPath = null
+  plistPath = null
   path = null
   center_path = null 
 
@@ -370,7 +361,8 @@ export class GrahamPallet {
   rotation = 0
 
   fillStyle = '#F09D51'
-  strokeStyle = '#F09D51'
+  strokeStyle = "rgba(70,70,70,1)"
+
 
   part1 = null 
   part2 = null
@@ -381,6 +373,8 @@ export class GrahamPallet {
 
   pendulum_spine = null
   pendulum_ball = null 
+
+  pendulum_path = null
 
   counterweight_center = null 
   counterweight = null
@@ -418,12 +412,20 @@ export class GrahamPallet {
   }
 
   draw_pendulum = () => {
-    this.pendulum_spine = new Path2D()
-    this.pendulum_spine.rect(this.pallet_center.x -5, this.pallet_center.y + 5, 10, 800)
-
     let offsetY = this.total_radius * this.pendulum_offset
+
+    this.pendulum_spine = new Path2D()
+    this.pendulum_spine.rect(this.pallet_center.x -5, this.pallet_center.y + 5, 10, offsetY + 10)
+
     this.pendulum_ball = new Path2D()
     this.pendulum_ball.arc(this.pallet_center.x, this.pallet_center.y + offsetY, this.pendulum_radius, 0, Constants.TWOPI )
+
+
+    this.pendulum_path = `
+      M${this.pallet_center.x -5} ${this.pallet_center.y +5} L${this.pallet_center.x + 5} ${this.pallet_center.y +5}
+      L${this.pallet_center.x +5} ${offsetY + 10} L${this.pallet_center.x -5} ${offsetY +10}Z
+      
+    `
   }
 
   draw_counterweight = () => {
@@ -439,6 +441,9 @@ export class GrahamPallet {
     let pallet_center = new Point(this.center.x, this.center.y - distance_to_pallet_center)
     this.pallet_center = pallet_center
     
+    this.crosshairPath = `M ${pallet_center.x - 10} ${pallet_center.y} L ${pallet_center.x + 10} ${pallet_center.y} Z 
+                          M ${pallet_center.x} ${pallet_center.y - 10} L ${pallet_center.x} ${pallet_center.y + 10} Z`
+
     let length = this.total_radius * 1.3
 
     let fo = Constants.PIOVERONEEIGHTY * this.finger_offset
@@ -561,8 +566,8 @@ export class GrahamPallet {
     // d.arc(pallet_center.x, pallet_center.y, d1, a135+mThree, Math.PI - a20, false)
     // d.lineTo(pallet_center.x, pallet_center.y - pallet_size)
     // this.path = d
-    let plistPath = points_to_path(plist)
-    this.path = new Path2D(plistPath)
+    this.plistPath = points_to_path(plist)
+    this.path = new Path2D(this.plistPath)
 
 
     this.center_path = new Path2D()

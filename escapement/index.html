@@ -77,7 +77,7 @@
         </li>
 
         <li class="">
-          <button type="button" id="reset_design" class="btn btn-light lh-sm" onclick="window.location.href=''">Reset Design</button>
+          <button type="button" id="reset_design" class="btn btn-light lh-sm" onclick="window.location.href=''">Reset</button>
         </li>
    
     </ul>
@@ -174,17 +174,18 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <p>Export Escapement as SVG file.  The file will include the 'gear' and the pallet. The center of the gear will be a cross-hair rather than a hole.</p>
+            <p>Export Escapement as SVG file.  The file will include the gear and the pallet. The pendulum is not included as the dimension, shape, and weight are determined non digitally.</p>
+            <p>The distance between the pallet and the gear centers in this export should be kept as is.  It is set to the radius of the Escapment gear times √2 </p>
               
             <p>Choose a name for your file:</p>
             <div class="input-group flex-nowrap">
               <input type="text" class="form-control" id="svg_file_name" aria-label="filename" aria-describedby="addon-wrapping" value="GrahamPallet">
               <span class="input-group-text" id="addon-wrapping">.svg</span>
             </div>
-            <div class="form-check form-switch pt-4">
+            <!-- <div class="form-check form-switch pt-4">
               <input class="form-check-input" type="checkbox" id="show_pendulum">
               <label class="form-check-label" for="show_pendulum">Include pendulum in svg export?</label>
-            </div>  
+            </div>   -->
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
