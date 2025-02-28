@@ -7,12 +7,11 @@ import { b2Vec2, b2BodyType, b2DefaultWorldDef, b2World_Draw, b2ComputeHull, b2C
 import { b2Body_GetTransform, b2Rot_GetAngle } from './box2d/PhaserBox2D-Debug.js';
 import { b2DestroyBody,b2DefaultRevoluteJointDef,b2CreateRevoluteJoint,b2Body_SetUserData, b2World_GetContactEvents } from './box2d/PhaserBox2D-Debug.js';
 
-import "./bootstrap.bundle.min.js";
+import "/js/util/bootstrap.bundle.min.js";
 
 import { Point} from "/js/gear.js";
 import { Escapement } from "/js/escapement.js";
 import { Exporter } from "/js/export.js";
-import { Constants } from "./gear.js";
 
 
 // canvas!
@@ -67,7 +66,7 @@ let lastContactTime = Date.now()
 let lastContactPositive = true
 let contactTimes = []
 
-
+let savedDegins = []
 
 const dqs = (id) =>{
   return document.querySelector(id)
@@ -85,6 +84,25 @@ const update_state = () =>{
   escapement.update(settings)
 
   createEscapementPhysics()
+}
+
+
+const loadDesigns = () => {
+  let loadedDesigns = localStorage.getItem("escapements")
+  if(loadedDesigns) {
+    try {
+      savedDegins = JSON.parse(loadedDesigns)
+    } catch (e) {
+      localStorage.setItem("escapements", JSON.stringify(savedDegins))      
+    }
+  } else {
+    localStorage.setItem("escapements", JSON.stringify(savedDegins))      
+  }
+  if(savedDegins.length > 0) {
+    dqs('#load_design').enabled = true
+  }
+  console.log("Saved designs!", savedDegins)
+
 }
 
 const loadFromUrl = () => {
@@ -115,7 +133,7 @@ const initialize = () => {
   escapement = new Escapement(settings, new Point(0, 0), center)
   initializeBox2d()
   createEscapementPhysics()
-
+  loadDesigns()
 }
 
 const initializeBox2d = () =>{

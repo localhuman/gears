@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
 
     <div class="d-flex flex-column flex-shrink-0 escapement-controls" id="controls">
 
-      <h1 class="p-2 pb-0 mb-0 fs-4">Graham Pallet!</h1>
+      <h1 class="p-2 pb-0 mb-0 fs-4">Graham Pallet</h1>
 
       <hr class="m-2">
       <h2 class="p-2 pb-0 mb-0 fs-5">Escapment Settings</h2>
@@ -23,52 +23,53 @@
       <ul class="flex-column mb-auto list-unstyled p-2 pb-0">
         <li>
           <input type="range" id="teeth" name="teeth" min="10" max="200" value="30" step="1"/>
-          <label for="teeth" id="teeth_label" class="w-100">Teeth: 30</label>
+          <label for="teeth" id="teeth_label" class="w-100" title="Number of Teeth on Escapment">Teeth: 30</label>
         </li>
         <li>
           <input type="range" id="tooth_height" name="tooth_height" min="0" max="400" value="50" step="1"/>
-          <label for="tooth_height" id="tooth_height_label" class="w-100">Tooth Height: 50</label>
+          <label for="tooth_height" id="tooth_height_label" class="w-100" title="Height of Teeth on Escapment in pixels">Tooth Height: 50</label>
         </li>
         <li>
           <input type="range" id="tooth_angle" name="tooth_angle" min="0" max="30" value="17" step=".5"/>
-          <label for="tooth_angle" id="tooth_angle_label" class="w-100">Tooth Included Angle: 17</label>
+          <label for="tooth_angle" id="tooth_angle_label" class="w-100" title="Angle from the left side of the tooth to the tip">Tooth Included Angle: 17</label>
         </li>
         <li>
           <input type="range" id="tooth_angle_undercut" name="tooth_angle_undercut" min="80" max="120" value="90" step="1"/>
-          <label for="tooth_angle_undercut" id="tooth_angle_undercut_label" class="w-100">Tooth Undercut Angle: 90</label>
+          <label for="tooth_angle_undercut" id="tooth_angle_undercut_label" class="w-100" title="Angle from the right tooth tip to the base of tooth">Tooth Undercut Angle: 90</label>
         </li>
         <li>
           <input type="range" id="tooth_width" name="tooth_width" min="0" max=".1" value=".02" step="0.005"/>
-          <label for="tooth_width" id="tooth_width_label" class="w-100">Tooth Width: 0.02</label>
+          <label for="tooth_width" id="tooth_width_label" class="w-100" title="Width of the tooth at the tip ( in radians )">Tooth Width: 0.02</label>
         </li>
         <li>
           <input type="range" id="spokes" name="spokes" min="0" max="12" value="5" step="1"/>
-          <label for="spokes" id="spokes_label" class="w-100">Spokes: 5</label>
+          <label for="spokes" id="spokes_label" class="w-100" title="Total spokes.  Use zero for no spokes">Spokes: 5</label>
         </li>
 
         <li>
           <input type="range" id="radius" name="radius" min="10" max="600" value="200"/>
-          <label for="radius" id="radius_label" class="w-100">Radius: 200</label>
+          <label for="radius" id="radius_label" class="w-100" title="Radius of the escapement wheel in pixels.">Radius: 200</label>
         </li>
         <li>
           <input type="range" id="motor_speed" name="motor_speed" min=".01" max="1" value=".66" step="0.05"/>
-          <label for="motor_speed" id="motor_speed_label" class="w-100">Motor speed: 0.66</label>
+          <label for="motor_speed" id="motor_speed_label" class="w-100" title="Max Speed at which the motor drives the escapement wheel">Motor speed: 0.66</label>
         </li>
         <li>
           <input type="range" id="motor_torque" name="motor_torque" min="100" max="10000" value="6500" step="10"/>
-          <label for="motor_speed" id="motor_torque_label" class="w-100">Motor torque: 6500</label>
+          <label for="motor_speed" id="motor_torque_label" class="w-100" title="Torque at which the motor drives the escapement wheel">Motor torque: 6500</label>
         </li>
+        <li>
+          <button type="button" id="reset_design" class="btn btn-light lh-sm px-3" onclick="window.location.href=''" title="Reset the design to defaults">Reset to defaults</button>
 
+        </li>
       </ul>
 
       <hr class="m-2">
-      <ul class="flex-column mb-auto list-unstyled p-2">
+      <ul class="mb-auto list-unstyled p-2">
         <li class="">
-          <button type="button" id="export_svg" class="btn btn-light lh-sm">Export SVG</button>
-        </li>
+          <button type="button" id="export_svg" class="btn btn-light lh-sm px-2 me-2" title="Export this design as an SVG file.">Export SVG</button>
 
-        <li class="">
-          <button type="button" id="share_design" class="btn btn-light lh-sm">
+          <button type="button" id="share_design" class="btn btn-light lh-sm px-3" title="Copies link to this design to your clipboard">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" class="bi bi-copy" viewBox="0 0 20 16">
               <path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
             </svg>
@@ -77,7 +78,9 @@
         </li>
 
         <li class="">
-          <button type="button" id="reset_design" class="btn btn-light lh-sm" onclick="window.location.href=''">Reset</button>
+          <button type="button" id="save_design" class="btn btn-light lh-sm px-3 me-2" title="Save this design to your browser cookies.">Save</button>
+          <button type="button" id="load_design" class="btn btn-light lh-sm px-3" title="Load a saved version." disabled>Load</button>
+
         </li>
    
     </ul>
@@ -94,10 +97,10 @@
 
       <ul class="flex-column mb-auto list-unstyled p-2 pb-0">
         <li>
-          <span id="period_label"></span>
+          <span id="period_label" title="Milleseconds elapsed since last 'tick'"></span>
         </li>
         <li>
-          <span id="average_label"></span>
+          <span id="average_label" title="Average number of milliseconds for last 50 ticks"></span>
         </li>
         </ul>
       <hr class="m-2">
@@ -108,28 +111,28 @@
 
       <li>
         <input type="range" id="pallet_fork_width" name="pallet_fork_width" min="1" max="4" value="2.25" step=".05"/>
-        <label for="pallet_fork_width" id="pallet_fork_width_label" class="w-100">Pallet Fork Width: 2.25</label>
+        <label for="pallet_fork_width" id="pallet_fork_width_label" class="w-100" title="Width of the pallet forks as determined by number of degrees they contain from the center of the esacpement wheel">Pallet Fork Width: 2.25</label>
       </li>
 
         <li>
           <input type="range" id="pendulum_offset" name="pendulum_offset" min="2.5" max="4" value="3.31" step="0.005"/>
-          <label for="pendulum_offset" id="pendulum_offset_label" class="w-100">Pendulum offset: 3.31</label>
+          <label for="pendulum_offset" id="pendulum_offset_label" class="w-100" title="Offset of the pendulum as a ratio of the radius.  Smaller values mean shorter swing and faster period.  Too close and you may stop the wheel!">Pendulum offset: 3.31</label>
         </li>
         <li>
           <input type="range" id="pendulum_radius" name="pendulum_radius" min="10" max="300" value="59" step=".25"/>
-          <label for="pendulum_radius" id="pendulum_radius_label" class="w-100">Pendulum radius: 59</label>
+          <label for="pendulum_radius" id="pendulum_radius_label" class="w-100" title="Size of the pendulum weight.  Affects the speed at which the pendulum swings and the period of the ticks.">Pendulum radius: 59</label>
         </li>
         <li>
           <input type="range" id="pallet_density" name="pallet_density" min=".1" max="1" value=".8" step="0.05"/>
-          <label for="pallet_density" id="pallet_density_label" class="w-100">Pallet density: .8</label>
+          <label for="pallet_density" id="pallet_density_label" class="w-100" title="Amount of weight distributed through the whole top of the pallet.">Pallet Weight: .8</label>
         </li>
         <li>
           <input type="range" id="pallet_lr" name="pallet_lr" min="0" max="10" value="3.15" step="0.05"/>
-          <label for="pallet_lr" id="pallet_lr_label" class="w-100">Pallet Balance: 3.15</label>
+          <label for="pallet_lr" id="pallet_lr_label" class="w-100" title="Counterweight to equalize the period lengths between 'tick' and 'tock'.  ">Pallet Balance: 3.15</label>
         </li>
         <li>
           <input type="range" id="pallet_friction" name="pallet_friction" min="0" max="1" value=".2" step="0.01"/>
-          <label for="pallet_friction" id="pallet_friction_label" class="w-100">Pallet friction 0.3</label>
+          <label for="pallet_friction" id="pallet_friction_label" class="w-100" title="Amount of friction the pallet has when touching the escapement wheel.">Pallet friction 0.3</label>
         </li>
 
 
@@ -196,6 +199,28 @@
     </div>    
 
 
+    <div class="modal" tabindex="-1" id="save_modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Export SVG</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Save this escapement to your browser so you can easily retrieve it later.  Give it a unique name so you don't forget!</p>
+            <p>Choose a name:</p>
+            <div class="input-group flex-nowrap">
+              <input type="text" class="form-control" id="svg_file_name" aria-label="filename" aria-describedby="addon-wrapping" value="Super Pallet">
+              <span class="input-group-text" id="addon-wrapping">.svg</span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="export_all_gears">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>    
 
     <div class="modal" tabindex="-1" id="share_modal">
       <div class="modal-dialog">
@@ -214,10 +239,11 @@
       </div>
     </div>   
 
+    <script src="/js/util/bootstrap.bundle.min.js"></script>    
 
     <script type="module" src="/js/box2d/PhaserBox2D-Debug.js"></script>
 
-    <script src="js/bootstrap.bundle.min.js"></script>    
+ 
     <script type="module" src="/js/export.js"></script>
     <script type="module" src="/js/util/intersect.js"></script>
     <script type="module" src="/js/gear.js"></script>

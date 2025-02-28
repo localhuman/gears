@@ -46,6 +46,11 @@ $peach:  rgb(251, 210, 136);
 $yellow: rgb(252, 245, 150);
 $red: rgb(255, 69, 69);
 
+
+
+
+
+
 // $form-range-thumb-bg: $red;
 // $form-range-track-bg: $orange;
 // $form-range-thumb-active-bg:  tint-color($form-range-thumb-bg, 70%);
@@ -66,6 +71,8 @@ $red: rgb(255, 69, 69);
 @import "bootstrap/scss/utilities";
 @import "bootstrap/scss/root";
 @import "bootstrap/scss/reboot";
+
+
 
 @import "bootstrap/scss/type";
 @import "bootstrap/scss/images";
@@ -112,7 +119,7 @@ $red: rgb(255, 69, 69);
 
 #controls {
   position: relative;
-  background-color: rgba($color: black, $alpha: 0.4);
+  background-color: rgba($color: black, $alpha: 0.2);
   max-width: 180px;
 
   li {
@@ -129,7 +136,7 @@ $red: rgb(255, 69, 69);
   position: absolute;
   right:0px;
   top:0px;
-  background-color: rgba($color: black, $alpha: 0.4);
+  background-color: rgba($color: black, $alpha: 0.2);
   width: 180px;
 
   li {
