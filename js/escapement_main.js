@@ -41,6 +41,7 @@ const default_settings = {
   tooth_height: 50,
   radius: 200,
   spokes: 5,
+  spoke_padding: 0.065,
   tooth_angle: 17,
   tooth_undercut_angle: 90,
   tooth_width: 0.02,
@@ -79,13 +80,10 @@ const update_state = () =>{
   let urlified = `#${encodeURI(json)}`
   history.replaceState(undefined, undefined, urlified)
 
-
-
   escapement.update(settings)
 
   createEscapementPhysics()
 }
-
 
 const loadDesigns = () => {
   let loadedDesigns = localStorage.getItem("escapements")
@@ -98,12 +96,16 @@ const loadDesigns = () => {
   } else {
     localStorage.setItem("escapements", JSON.stringify(savedDegins))      
   }
-  if(savedDegins.length > 0) {
-    dqs('#load_design').enabled = true
-  }
-  console.log("Saved designs!", savedDegins)
+  dqs('#load_design').disabled = savedDegins.length < 1
 
-}
+  const select = dqs('#design_selector')
+  select.options.length = 0
+  savedDegins.forEach((item, index)=> {
+    let option = new Option(item.name, index)
+    select.add(option)
+  })
+
+} 
 
 const loadFromUrl = () => {
   const location = window.location.hash.substring(1)
@@ -326,8 +328,7 @@ const animate = () => {
   ctx.fill(escapement.pallet.path)
 
   ctx.fillStyle = escapement.pallet.strokeStyle
-  ctx.stroke(escapement.pallet.center_path)  
-  ctx.fill(escapement.pallet.center_path)
+  ctx.stroke(escapement.pallet.crosshair)  
 
   ctx.strokeStyle = escapement.pallet.strokeStyle
   ctx.fillStyle = escapement.pallet.fillStyle
@@ -472,6 +473,9 @@ const updateUI = (settings) =>{
   dqs("#spokes").value = settings.spokes
   dqs("#spokes_label").textContent = 'Spokes: ' + settings.spokes
 
+  dqs("#spoke_padding").value = settings.spoke_padding
+  dqs("#spoke_padding_label").textContent = 'Spoke Padding: ' + settings.spoke_padding
+
   dqs("#pallet_fork_width").value = settings.fork_degrees
   dqs("#pallet_fork_width_label").textContent = 'Fork Width: ' + settings.fork_degrees
   
@@ -540,6 +544,12 @@ dqs("#spokes").addEventListener("input", (event) => {
   update_state()  
 });
 
+dqs("#spoke_padding").addEventListener("input", (event) => {
+  dqs("#spoke_padding_label").textContent = 'Spoke Padding: ' + event.target.value;
+  settings.spoke_padding = parseFloat(event.target.value)
+  update_state()  
+});
+
 
 
 dqs("#pallet_fork_width").addEventListener("input", (event) => {
@@ -604,11 +614,11 @@ dqs("#export_svg").addEventListener("click", (event)=> {
   var myModal = new bootstrap.Modal(document.getElementById('export_modal'))
   myModal.show()
 
-  dqs('#export_all_gears').addEventListener('click', (event) => {
+  dqs('#export_all_gears').addEventListener('click', function onClick(event) {
     const filename = dqs('#svg_file_name').value
-//    const pendulum = dqs('#show_pendulum').checked
     Exporter.export_escapement(escapement, filename)
     myModal.hide()
+    this.removeEventListener('click', onClick)
   })  
 })
 
@@ -616,6 +626,52 @@ dqs("#share_design").addEventListener("click", (event) => {
   navigator.clipboard.writeText(window.location)
   var myModal = new bootstrap.Modal(document.getElementById('share_modal'))
   myModal.show()
+});
+
+dqs("#save_design").addEventListener("click", (event) => {
+  let design = JSON.stringify(settings)
+
+  var myModal = new bootstrap.Modal(document.getElementById('save_modal'))
+  myModal.show()
+
+  dqs('#do_save_escapement').addEventListener('click', function onClick(event) {
+    const filename = dqs('#escapement_name').value
+    let to_save = {
+      name: filename,
+      value: settings
+    }
+    savedDegins.push(to_save)
+    localStorage.setItem('escapements', JSON.stringify(savedDegins))
+    console.log("saved designs!")
+
+    myModal.hide()
+    this.removeEventListener('click', onClick)
+    loadDesigns()
+  })  
+
+});
+
+
+
+dqs("#load_design").addEventListener("click", (event) => {
+
+  var myModal = new bootstrap.Modal(document.getElementById('load_modal'))
+  myModal.show()
+
+  dqs('#do_load_escapement').addEventListener('click', function onClick(event) {
+    let selected = dqs('#design_selector').value
+    console.log("Selected!", selected)
+
+    const selectedDesign = savedDegins[selected].value
+    console.log("selected design: ", selectedDesign)
+    settings = selectedDesign
+    update_state()   
+    updateUI(settings)
+    myModal.hide()
+    this.removeEventListener('click', onClick)
+
+  })  
+
 });
 
 
@@ -629,4 +685,8 @@ window.addEventListener('load', (event) =>{
 window.addEventListener('resize', (event) =>{
   canvas.width = window.innerWidth
   canvas.height = window.innerHeight
+
+  let center = new Point(canvas.width/2, canvas.height/2, 5);
+  escapement.position = center
+  update_state()
 });

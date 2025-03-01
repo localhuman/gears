@@ -15,6 +15,7 @@ export class Escapement {
   radius = 200
 
   total_spokes = 5
+  spoke_padding = 0.065
 
   center = null
   position = null 
@@ -125,6 +126,7 @@ export class Escapement {
     this.tooth_undercut_angle = settings.tooth_undercut_angle
     this.tooth_width = settings.tooth_width
     this.total_spokes = settings.spokes
+    this.spoke_padding = settings.spoke_padding
     this.radius = settings.radius
 
     this.pallet.update(this.settings)
@@ -221,7 +223,7 @@ let svg =
 
     let radians_per_spoke = Constants.TWOPI / this.total_spokes
 
-    let padding_factor = .05
+    let padding_factor =  this.spoke_padding
     let radians = 0
     let steps = 50
     let step = radians_per_spoke / steps
@@ -350,6 +352,7 @@ export class GrahamPallet {
   total_radius = 0
   center = null 
   pallet_center = null
+  crosshair = null 
 
   crosshairPath = null
   plistPath = null
@@ -444,6 +447,7 @@ export class GrahamPallet {
     this.crosshairPath = `M ${pallet_center.x - 10} ${pallet_center.y} L ${pallet_center.x + 10} ${pallet_center.y} Z 
                           M ${pallet_center.x} ${pallet_center.y - 10} L ${pallet_center.x} ${pallet_center.y + 10} Z`
 
+    this.crosshair = new Path2D(this.crosshairPath)
     let length = this.total_radius * 1.3
 
     let fo = Constants.PIOVERONEEIGHTY * this.finger_offset
