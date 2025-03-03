@@ -379,9 +379,17 @@ export class GrahamPallet {
 
   pendulum_path = null
 
-  counterweight_center = null 
-  counterweight = null
+
   counterweight_radius = 31.50
+
+  counterweight_center = null 
+  counterweight_center_left = null 
+
+  counterweight = null
+  counterweight_left = null
+
+
+
 
   pendulum_offset = 3.31
   pendulum_radius = 59
@@ -432,8 +440,22 @@ export class GrahamPallet {
   }
 
   draw_counterweight = () => {
+
+    let radLeft = 0
+    let radRight = 0
+
+    if(this.counterweight_radius >= 0) {
+      radRight = this.counterweight_radius
+    } else {
+      radLeft = -this.counterweight_radius
+    }
+
     this.counterweight = new Path2D()
-    this.counterweight.arc(this.counterweight_center.x, this.counterweight_center.y, this.counterweight_radius, 0, Constants.TWOPI)
+    this.counterweight.arc(this.counterweight_center.x, this.counterweight_center.y, radRight, 0, Constants.TWOPI)
+
+    this.counterweight_left = new Path2D()
+    this.counterweight_left.arc(this.counterweight_center_left.x, this.counterweight_center_left.y, radLeft, 0, Constants.TWOPI)
+
   }
 
   draw_pallet = () =>{
@@ -642,7 +664,7 @@ export class GrahamPallet {
 
     ]
     this.counterweight_center = outsideRightCorner
-
+    this.counterweight_center_left = outsideLeftCorner
 
   }
 }

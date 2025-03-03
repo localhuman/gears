@@ -232,12 +232,19 @@ const createEscapementPhysics = () => {
   b2CreateCircleShape(palletBody, pendulumShapeDef, pendulum);  
 
 
+
+  let cwRad = settings.counterweight_radius / PTM
+  let cwcenter = new b2Vec2(escapement.pallet.counterweight_center.x/PTM, escapement.pallet.counterweight_center.y / -PTM)
+
+  if(settings.counterweight_radius < 0) {
+    cwRad = settings.counterweight_radius / -PTM
+    cwcenter = new b2Vec2(escapement.pallet.counterweight_center_left.x/PTM, escapement.pallet.counterweight_center_left.y / -PTM)
+  }
   // counterweight provides abilit to change
   // the period of left/rights swing
-  let cwcenter = new b2Vec2(escapement.pallet.counterweight_center.x/PTM, escapement.pallet.counterweight_center.y / -PTM)
   const counterweight = {
     center: cwcenter, // position, relative to body position
-    radius: settings.counterweight_radius / PTM // radius
+    radius: cwRad // radius
   };  
   b2CreateCircleShape(palletBody, pendulumShapeDef, counterweight);  
 
@@ -339,6 +346,8 @@ const animate = () => {
   ctx.stroke(escapement.pallet.counterweight)
   ctx.fill(escapement.pallet.counterweight)
 
+  ctx.stroke(escapement.pallet.counterweight_left)
+  ctx.fill(escapement.pallet.counterweight_left)
 
   ctx.resetTransform()
 
@@ -628,8 +637,13 @@ dqs("#share_design").addEventListener("click", (event) => {
   myModal.show()
 });
 
+dqs("#about_button").addEventListener("click", (event) => {
+  var myModal = new bootstrap.Modal(document.getElementById('about_modal'))
+  myModal.show()
+});
+
+
 dqs("#save_design").addEventListener("click", (event) => {
-  let design = JSON.stringify(settings)
 
   var myModal = new bootstrap.Modal(document.getElementById('save_modal'))
   myModal.show()
@@ -642,7 +656,6 @@ dqs("#save_design").addEventListener("click", (event) => {
     }
     savedDegins.push(to_save)
     localStorage.setItem('escapements', JSON.stringify(savedDegins))
-    console.log("saved designs!")
 
     myModal.hide()
     this.removeEventListener('click', onClick)
@@ -660,10 +673,7 @@ dqs("#load_design").addEventListener("click", (event) => {
 
   dqs('#do_load_escapement').addEventListener('click', function onClick(event) {
     let selected = dqs('#design_selector').value
-    console.log("Selected!", selected)
-
     const selectedDesign = savedDegins[selected].value
-    console.log("selected design: ", selectedDesign)
     settings = selectedDesign
     update_state()   
     updateUI(settings)

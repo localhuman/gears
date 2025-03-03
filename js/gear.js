@@ -208,9 +208,9 @@ export class Gear{
 
     get_stroke = () => {
         if(this.is_selected) {
-            return "rgba(255, 69, 69, .9)"
+            return "black"
         }
-        return "rgba(255, 69, 69, .7)"
+        return "black"
     }
 
     get_fill = () => {

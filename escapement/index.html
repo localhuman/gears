@@ -16,9 +16,15 @@
     <div class="d-flex flex-column flex-shrink-0 escapement-controls" id="controls">
 
       <h1 class="p-2 pb-0 mb-0 fs-4">Graham Pallet</h1>
+      <ul class="mb-0 list-unstyled p-2 pb-0">
+        <li class="pb-0">
+          <button type="button" id="about_button" class="btn btn-light lh-sm px-3 me-2" title="What is this?">About</button>
+        </li>
+   
+    </ul>
 
       <hr class="m-2">
-      <h2 class="p-2 pb-0 mb-0 fs-5">Escapment Settings</h2>
+      <h2 class="p-2 pb-0 mb-0 fs-5">Wheel Settings</h2>
 
       <ul class="flex-column mb-auto list-unstyled p-2 pb-0">
         <li>
@@ -129,16 +135,16 @@
           <input type="range" id="pendulum_radius" name="pendulum_radius" min="10" max="300" value="59" step=".25"/>
           <label for="pendulum_radius" id="pendulum_radius_label" class="w-100" title="Size of the pendulum weight.  Affects the speed at which the pendulum swings and the period of the ticks.">Pendulum radius: 59</label>
         </li>
-        <li>
+        <li class="d-none">
           <input type="range" id="pallet_density" name="pallet_density" min=".1" max="1" value=".8" step="0.05"/>
           <label for="pallet_density" id="pallet_density_label" class="w-100" title="Amount of weight distributed through the whole top of the pallet.">Pallet Weight: .8</label>
         </li>
         <li>
-          <input type="range" id="pallet_lr" name="pallet_lr" min="0" max="10" value="3.15" step="0.05"/>
+          <input type="range" id="pallet_lr" name="pallet_lr" min="-5" max="5" value="3.15" step="0.05"/>
           <label for="pallet_lr" id="pallet_lr_label" class="w-100" title="Counterweight to equalize the period lengths between 'tick' and 'tock'.  ">Pallet Balance: 3.15</label>
         </li>
 
-        <li>
+        <li class="d-none">
           <input type="range" id="pallet_friction" name="pallet_friction" min="0" max="1" value=".2" step="0.01"/>
           <label for="pallet_friction" id="pallet_friction_label" class="w-100" title="Amount of friction the pallet has when touching the escapement wheel.">Pallet friction 0.3</label>
         </li>
@@ -271,6 +277,30 @@
         </div>
       </div>
     </div>   
+
+
+    <div class="modal" tabindex="-1" id="about_modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">About</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>A Graham Pallet is a type of <a href="https://en.wikipedia.org/wiki/Escapement">escapement</a> that is used to control the release of energy from a system in a time keeping or other device.</p>  
+            <p>This page was made to simulate how an escapement might work with different shapes. The simulation uses a 2 dimensional physics engine to simulate the different forces at work in such a device, and in general prevents me from trying something that definitely won't work.  Also, just because it works in this simulation does not mean it would work in real life.</p>
+            <p>This tool also provides myself with the ability to export any designs for cutting on a laser cutter or CNC machine.  In the future I hope to add support for other file tipes, specifically DXF format, but for now SVG works for my purposes.</p>
+            <p>If you have questions about any of the settings, you can hover your mouse over any of the slider labels and you will get a brief explanation as to what you are changing.</p>
+
+            <p>If you have other questions or suggestions, please use the <a href="https://localhuman.industries/contact/" target="_blank">contact form here</a> to get in touch!</p>
+            <p>Inspiration for this tool came from this document: <a href="https://www.abbeyclock.com/EscMechanics.pdf">Escapment Mechanics.</a></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ok!</button>
+          </div>
+        </div>
+      </div>
+    </div>       
 
     <script src="/js/util/bootstrap.bundle.min.js"></script>    
     <script src="/js/util/popper.min.js"></script>    

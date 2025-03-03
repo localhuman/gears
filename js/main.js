@@ -2,7 +2,7 @@
 //
 // This includes all of Bootstrap's JS plugins.
 
-import "../js/bootstrap.bundle.min.js";
+import "/js/util/bootstrap.bundle.min.js";
 
 import {Constants, Gear, Point} from "./gear.js";
 import { Exporter } from "./export.js";
