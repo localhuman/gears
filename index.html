@@ -55,7 +55,13 @@
 
     <div class="d-flex flex-column flex-shrink-0" id="controls">
 
-      <h1 class="p-1 pb-0 mb-0">Gears!</h1>
+      <h1 class="p-1 pb-0 mb-0">GearFun</h1>
+      <ul class="list-unstyled p-2 pb-0 mb-1">
+      <li class="pb-0">
+        <button type="button" id="about_button" class="btn btn-light lh-sm px-3 me-2" title="What is this?">About</button>
+      </li>
+      </ul>
+
       <hr class="m-1">
 
       <ul class="flex-column mb-auto list-unstyled p-2 pb-0">
@@ -193,6 +199,31 @@
         </div>
       </div>
     </div>   
+
+
+
+    <div class="modal" tabindex="-1" id="about_modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">welcome to the gear playground!</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>I like to make things with gears in them, and this is a tool made to design and experiment with simple <a href="https://en.wikipedia.org/wiki/Involute_gear">involute gears.</a> </p>  
+            <p>It provides myself with the ability to export any designs for cutting on a laser cutter or CNC machine.  In the future I hope to add support for other file tipes, specifically DXF format, but for now SVG works for my purposes.</p>
+            <p>There are a few other tools out there that do something similar to this, though none of them did exactly what I wanted and for free.  So if you were in the same boat as me, you may be in luck now!</p>
+            <p>This page will give you an idea of how the 'module' setting of a gear works, as well as different pressure angles.  Theoretically a gear produced with this tool of a given module 'M' and pressure angle 'P' should work with other gears with the same values, but I have not tried that.  The tool provides the ability to include those values upon export so you don't forget them later like I tend to do unless they are printed on a gear.</p>
+            <p>If you have questions about any of the settings, you can hover your mouse over any of the slider labels and you will get a brief explanation as to what you are changing.</p>
+
+            <p>If you have other questions or suggestions, please use the <a href="https://localhuman.industries/contact/" target="_blank">contact form here</a> to get in touch!</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ok!</button>
+          </div>
+        </div>
+      </div>
+    </div>       
 
     <script src="js/util/bootstrap.bundle.min.js"></script>
     <script type="module" src="js/export.js"></script>

@@ -679,13 +679,17 @@ dqs("#load_design").addEventListener("click", (event) => {
     updateUI(settings)
     myModal.hide()
     this.removeEventListener('click', onClick)
-
   })  
-
 });
 
+dqs('#do_delete_escapement').addEventListener('click', function onClick(event) {
+  let selected = dqs('#design_selector').value
+  savedDegins.splice(selected, 1);
+  localStorage.setItem('escapements', JSON.stringify(savedDegins))
+  loadDesigns()
+})  
 
-// Mouse things 
+
 
 
 window.addEventListener('load', (event) =>{
@@ -699,4 +703,12 @@ window.addEventListener('resize', (event) =>{
   let center = new Point(canvas.width/2, canvas.height/2, 5);
   escapement.position = center
   update_state()
+});
+
+// for bootstrap modals closing to prevent
+// warnings in the browser console
+document.addEventListener('hidden.bs.modal', function (event) {
+  if (document.activeElement) {
+  document.activeElement.blur();
+  }
 });

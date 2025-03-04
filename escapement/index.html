@@ -246,13 +246,15 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <p>Select a design to retrieve</p>
+            <p>Select a design to retrieve. Alternatively, if you'd like to delete a saved design you may select it and use the 'delete' button.</p>
             <select class="form-select" aria-label="select design" id="design_selector">
               <option selected>Choose</option>
             </select>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" id="do_delete_escapement">Delete</button>
+
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="do_load_escapement">Load</button>
           </div>
         </div>

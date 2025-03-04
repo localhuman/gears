@@ -241,6 +241,11 @@ dqs("#export_svg").addEventListener("click", (event)=> {
   })  
 })
 
+dqs("#about_button").addEventListener("click", (event) => {
+  var myModal = new bootstrap.Modal(document.getElementById('about_modal'))
+  myModal.show()
+});
+
 
 window.addEventListener('load', (event) =>{
   const location = window.location.hash.substring(1)
