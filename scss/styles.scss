@@ -127,8 +127,14 @@ $red: rgb(255, 69, 69);
   }
 }
 
+.gearzzz#controls {
+  background-color: rgba($color: black, $alpha: 0.5);
+  color: white;
+}
+
 #controls.escapement-controls {
   max-width: 220px;
+  background-color: rgba($color: black, $alpha: 0.2);
 
 }
 

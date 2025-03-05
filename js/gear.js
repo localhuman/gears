@@ -138,7 +138,7 @@ export const points_from_arc = (center, radius, start_radians, end_radians, coun
 
 export class Gear{
 
-    total_teeth  = 20
+    total_teeth  = 30
     pressure_angle = 14.5
     diametral_pitch = .5
     m = 2
@@ -183,7 +183,7 @@ export class Gear{
     svg_to_draw = null
 
 
-    total_spokes = 5
+    total_spokes = 3
     spoke_path = null
 
     show_text = true

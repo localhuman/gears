@@ -142,6 +142,8 @@ dqs("#add_gear").addEventListener("click", (event) => {
   
     let new_gear = new Gear(new_teeth, last_gear.pressure_angle, new_m, new Point(0,0), new_position, last_gear)
     new_gear.total_spokes = parseInt(dqs("#total_spokes").value)
+    new_gear.show_text = show_text
+    new_gear.show_guides = show_guides
     selected_gearset.push(new_gear)
     last_gear.set_child(new_gear)
     select_gear(new_gear, selected_gearset)
@@ -291,6 +293,8 @@ window.addEventListener('click', (event) => {
     let point = new Point(event.x * view_scale, event.y * view_scale)  
     let new_gear = new Gear(selected_gear.total_teeth, selected_gear.pressure_angle, selected_gear.m, new Point(0,0), point)
     new_gear.total_spokes = parseInt(dqs("#total_spokes").value)
+    new_gear.show_text = show_text
+    new_gear.show_guides = show_guides
 
     let new_gearset = [new_gear]
     gearsets.push(new_gearset)
