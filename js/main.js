@@ -7,6 +7,10 @@ import "/js/util/bootstrap.bundle.min.js";
 import {Constants, Gear, Point} from "./gear.js";
 import { Exporter } from "./export.js";
 
+// var stats = new Stats();
+// stats.showPanel( 1 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+// document.body.appendChild( stats.dom );
+
 const dqs = (id) =>{
   return document.querySelector(id)
 }
@@ -107,10 +111,22 @@ dqs("#total_spokes").addEventListener("input", (event) => {
 
 dqs("#show_guides").addEventListener("input", (event) => {
   show_guides = event.target.checked
+  gearsets.forEach(gs => {
+    gs.forEach(g => {
+      g.show_guides = show_guides
+      g.render()
+    })
+  })
 });
 
 dqs("#show_text").addEventListener("input", (event) => {
   show_text = event.target.checked
+  gearsets.forEach(gs => {
+    gs.forEach(g => {
+      g.show_text = show_text
+      g.render()
+    })
+  })
 });
 
 
@@ -436,6 +452,8 @@ const initialize_from_gearlist = (params) => {
 const animate = () => {
   requestAnimationFrame(animate)
 
+//  stats.begin();
+
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
 
   gearsets.forEach( set =>{
@@ -457,17 +475,16 @@ const animate = () => {
       // ctx.fill(g.path)
       // ctx.stroke(g.path)
 
-      if(show_guides) {
-        ctx.strokeStyle = g.get_guide_style()
-        ctx.stroke(g.guide_path)  
-        ctx.strokeStyle = g.get_center_style()
-        ctx.lineWidth = 2
-        ctx.stroke(g.center_path)      
-      }
+      // if(show_guides) {
+      //   ctx.strokeStyle = g.get_guide_style()
+      //   ctx.stroke(g.guide_path)  
+      //   ctx.strokeStyle = g.get_center_style()
+      //   ctx.lineWidth = 2
+      //   ctx.stroke(g.center_path)      
+      // }
 
-      if(g.svg_to_draw != null && show_text) {
+      if(g.svg_to_draw != null) {
         let tr = g.outside_radius
-
         ctx.drawImage(g.svg_to_draw, -tr, -tr, tr*2, tr*2)
       }
 
@@ -481,6 +498,7 @@ const animate = () => {
       ctx.resetTransform()
     })
   })
+//  stats.end()
 
 }
 

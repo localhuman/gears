@@ -17,7 +17,7 @@ export const Exporter = {
         const center = gear.export_center()
 
         let text = gear.text_path
-
+        console.log("Gear tex: ", text)
         gear.center = new Point(0,0)
         gear.text_color = old_text_color
         gear.render()

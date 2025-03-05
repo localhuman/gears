@@ -97,9 +97,9 @@ const is_odd = (value) => {
 }
 
 let gear_count = 0
-export const generate_gear_name = (prefix='GEAR') => {
+export const generate_gear_name = (prefix='G') => {
     gear_count++;
-    return `${prefix}_${gear_count}`
+    return `${prefix}${gear_count}`
 }
 
 export const points_to_path = (pts) => {
@@ -185,6 +185,8 @@ export class Gear{
 
     total_spokes = 5
     spoke_path = null
+
+    show_text = true
 
     constructor(total_teeth= 20, pressure_angle = 14.5, m=2, center=new Point(0, 0), position = new Point(0, 0), parent = null, canvas_id = "canvas"){
 
@@ -311,7 +313,7 @@ export class Gear{
         this.guide_path = null
     }
 
-    render = (render_text=true) =>{
+    render = () =>{
         try{
             this.draw_circles()
             this.draw_center()
@@ -444,16 +446,20 @@ export class Gear{
 
     draw_text = () => {
 
-        this.text_img = new Image(this.outside_radius*2, this.outside_radius*2)
-        let text_path_radius = parseFloat(this.pitch_radius * .55)
-        let font_size = parseInt(this.outside_radius / 7)
-        //console.log("Font size: ", font_size)
-
-        this.text_path =             
-        `<path id="textArc_${this.name}" d="M${this.center.x -text_path_radius} ${this.center.y} A ${text_path_radius} ${text_path_radius} 0 1 1 ${this.center.x} ${this.center.y + text_path_radius}" style="fill:none"/>
-        <text style="fill:${this.text_color};font-size:${font_size}px;">
-            <textPath href="#textArc_${this.name}" textLength="auto" startOffset="0" font-family="Helvetica, sans-serif">${this.to_string()}</textPath>
-         </text>`
+//        let font_size = parseInt((this.outside_radius / 15 ) - (this.total_teeth/5))
+        let font_size = (this.m * this.total_teeth) / 16
+        if(font_size < 1) {
+            font_size = 1
+        }
+        this.text_path = !this.show_text ? '' : `
+        <style>
+        .awesome {
+            font: ${font_size}px sans-serif;
+            font-family: Helvetica, sans-serif;
+            fill: ${this.text_color};
+        }
+        </style>
+        <text x="${this.center.x + font_size}" y="${this.center.y + (font_size/4)}" class="awesome">${this.to_string()}</text>`      
 
     }
 
@@ -467,10 +473,11 @@ export class Gear{
             fill-rule="evenodd">
             
             <path d="${this.svg_path} ${this.spoke_path}" stroke="${this.get_stroke()}" stroke-width="1" fill="${this.get_fill()}"/>
-
+            ${this.text_path}
         </svg>`
 
-//        if(svg !== this.previous_svg) {
+        if(svg !== this.previous_svg) {
+            this.text_img = new Image(this.outside_radius*2, this.outside_radius*2)
             let blob = new Blob([svg], {type: 'image/svg+xml'});
             let url = URL.createObjectURL(blob);
             this.text_img.src = url;
@@ -479,7 +486,7 @@ export class Gear{
                 this.svg_to_draw = this.text_img
                 this.previous_svg = svg
             }    
-//        } 
+        } 
     }
 
     draw_center = () => {
