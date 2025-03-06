@@ -192,7 +192,7 @@ export class Gear{
     spoke_path = null
 
     show_text = true
-    show_guides = true
+    show_guides = false
 
     constructor(total_teeth= 20, pressure_angle = 14.5, m=2, center=new Point(0, 0), position = new Point(0, 0), parent = null, canvas_id = "canvas"){
 
@@ -233,7 +233,7 @@ export class Gear{
     }
 
     get_guide_style = () => {
-        return "rgba(252, 245, 150, .3)"
+        return "rgba(0, 0, 0, 0.3)"
     }
 
     to_string = () => {
@@ -365,6 +365,12 @@ export class Gear{
         p.arc(this.center.x, this.center.y, base_radius, 0, Constants.TWOPI);
         p.arc(this.center.x, this.center.y, this.outside_radius, 0, Constants.TWOPI);
 
+        this.guide_points = `
+        <ellipse x="${this.center.x}" y="${this.center.y}" rx="${this.pitch_radius}" ry="${this.pitch_radius}" stroke="${this.get_guide_style()}" stroke-width="1"/>
+        <ellipse x="${this.center.x}" y="${this.center.y}" rx="${base_radius}" ry="${base_radius}" stroke="${this.get_guide_style()}" stroke-width="1"/>
+        <ellipse x="${this.center.x}" y="${this.center.y}" rx="${this.outside_radius}" ry="${this.outside_radius}" stroke="${this.get_guide_style()}" stroke-width="1"/>
+        `
+
         this.guide_path = p 
     }
         
@@ -460,8 +466,9 @@ export class Gear{
 
     to_svg = () => {
 
-        const guides = `<path d="${this.center_points}" stroke="${this.get_guide_style()}" stroke-width="1"/> ${this.guide_points}`
-        console.log("guides: ", guides)
+        const guides = ! this.show_guides ? '' :
+        `<path d="${this.center_points}" stroke="${this.get_guide_style()}" stroke-width="1"/> ${this.guide_points}`
+
         let svg = 
         `<svg 
             xmlns="http://www.w3.org/2000/svg" 
