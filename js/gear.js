@@ -194,10 +194,9 @@ export class Gear{
     show_text = true
     show_guides = false
 
-    constructor(total_teeth= 20, pressure_angle = 14.5, m=2, center=new Point(0, 0), position = new Point(0, 0), parent = null, canvas_id = "canvas"){
+    constructor(total_teeth= 20, pressure_angle = 14.5, m=2, center=new Point(0, 0), position = new Point(0, 0), parent = null){
 
         this.name = generate_gear_name()
-
         this.total_teeth = total_teeth
         this.pressure_angle = pressure_angle
         this.m = m
@@ -207,7 +206,6 @@ export class Gear{
         this.position = position
 
         this.parent = parent
-        this.canvas_id = canvas_id
         this.path = new Path2D()
 
         //console.log("Created gear: ", this.total_teeth, this.pressure_angle, this.diametral_pitch, this.center, this.position)
@@ -216,16 +214,16 @@ export class Gear{
 
     get_stroke = () => {
         if(this.is_selected) {
-            return "black"
+            return "rgba(19, 34, 75, 0.8)"
         }
-        return "black"
+        return "rgba(19, 34, 75, 0.8)"
     }
 
     get_fill = () => {
         if(this.is_selected) {
-            return "rgba(255, 69, 69, .9)"
+            return "rgba(49, 128, 202, 0.8)"
         }
-        return "rgba(255, 69, 69, .7)"
+        return "rgba(44, 98, 150, 0.9)"
     }
 
     get_center_style = () => {
@@ -319,14 +317,14 @@ export class Gear{
         this.guide_path = null
     }
 
-    render = () =>{
+    render = (force_reload_image=false) =>{
         try{
             this.draw_circles()
             this.draw_center()
             this.draw_text()
             this.draw_gear()
             this.draw_spokes()
-            this.to_svg()
+            this.to_svg(force_reload_image)
         } catch (e) {
             console.log("Colud not render: ", e)            
         }
@@ -366,9 +364,9 @@ export class Gear{
         p.arc(this.center.x, this.center.y, this.outside_radius, 0, Constants.TWOPI);
 
         this.guide_points = `
-        <ellipse x="${this.center.x}" y="${this.center.y}" rx="${this.pitch_radius}" ry="${this.pitch_radius}" stroke="${this.get_guide_style()}" stroke-width="1"/>
-        <ellipse x="${this.center.x}" y="${this.center.y}" rx="${base_radius}" ry="${base_radius}" stroke="${this.get_guide_style()}" stroke-width="1"/>
-        <ellipse x="${this.center.x}" y="${this.center.y}" rx="${this.outside_radius}" ry="${this.outside_radius}" stroke="${this.get_guide_style()}" stroke-width="1"/>
+        <circle cx="${this.center.x}" cy="${this.center.y}" r="${this.pitch_radius}" stroke="${this.get_guide_style()}" stroke-width="1" style="fill:none;"/>
+        <circle cx="${this.center.x}" cy="${this.center.y}" r="${base_radius}" stroke="${this.get_guide_style()}" stroke-width="1" style="fill:none;"/>
+        <circle cx="${this.center.x}" cy="${this.center.y}" r="${this.outside_radius}" stroke="${this.get_guide_style()}" stroke-width="1" style="fill:none;"/>
         `
 
         this.guide_path = p 
@@ -464,7 +462,7 @@ export class Gear{
 
     }
 
-    to_svg = () => {
+    to_svg = (force_reload_image=false) => {
 
         const guides = ! this.show_guides ? '' :
         `<path d="${this.center_points}" stroke="${this.get_guide_style()}" stroke-width="1"/> ${this.guide_points}`
@@ -472,7 +470,7 @@ export class Gear{
         let svg = 
         `<svg 
             xmlns="http://www.w3.org/2000/svg" 
-            viewBox="${this.center.x -this.outside_radius} ${this.center.y -this.outside_radius} ${this.outside_diameter} ${this.outside_diameter}" 
+            viewBox="${this.center.x -this.outside_radius-1} ${this.center.y -this.outside_radius-1} ${this.outside_diameter+2} ${this.outside_diameter+2}" 
             fill="none"
             stroke="none"
             fill-rule="evenodd">
@@ -482,7 +480,7 @@ export class Gear{
             ${guides}
         </svg>`
 
-        if(svg !== this.previous_svg) {
+        if(svg !== this.previous_svg || force_reload_image) {
             this.text_img = new Image(this.outside_radius*2, this.outside_radius*2)
             let blob = new Blob([svg], {type: 'image/svg+xml'});
             let url = URL.createObjectURL(blob);

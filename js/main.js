@@ -44,12 +44,16 @@ const reset = () =>{
 const update_state = () =>{
 
   const gearsetstring = `v${encoding_version}.`+gearsets.map(set =>{
-      return set.map(item =>`${item.pressure_angle},${item.m},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y},${item.rotation_animation_increment},${item.total_spokes}`).join('G')    
+      return set.map(item =>{
+        if(item != null) {
+          return `${item.pressure_angle},${item.m},${item.total_teeth},${item.connection_angle},${item.position.x},${item.position.y},${item.rotation_animation_increment},${item.total_spokes}`
+        }
+        return ''
+    }).join('G')    
   }).join('S')
 
   const url = `#${encodeURI(gearsetstring)}`
   history.replaceState(undefined, undefined, url)
-//  window.location = url
 }
 
 const decode_state = (state) =>{
@@ -149,11 +153,7 @@ dqs("#add_gear").addEventListener("click", (event) => {
     select_gear(new_gear, selected_gearset)
     reset()
   } else {
-    // let center = new Point(window.innerWidth/2, window.innerHeight/2, 5);
-    // initial_gear = new Gear(20,20,.2,new Point(0,0), center)
-    // select_gear(initial_gear, null)
-    // gears.push(initial_gear)
-  
+    addNewGearsetAt(new Point(canvas.width/2, canvas.height/2))
   }
   update_state()
 
@@ -185,8 +185,6 @@ const delete_gear = (confirmed=false) =>{
 
   if(initial_gear) {
 
-    select_gear(initial_gear, selected_gearset)
-
     for(let i=0; i< selected_gearset.length; i++){
       let g = selected_gearset[i]
       if(i > 0) {
@@ -196,7 +194,8 @@ const delete_gear = (confirmed=false) =>{
         g.child = selected_gearset[i+1]
       }
     }
-  
+    select_gear(selected_gearset[selected_gearset.length-1], selected_gearset)
+
     reset()
   } else {
     gearset = gearset.filter( set => set != gears)
@@ -291,19 +290,29 @@ window.addEventListener('click', (event) => {
   if(event.shiftKey) {
 
     let point = new Point(event.x * view_scale, event.y * view_scale)  
-    let new_gear = new Gear(selected_gear.total_teeth, selected_gear.pressure_angle, selected_gear.m, new Point(0,0), point)
-    new_gear.total_spokes = parseInt(dqs("#total_spokes").value)
-    new_gear.show_text = show_text
-    new_gear.show_guides = show_guides
+    addNewGearsetAt(point, true)
+  }
+})
 
-    let new_gearset = [new_gear]
+const addNewGearsetAt = (point, add_gearset=false) => {
+  let new_gear = new Gear(parseInt(dqs('#teeth').value), parseFloat(dqs('#pressure_angle').value), parseFloat(dqs('#pitch').value), new Point(0,0), point)
+  new_gear.total_spokes = parseInt(dqs("#total_spokes").value)
+  new_gear.show_text = show_text
+  new_gear.show_guides = show_guides
+
+  let new_gearset = [new_gear]
+
+  if(add_gearset) {
     gearsets.push(new_gearset)
-    select_gear(new_gear, new_gearset)
-    reset()
-
+  } else {
+    gearsets = [new_gearset]
   }
 
-})
+  select_gear(new_gear, new_gearset)
+  reset()
+
+
+}
 
 window.addEventListener('mousedown', (event) => {
 
@@ -358,6 +367,12 @@ window.addEventListener('mouseup', (event) => {
 
 
 const select_gear = (gear, gearset) => {
+  if(selected_gear === gear) {
+    return
+  } else if( gear == null) {
+    return
+  }
+
   if(selected_gear) selected_gear.deselect()   
   selected_gear = gear
   selected_gearset = gearset
@@ -399,7 +414,7 @@ const initialize = (params) => {
     initialize_from_gearlist(params)
   } else {
     let center = new Point(width/2, height/2, 5);
-    let start_gear = new Gear(20,20,5,new Point(0,0), center)
+    let start_gear = new Gear( dqs('#teeth').value,dqs('#pressure_angle').value, dqs('#pitch').value,new Point(0,0), center)
     selected_gearset.push(start_gear)  
     select_gear(start_gear, selected_gearset)
 
@@ -476,28 +491,12 @@ const animate = () => {
 
       ctx.translate(g.position.x, g.position.y)
       ctx.rotate(g.rotation_animation_value)
-      // ctx.fill(g.path)
-      // ctx.stroke(g.path)
-
-      // if(show_guides) {
-      //   ctx.strokeStyle = g.get_guide_style()
-      //   ctx.stroke(g.guide_path)  
-      //   ctx.strokeStyle = g.get_center_style()
-      //   ctx.lineWidth = 2
-      //   ctx.stroke(g.center_path)      
-      // }
 
       if(g.svg_to_draw != null) {
         let tr = g.outside_radius
         ctx.drawImage(g.svg_to_draw, -tr, -tr, tr*2, tr*2)
       }
 
-  
-      //ctx.font = "30px sans serif";
-      // ctx.textBaseline = "hanging";
-      // ctx.strokeStyle = "black"
-      //ctx.strokeText(g.to_string(), -10, -5);
-      // ctx.strokeText(g.rotation_animation_value * Constants.ONEEIGHTYOVERPI, -40, -40)
 
       ctx.resetTransform()
     })

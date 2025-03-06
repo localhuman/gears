@@ -10,32 +10,40 @@ export const Exporter = {
         const radius = gear.outside_radius
         const diameter = radius * 2
         let old_text_color = gear.text_color
+        
         gear.center = new Point(radius, radius)
         gear.text_color = "black"        
         gear.render()
         let gearpath = gear.svg_path
-        const center = gear.export_center()
-
-        let text = gear.text_path
+        let gcenter = gear.export_center()
+        let text = gear.show_text ? gear.text_path : ''
+        let guides = gear.show_guides ? gear.guide_points : ''
         let spokes = gear.spoke_path
         gear.center = new Point(0,0)
         gear.text_color = old_text_color
-        gear.render()
 
         const filename = `${name}.svg`
         const path = `<path d="${gearpath} ${spokes}" style="fill:none;stroke:black;stroke-width:1"/>`
         const svg = 
 `<svg xmlns="http://www.w3.org/2000/svg" height="${diameter}" width="${diameter}">
 ${path}
-${center}
+${gcenter}
 ${text}
+${guides}
 </svg>
 `
 
         Exporter.download(svg, filename, 'image/svg+xml')
+        gear.render(true)
+
     },
 
     export_all_gears_svg: (gearsets, name, separate) => {
+
+        let minx = 0
+        let miny = 0
+        let maxx = Constants.WIDTH
+        let maxy = Constants.HEIGHT
 
         const paths = gearsets.map( set => {
             let offset = new Point(0,0)
@@ -43,26 +51,41 @@ ${text}
             return set.map( gear => {
                 
                 if(separate) {
-                    offset = new Point(offset.x + gear.tooth_height *2, offset.y + gear.tooth_height*2)
+                    offset = new Point(offset.x + gear.tooth_height *4, offset.y + gear.tooth_height*4)
                 }        
                 let old_text_color = gear.text_color
                 gear.text_color = "black"
                 gear.center = new Point(gear.position.x + offset.x, gear.position.y + offset.y)
+
+                let gminx = gear.center.x - gear.outside_radius
+                let gminy = gear.center.y - gear.outside_radius
+                let gmaxx = gear.center.x + gear.outside_radius
+                let gmaxy = gear.center.y + gear.outside_radius
+
+                if(gminx < minx) minx = gminx
+                if(gminy < miny) miny = gminy
+                if(gmaxx > maxx) maxx = gmaxx
+                if(gmaxy > maxy) maxy = gmaxy
+
                 gear.render()
                 let p =  `<path d="${gear.svg_path} ${gear.spoke_path}" style="fill:none;stroke:black;stroke-width:1"/>`
                 let c = gear.export_center()
-                let text = gear.text_path
-
+                let text = gear.show_text ? gear.text_path : ''
+                let guides = gear.show_guides ? gear.guide_points : ''
+        
                 gear.center = new Point(0,0)
                 gear.text_color = old_text_color
-                gear.render()
-                return  p + c + text
+                gear.render(true)
+                return  p + c + text + guides
             })
         })
         
+        let total_height = maxy - miny
+        let total_width = maxx - minx
+
         const filename = `${name}.svg`
         const svg = 
-`<svg xmlns="http://www.w3.org/2000/svg" height="${Constants.WIDTH}" width="${Constants.HEIGHT}">
+`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minx} ${miny} ${total_width} ${total_height}">
 ${paths.join('\n')}
 </svg>
 `

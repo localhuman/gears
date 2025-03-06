@@ -55,7 +55,7 @@
 
     <div class="d-flex flex-column flex-shrink-0 gearzzz" id="controls">
 
-      <h1 class="p-1 pb-0 mb-0">GearFun</h1>
+      <h1 class="p-1 pb-0 mb-0">gears etc</h1>
       <ul class="list-unstyled p-2 pb-0 mb-1">
       <li class="pb-0">
         <button type="button" id="about_button" class="btn btn-light lh-sm px-3 me-2" title="What is this?">About</button>
@@ -66,61 +66,61 @@
 
       <ul class="flex-column mb-auto list-unstyled p-2 pb-0">
         <li>
-          <input type="range" class="form-range" id="teeth" name="teeth" min="10" max="200" value="20" step="1"/>
-          <label for="teeth" id="teeth_label" class="w-100">Teeth: 20</label>
+          <input type="range" class="form-range" id="teeth" name="teeth" min="10" max="200" value="30" step="1"/>
+          <label for="teeth" id="teeth_label" class="w-100" title="Number of teeth on the selected gear">Teeth: 30</label>
         </li>
         <li>
           <input type="range" class="form-range" id="pressure_angle" name="pressure_angle" min="14.5" max="25" value="20" step="0.5"/>
-          <label for="pressure_angle" id="pressure_angle_label" class="w-100">Pressure Angle: 20</label>
+          <label for="pressure_angle" id="pressure_angle_label" class="w-100" title="Pressure angle for teeth on the selected set of gears">Pressure Angle: 20</label>
         </li>
         <li>
-          <input type="range" class="form-range" id="pitch" name="pitch" min="1" max="20" value="5" step=".25"/>
-          <label for="pitch" id="pitch_label" class="w-100">Pitch (M): 5</label>
+          <input type="range" class="form-range" id="pitch" name="pitch" min="1" max="20" value="8" step=".25"/>
+          <label for="pitch" id="pitch_label" class="w-100" title="Pitch for selected set of gears">Pitch (M): 8</label>
         </li>
         <li>
           <input type="range" class="form-range" id="rotation_speed" name="rotation_speed" min="0" max="50" value="0"/>
-          <label for="rotation_speed" id="rotation_speed_label" class="w-100">Rotation Speed: 0</label>
+          <label for="rotation_speed" id="rotation_speed_label" class="w-100" title="Rotation speed for selected set of gears.  Set to 0 to stop rotation.">Rotation Speed: 0</label>
         </li>
         <li>
           <input type="range" class="form-range" id="connection_angle" name="connection_angle" min="0" max="360" value="0"/>
-          <label for="connection_angle" id="connection_angle_label" class="w-100">Connection Angle: 0</label>
+          <label for="connection_angle" id="connection_angle_label" class="w-100" title="Angle of connection between selected gear and its parent.">Connection Angle: 0</label>
         </li>
         <li>
           <input type="range" class="form-range" id="total_spokes" name="total_spokes" min="0" max="12" value="0"/>
-          <label for="total_spokes" id="total_spokes_label" class="w-100">Total Spokes: 0</label>
+          <label for="total_spokes" id="total_spokes_label" class="w-100" title="Number of spokes for the gear.  Set to 0 for no spokes.">Total Spokes: 0</label>
         </li>
         <li>
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" id="show_guides">
-            <label class="form-check-label" for="show_guides">Show Guides</label>
+            <label class="form-check-label" for="show_guides" title="Whether to show center mark and radius marker lines">Show Guides</label>
           </div>
         </li>
         <li>
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" id="show_text" checked>
-            <label class="form-check-label" for="show_text">Show Text</label>
+            <label class="form-check-label" for="show_text" title="Whether to show text on gear with its settings.">Show Text</label>
           </div>
         </li>
         </ul>        
         <hr class="m-1">
         <ul class="flex-column mb-auto list-unstyled p-2">
           <li class="">
-          <button type="button" id="add_gear" class="btn btn-light lh-sm">Add Gear</button>
+          <button type="button" id="add_gear" class="btn btn-light lh-sm" title="Adds a new gear as a child of the selected gear.  Hold down the shift key and click anywhere to add a new gear on its own.">Add Gear</button>
         </li>
         <li class="">
-          <button type="button" id="remove_gear" class="btn btn-light lh-sm">Remove Gear</button>
+          <button type="button" id="remove_gear" class="btn btn-light lh-sm" title="Removes the selected gear">Remove Gear</button>
         </li>
         <li class="">
-          <button type="button" id="reset_gears" class="btn btn-light lh-sm">Reset Gears</button>
+          <button type="button" id="reset_gears" class="btn btn-light lh-sm" title="Reset the gears to the initial state.">Reset Gears</button>
         </li>
       </ul>
       <hr class="m-1">
       <ul class="flex-column mb-auto list-unstyled p-2">
         <li class="">
-          <button type="button" id="export_svg" class="btn btn-light lh-sm">Export SVG</button>
+          <button type="button" id="export_svg" class="btn btn-light lh-sm" title="Save the current state as an SVG file for use in other applications.">Export SVG</button>
         </li>
         <li class="">
-          <button type="button" id="share_svg" class="btn btn-light lh-sm">
+          <button type="button" id="share_svg" class="btn btn-light lh-sm" title="Share this design with someone">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" fill="currentColor" class="bi bi-copy" viewBox="0 0 20 16">
               <path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
             </svg>
@@ -211,7 +211,7 @@
           </div>
           <div class="modal-body">
             <p>I like to make things with gears in them, and this is a tool made to design and experiment with simple <a href="https://en.wikipedia.org/wiki/Involute_gear">involute gears.</a> </p>  
-            <p>It provides myself with the ability to export any designs for cutting on a laser cutter or CNC machine.  In the future I hope to add support for other file tipes, specifically DXF format, but for now SVG works for my purposes.</p>
+            <p>It provides myself with the ability to export any designs for cutting on a laser cutter or CNC machine.  In the future I hope to add support for other file tipes, specifically DXF format, but for now SVG works for my purposes.</p>            
             <p>There are a few other tools out there that do something similar to this, though none of them did exactly what I wanted and for free.  So if you were in the same boat as me, you may be in luck now!</p>
             <p>This page will give you an idea of how the 'module' setting of a gear works, as well as different pressure angles.  Theoretically a gear produced with this tool of a given module 'M' and pressure angle 'P' should work with other gears with the same values, but I have not tried that.  The tool provides the ability to include those values upon export so you don't forget them later like I tend to do unless they are printed on a gear.</p>
             <p>If you have questions about any of the settings, you can hover your mouse over any of the slider labels and you will get a brief explanation as to what you are changing.</p>
