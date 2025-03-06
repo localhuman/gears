@@ -171,8 +171,13 @@ export class Gear{
     name= null
 
     path = null
+    
+    center_points = null
     center_path = null
+
+    guide_points = ''
     guide_path = null
+
     text_path = null
     text_color = "white"
 
@@ -187,6 +192,7 @@ export class Gear{
     spoke_path = null
 
     show_text = true
+    show_guides = true
 
     constructor(total_teeth= 20, pressure_angle = 14.5, m=2, center=new Point(0, 0), position = new Point(0, 0), parent = null, canvas_id = "canvas"){
 
@@ -428,42 +434,34 @@ export class Gear{
             paths.push(spokePath)
         }
         
-        let center_points = []
-        let center_rads = 0
-        let center_radius = root_radius * .1
-        step = Constants.TWOPI / steps
-        for(let i = 0; i<steps; i++) {
-            center_points.push(
-                new Point(this.center.x + Math.cos(center_rads) *  center_radius, this.center.y + Math.sin(center_rads) * center_radius)
-            )
-            center_rads += step
-        }
-        let center_path = points_to_path(center_points)
-        //paths.push(center_path)
         this.spoke_path = paths.join(' ')
     }
 
 
     draw_text = () => {
+        const dedendum = this.m * 1.25
 
-//        let font_size = parseInt((this.outside_radius / 15 ) - (this.total_teeth/5))
-        let font_size = (this.m * this.total_teeth) / 16
+        const root_radius = this.pitch_radius  - (2 * dedendum )
+        let padding_factor = .075
+        let outerRadius = root_radius * ( 1 - padding_factor * 1.8)
+
+        let font_size = (this.m * this.total_teeth) / 10
         if(font_size < 1) {
             font_size = 1
         }
-        this.text_path = !this.show_text ? '' : `
-        <style>
-        .awesome {
-            font: ${font_size}px sans-serif;
-            font-family: Helvetica, sans-serif;
-            fill: ${this.text_color};
-        }
-        </style>
-        <text x="${this.center.x + font_size}" y="${this.center.y + (font_size/4)}" class="awesome">${this.to_string()}</text>`      
+
+        this.text_path = !this.show_text ? '' : 
+        `<path id="textArc_${this.name}" d="M${this.center.x -outerRadius} ${this.center.y} A ${outerRadius} ${outerRadius} 0 1 1 ${this.center.x} ${this.center.y + outerRadius}" style="fill:none"/>
+        <text style="fill:${this.text_color};font-size:${font_size}px;">
+            <textPath href="#textArc_${this.name}" textLength="auto" startOffset="0" font-family="Helvetica, sans-serif">${this.to_string()}</textPath>
+         </text>`
 
     }
 
     to_svg = () => {
+
+        const guides = `<path d="${this.center_points}" stroke="${this.get_guide_style()}" stroke-width="1"/> ${this.guide_points}`
+        console.log("guides: ", guides)
         let svg = 
         `<svg 
             xmlns="http://www.w3.org/2000/svg" 
@@ -474,6 +472,7 @@ export class Gear{
             
             <path d="${this.svg_path} ${this.spoke_path}" stroke="${this.get_stroke()}" stroke-width="1" fill="${this.get_fill()}"/>
             ${this.text_path}
+            ${guides}
         </svg>`
 
         if(svg !== this.previous_svg) {
@@ -490,15 +489,17 @@ export class Gear{
     }
 
     draw_center = () => {
-        let base_radius = Math.cos(this.pressure_angle * Constants.PIOVERONEEIGHTY) * this.pitch_radius
 
         let length = this.m * 3
-        this.center_path = new Path2D()
-        this.center_path.moveTo(-length, 0)
-        this.center_path.lineTo(length, 0)
-        this.center_path.moveTo(0, -length)
-        this.center_path.lineTo(0, length)
+
+        this.center_points = `M${this.center.x-length} ${this.center.y} 
+                                L${this.center.x+length} ${this.center.y} Z 
+                                M${this.center.x} ${this.center.y-length}
+                                L${this.center.x} ${this.center.y+length} Z`
+
+        this.center_path = new Path2D(this.center_points)
     }
+
 
     draw_gear = () => {
 

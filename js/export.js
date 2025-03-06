@@ -17,13 +17,13 @@ export const Exporter = {
         const center = gear.export_center()
 
         let text = gear.text_path
-        console.log("Gear tex: ", text)
+        let spokes = gear.spoke_path
         gear.center = new Point(0,0)
         gear.text_color = old_text_color
         gear.render()
 
         const filename = `${name}.svg`
-        const path = `<path d="${gearpath}" style="fill:none;stroke:black;stroke-width:1"/>`
+        const path = `<path d="${gearpath} ${spokes}" style="fill:none;stroke:black;stroke-width:1"/>`
         const svg = 
 `<svg xmlns="http://www.w3.org/2000/svg" height="${diameter}" width="${diameter}">
 ${path}
@@ -49,7 +49,7 @@ ${text}
                 gear.text_color = "black"
                 gear.center = new Point(gear.position.x + offset.x, gear.position.y + offset.y)
                 gear.render()
-                let p =  `<path d="${gear.svg_path}" style="fill:none;stroke:black;stroke-width:1"/>`
+                let p =  `<path d="${gear.svg_path} ${gear.spoke_path}" style="fill:none;stroke:black;stroke-width:1"/>`
                 let c = gear.export_center()
                 let text = gear.text_path
 
