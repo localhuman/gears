@@ -1,4 +1,4 @@
-import { Point, Constants, generate_gear_name } from "/js/gear.js"
+import { Point, Constants, generate_gear_name } from "./gear.js"
 
 
 export class Ratchet{

@@ -2,11 +2,11 @@
 //
 // This includes all of Bootstrap's JS plugins.
 
-import "./bootstrap.bundle.min.js";
+import "./util/bootstrap.bundle.min.js";
 
-import { Point} from "/js/gear.js";
-import { Ratchet } from "/js/ratchet.js";
-import { Exporter } from "/js/export.js";
+import { Point} from "./gear.js";
+import { Ratchet } from "./ratchet.js";
+import { Exporter } from "./export.js";
 
 const dqs = (id) =>{
   return document.querySelector(id)

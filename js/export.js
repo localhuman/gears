@@ -26,10 +26,10 @@ export const Exporter = {
         const path = `<path d="${gearpath} ${spokes}" style="fill:none;stroke:black;stroke-width:1"/>`
         const svg = 
 `<svg xmlns="http://www.w3.org/2000/svg" height="${diameter}" width="${diameter}">
-${path}
-${gcenter}
-${text}
-${guides}
+<g>${path}</g>
+<g>${gcenter}</g>
+<g>${text}</g>
+<g>${guides}</g>
 </svg>
 `
 
@@ -76,7 +76,10 @@ ${guides}
                 gear.center = new Point(0,0)
                 gear.text_color = old_text_color
                 gear.render(true)
-                return  p + c + text + guides
+                return      `<g>${p}</g>
+                            <g>${c}</g>
+                            <g>${text}</g>
+                            <g>${guides}</g>`
             })
         })
         

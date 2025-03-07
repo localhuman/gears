@@ -1,6 +1,6 @@
-import { Point, Constants, generate_gear_name, points_to_path, points_from_arc } from "/js/gear.js"
+import { Point, Constants, generate_gear_name, points_to_path, points_from_arc } from "./gear.js"
 
-import { PointVec2D, InterSection2D, Intersect2DResult } from "/js/util/intersect.js"
+import { PointVec2D, InterSection2D, Intersect2DResult } from "./util/intersect.js"
 
 export class Escapement {
 

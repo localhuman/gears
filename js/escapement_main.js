@@ -2,16 +2,16 @@
 //
 // This includes all of Bootstrap's JS plugins.
 
-import { b2DefaultBodyDef, CreateWorld, WorldStep, CreateDebugDraw} from '/js/box2d/PhaserBox2D-Debug.js';
-import { b2Vec2, b2BodyType, b2DefaultWorldDef, b2World_Draw, b2ComputeHull, b2CreateBody, b2DefaultShapeDef, b2CreatePolygonShape, b2CreateCircleShape, b2MakePolygon } from '/js/box2d/PhaserBox2D-Debug.js';
+import { b2DefaultBodyDef, CreateWorld, WorldStep, CreateDebugDraw} from './box2d/PhaserBox2D-Debug.js';
+import { b2Vec2, b2BodyType, b2DefaultWorldDef, b2World_Draw, b2ComputeHull, b2CreateBody, b2DefaultShapeDef, b2CreatePolygonShape, b2CreateCircleShape, b2MakePolygon } from './box2d/PhaserBox2D-Debug.js';
 import { b2Body_GetTransform, b2Rot_GetAngle } from './box2d/PhaserBox2D-Debug.js';
 import { b2DestroyBody,b2DefaultRevoluteJointDef,b2CreateRevoluteJoint,b2Body_SetUserData, b2World_GetContactEvents } from './box2d/PhaserBox2D-Debug.js';
 
-import "/js/util/bootstrap.bundle.min.js";
+import "./util/bootstrap.bundle.min.js";
 
-import { Point} from "/js/gear.js";
-import { Escapement } from "/js/escapement.js";
-import { Exporter } from "/js/export.js";
+import { Point} from "./gear.js";
+import { Escapement } from "./escapement.js";
+import { Exporter } from "./export.js";
 
 
 // canvas!
