@@ -70,7 +70,7 @@ dqs("#teeth").addEventListener("input", (event) => {
 dqs("#pressure_angle").addEventListener("input", (event) => {
   dqs("#pressure_angle_label").textContent = 'Pressure Angle: ' + event.target.value;
   selected_gearset.forEach(g => {
-    g.pressure_angle = event.target.value
+    g.pressure_angle = parseFloat(event.target.value)
     g.render()
   })
   update_state()
@@ -84,6 +84,7 @@ dqs("#pitch").addEventListener("input", (event) => {
     g.render()
   })
   reset()  
+  update_state()
 });
 
 dqs("#connection_angle").addEventListener("input", (event) => {
@@ -414,7 +415,7 @@ const initialize = (params) => {
     initialize_from_gearlist(params)
   } else {
     let center = new Point(width/2, height/2, 5);
-    let start_gear = new Gear( dqs('#teeth').value,dqs('#pressure_angle').value, dqs('#pitch').value,new Point(0,0), center)
+    let start_gear = new Gear( parseInt(dqs('#teeth').value), parseFloat(dqs('#pressure_angle').value), parseFloat(dqs('#pitch').value),new Point(0,0), center)
     selected_gearset.push(start_gear)  
     select_gear(start_gear, selected_gearset)
 
@@ -471,8 +472,6 @@ const initialize_from_gearlist = (params) => {
 const animate = () => {
   requestAnimationFrame(animate)
 
-//  stats.begin();
-
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
 
   gearsets.forEach( set =>{
@@ -495,14 +494,11 @@ const animate = () => {
       if(g.svg_to_draw != null) {
         let tr = g.outside_radius
         ctx.drawImage(g.svg_to_draw, -tr, -tr, tr*2, tr*2)
-      }
-
+      } 
 
       ctx.resetTransform()
     })
   })
-//  stats.end()
-
 }
 
 animate()

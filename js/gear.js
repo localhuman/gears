@@ -540,12 +540,9 @@ export class Gear{
         // min teeth for undercut
         let undercut_amount = 0
         const undercut_steps = 20
-
         const min_for_undercut = 2 / Math.pow( Math.sin(pressure_angle_radians), 2)
         if(min_for_undercut > this.total_teeth) {
-            // do something
             undercut_amount = 1 - this.total_teeth / min_for_undercut
-            console.log("Undercut/profile shift coeeficient", undercut_amount)
         }
         
         //            
@@ -581,7 +578,10 @@ export class Gear{
 
                 let cos_pa = Math.cos(pressure_angle_radians)
                 let cd_o_d = d0 / considered_diameter
-                let acosified = cd_o_d * cos_pa
+
+                // due to floating point errors sometime this value will drift greater than 1 or less than -1 which causes Math.acos to have a fit
+                let acosified = Math.max(-1, Math.min(cd_o_d * cos_pa, 1));
+
                 let alpha = Math.acos( acosified )
                 let alpha_involute = Math.tan(alpha) - alpha
 
@@ -592,7 +592,12 @@ export class Gear{
 
                 let s = considered_diameter * ((s0 / d0) + pa_involute - alpha_involute)
 
+                if(isNaN(s)) {
+                    throw new Error(`Thickness s at diameter ${considered_diameter} is not a number`)
+                }
+
                 if(start && base_radius > root_radius){
+
                     start = false
                     let leftp = this.get_point_at(start_radians, root_radius, start_radians + ninety_degrees, s)                
                     let rightp = this.get_point_at(start_radians, root_radius, start_radians - ninety_degrees, s)
@@ -612,7 +617,6 @@ export class Gear{
                             let amount_to_deflect = Math.sin(sin_value)
                             sin_value += sin_step
                             let undercut_total = undercut_base * undercut_amount * amount_to_deflect
-
                             leftp = this.get_point_at(start_radians, radius_at_undercut, start_radians + ninety_degrees, s - undercut_total)                
                             rightp = this.get_point_at(start_radians, radius_at_undercut, start_radians - ninety_degrees, s - undercut_total)
                             
