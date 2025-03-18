@@ -523,9 +523,6 @@ export class Gear{
 
         const  pressure_angle_radians = this.pressure_angle * Constants.PIOVERONEEIGHTY
 
-        //m is 1 / Diametral pitch
-        //this.m = 1 / this.diametral_pitch
-
         this.diametral_pitch = 1 / this.m
         this.pitch_radius = this.total_teeth / this.diametral_pitch
         let d0 = this.m * this.total_teeth
@@ -533,28 +530,51 @@ export class Gear{
         const addendum = this.m 
         const dedendum = this.m * 1.25
 
-        let ninety_degrees = Math.PI / 2 
         this.outside_radius = this.pitch_radius + ( 2 * addendum )
         this.outside_diameter = this.outside_radius * 2
 
+        const ninety_degrees = Math.PI / 2 
         const root_radius = this.pitch_radius  - (2 * dedendum )
-
         const base_radius = Math.cos(pressure_angle_radians) * this.pitch_radius
+
+        // min teeth for undercut
+        let undercut_amount = 0
+        const undercut_steps = 20
+
+        const min_for_undercut = 2 / Math.pow( Math.sin(pressure_angle_radians), 2)
+        if(min_for_undercut > this.total_teeth) {
+            // do something
+            undercut_amount = 1 - this.total_teeth / min_for_undercut
+            console.log("Undercut/profile shift coeeficient", undercut_amount)
+        }
+        
+        //            
+        //  gear shape equation taken from here:
+        //  https://www.tec-science.com/mechanical-power-transmission/involute-gear/calculation-of-involute-gears/
+        //
+        //  s = thickness at diameter to solve for
+        //  d = differing diameter throughout equation
+        //  d0 = m * total teeth
+        //  
+        //  tooth thickness = diameter multiplied by 
+        //  
+        //  alpha = arcos( d0 / d  * cos(pressure_angle))
+        //  s0 = m * ( pi/2 + 2 * profile_shift * tan(pressure_angle))
+        // 
         
         const make_tooth = (start_radians) => {
 
             let start_diameter = base_radius 
 
             if(start_diameter < root_radius) {
-                console.log("Using root radius!!")
                 start_diameter = root_radius
             }
 
             let end_diameter = this.outside_radius
             let left = []
             let right = []
-            let start = true
-            
+            let start = true            
+
             while (start_diameter < end_diameter) {
 
                 let considered_diameter = start_diameter
@@ -562,7 +582,7 @@ export class Gear{
                 let cos_pa = Math.cos(pressure_angle_radians)
                 let cd_o_d = d0 / considered_diameter
                 let acosified = cd_o_d * cos_pa
-                let alpha = Math.acos( acosified)
+                let alpha = Math.acos( acosified )
                 let alpha_involute = Math.tan(alpha) - alpha
 
                 let pa_involute = Math.tan(pressure_angle_radians) - pressure_angle_radians
@@ -572,15 +592,35 @@ export class Gear{
 
                 let s = considered_diameter * ((s0 / d0) + pa_involute - alpha_involute)
 
-                //console.log("S at Diameter:  ", considered_diameter, s)
-
                 if(start && base_radius > root_radius){
                     start = false
                     let leftp = this.get_point_at(start_radians, root_radius, start_radians + ninety_degrees, s)                
                     let rightp = this.get_point_at(start_radians, root_radius, start_radians - ninety_degrees, s)
                     
                     left.push(leftp)
-                    right.push(rightp)
+                    right.push(rightp)    
+
+                    if(undercut_amount > 0) {
+                        let sin_value = 0
+                        let sin_step = Math.PI / undercut_steps
+                        let distance_between = base_radius - root_radius
+                        let undercut_step = distance_between / undercut_steps
+                        let undercut_base = this.m / 2
+
+                        for(let i=0; i< undercut_steps; i++) {
+                            let radius_at_undercut = root_radius + (i * undercut_step)
+                            let amount_to_deflect = Math.sin(sin_value)
+                            sin_value += sin_step
+                            let undercut_total = undercut_base * undercut_amount * amount_to_deflect
+
+                            leftp = this.get_point_at(start_radians, radius_at_undercut, start_radians + ninety_degrees, s - undercut_total)                
+                            rightp = this.get_point_at(start_radians, radius_at_undercut, start_radians - ninety_degrees, s - undercut_total)
+                            
+                            left.push(leftp)
+                            right.push(rightp)    
+        
+                        }
+                    }
                 }
                 
                 let leftp = this.get_point_at(start_radians, considered_diameter, start_radians + ninety_degrees, s)                
@@ -594,7 +634,6 @@ export class Gear{
 
             right.reverse()          
             let toReturn = left.concat(right)            
-            // oin arrays ?
             return toReturn
         }
 
@@ -608,7 +647,6 @@ export class Gear{
             rads -= increment
         }
 
-        //all_pts.push(all_pts[0].copy())
         this.vertices = all_pts
 
         let fill_color = Constants.GEAR_FILL
