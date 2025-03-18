@@ -291,7 +291,7 @@ export class Gear{
             this.rotation_animation_value = this.parent.rotation_animation_value + (this.connection_angle_radians * ratio)
 
              const tooth_extra = Constants.TWOPI / (this.total_teeth * 2)
-             if( is_odd(this.total_teeth)){
+             if( !is_odd(this.total_teeth)){
                 this.rotation_animation_value += tooth_extra
                 this.connection_flag = true 
              } else if (this.parent.connection_flag) {
@@ -362,8 +362,10 @@ export class Gear{
         p.arc(this.center.x, this.center.y, this.pitch_radius, 0, Constants.TWOPI);
         p.arc(this.center.x, this.center.y, base_radius, 0, Constants.TWOPI);
         p.arc(this.center.x, this.center.y, this.outside_radius, 0, Constants.TWOPI);
+        p.arc(this.center.x, this.center.y, root_radius, 0, Constants.TWOPI)
 
         this.guide_points = `
+        <circle cx="${this.center.x}" cy="${this.center.y}" r="${this.root_radius}" stroke="${this.get_guide_style()}" stroke-width="1" style="fill:none;"/>
         <circle cx="${this.center.x}" cy="${this.center.y}" r="${this.pitch_radius}" stroke="${this.get_guide_style()}" stroke-width="1" style="fill:none;"/>
         <circle cx="${this.center.x}" cy="${this.center.y}" r="${base_radius}" stroke="${this.get_guide_style()}" stroke-width="1" style="fill:none;"/>
         <circle cx="${this.center.x}" cy="${this.center.y}" r="${this.outside_radius}" stroke="${this.get_guide_style()}" stroke-width="1" style="fill:none;"/>
@@ -505,6 +507,15 @@ export class Gear{
         this.center_path = new Path2D(this.center_points)
     }
 
+    get_point_at = (rotation, radius, radians, thickness) => {
+        let ix = this.center.x + Math.cos(rotation) * radius  
+        let iy = this.center.y + Math.sin(rotation) * radius 
+        
+        let nx1 = ix + Math.cos(radians) * thickness
+        let ny1 = iy + Math.sin(radians) * thickness
+        return new Point(nx1, ny1)
+    }
+
 
     draw_gear = () => {
 
@@ -517,119 +528,75 @@ export class Gear{
 
         this.diametral_pitch = 1 / this.m
         this.pitch_radius = this.total_teeth / this.diametral_pitch
+        let d0 = this.m * this.total_teeth
 
         const addendum = this.m 
         const dedendum = this.m * 1.25
 
+        let ninety_degrees = Math.PI / 2 
         this.outside_radius = this.pitch_radius + ( 2 * addendum )
         this.outside_diameter = this.outside_radius * 2
-
-        // magic number is just a fudge factor to give smaller gears the tiniest bit more room to mesh
-        // since a 1 pixel border messes the geometry a bit.
-        // as the number of teeth approaches infinity the geometry becomes more perfect and needs less fudge.
-        this.magic_number = 1 - (0.002 - (this.total_teeth / 200 * 0.002))
-        if(this.magic_number > 1 ) 
-            this.magic_number = 1
 
         const root_radius = this.pitch_radius  - (2 * dedendum )
 
         const base_radius = Math.cos(pressure_angle_radians) * this.pitch_radius
         
-        const lengthAdjacent = Math.sin(pressure_angle_radians) * this.pitch_radius
-
-        let center_offset = (1+ (base_radius - root_radius ) / (this.pitch_radius - root_radius)) * .5
-        if(center_offset < 1){
-            center_offset = 1
-        }
-        
-        const involute_length = lengthAdjacent
-
-
-        const make_tooth_side = (start_radians, iterations, step, side) => {
-            let pts = []
-            let do_break = false
-            
-            let rads = start_radians
-
-            let irads = rads + (2 * Math.PI /3)            
-            let radian_offset = -pressure_angle_radians * center_offset
-
-            if(side == Constants.TOOTH_SIDE_LEFT){
-                radian_offset =  pressure_angle_radians * center_offset
-                rads -= Constants.TWOPI / this.total_teeth / 2
-                irads = rads - (2 * Math.PI /3)
-            }
-
-            let ix = this.center.x + Math.cos(rads + radian_offset) * ( base_radius  )
-            let iy = this.center.y + Math.sin(rads + radian_offset) * ( base_radius  )
-
-            
-            let undercut = false 
-
-            if(this.total_teeth < 18 && this.pressure_angle < 18) {
-                undercut = true             
-            }
-            
-            for(let i=0; i<iterations; i++){
-                let lx = ix + Math.cos(irads) * (involute_length * this.magic_number)
-                let ly = iy + Math.sin(irads) * (involute_length * this.magic_number)
-                
-                // ctx.beginPath()
-                // ctx.arc(lx, ly, 2, 0, Constants.TWOPI);
-                // ctx.stroke()
-        
-                let distance_to_center = Math.hypot(lx - this.center.x, ly - this.center.y)
-                
-                if(distance_to_center > this.outside_radius){                                                                
-                    let angle_to_center = Math.atan2(ly - this.center.y, lx - this.center.x)
-                    lx = this.center.x  + Math.cos(angle_to_center) * this.outside_radius
-                    ly = this.center.y + Math.sin(angle_to_center) * this.outside_radius
-                    let tooth_edge = (lx, ly)
-                    do_break = true
-                }
-
-                if(undercut) {
-                    if(distance_to_center >= base_radius){
-                        pts.push(new Point(lx, ly))
-                    }
-                }else{
-                    if(distance_to_center >= root_radius){
-                        pts.push(new Point(lx, ly))
-                    }
-                }
-
-                if(do_break){            
-                    break 
-                }
-
-                if(side == Constants.TOOTH_SIDE_RIGHT){
-                    irads-=step
-                }else{
-                    irads+=step
-                }
-            }
-
-            if(undercut){
-                let urads = start_radians
-                let ux = this.center.x + Math.cos(rads) * root_radius
-                let uy = this.center.y + Math.sin(rads) * root_radius
-                pts.splice(0, 0, new Point(ux, uy))
-            }
-            return pts
-        }
-
         const make_tooth = (start_radians) => {
-            const iterations = 130
-            const step = 1 * Constants.PIOVERONEEIGHTY
-                                    
-            let tooth_pts = make_tooth_side(start_radians, iterations, step, Constants.TOOTH_SIDE_RIGHT)
-            let tooth_pts_left = make_tooth_side(start_radians, iterations, step, Constants.TOOTH_SIDE_LEFT)            
-            tooth_pts_left.reverse()
 
-            tooth_pts = tooth_pts.concat(tooth_pts_left)
-            return tooth_pts
+            let start_diameter = base_radius 
+
+            if(start_diameter < root_radius) {
+                console.log("Using root radius!!")
+                start_diameter = root_radius
+            }
+
+            let end_diameter = this.outside_radius
+            let left = []
+            let right = []
+            let start = true
+            
+            while (start_diameter < end_diameter) {
+
+                let considered_diameter = start_diameter
+
+                let cos_pa = Math.cos(pressure_angle_radians)
+                let cd_o_d = d0 / considered_diameter
+                let acosified = cd_o_d * cos_pa
+                let alpha = Math.acos( acosified)
+                let alpha_involute = Math.tan(alpha) - alpha
+
+                let pa_involute = Math.tan(pressure_angle_radians) - pressure_angle_radians
+
+                let profile_shift = 0.0
+                let s0 = this.m * (ninety_degrees + (2 * profile_shift * Math.tan(pressure_angle_radians)))
+
+                let s = considered_diameter * ((s0 / d0) + pa_involute - alpha_involute)
+
+                //console.log("S at Diameter:  ", considered_diameter, s)
+
+                if(start && base_radius > root_radius){
+                    start = false
+                    let leftp = this.get_point_at(start_radians, root_radius, start_radians + ninety_degrees, s)                
+                    let rightp = this.get_point_at(start_radians, root_radius, start_radians - ninety_degrees, s)
+                    
+                    left.push(leftp)
+                    right.push(rightp)
+                }
+                
+                let leftp = this.get_point_at(start_radians, considered_diameter, start_radians + ninety_degrees, s)                
+                let rightp = this.get_point_at(start_radians, considered_diameter, start_radians - ninety_degrees, s)
+                
+                left.push(leftp)
+                right.push(rightp)                
+
+                start_diameter+=1
+            }
+
+            right.reverse()          
+            let toReturn = left.concat(right)            
+            // oin arrays ?
+            return toReturn
         }
-        
 
         let increment = Constants.TWOPI / this.total_teeth
         let rads = 0
@@ -641,7 +608,7 @@ export class Gear{
             rads -= increment
         }
 
-        all_pts.push(all_pts[0].copy())
+        //all_pts.push(all_pts[0].copy())
         this.vertices = all_pts
 
         let fill_color = Constants.GEAR_FILL
