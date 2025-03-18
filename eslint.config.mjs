@@ -7,7 +7,11 @@ export default [
   {files: ["**/*.js"], languageOptions: {sourceType: "module"}},
   {languageOptions: { globals: globals.browser }},
   {ignores: [
-    "js/*.min.js",           
+    "js/*.min.js",        
+    "js/box2d",
+    "js/util",
+    "node_modules",
+    "dist"
   ]},
 
 
