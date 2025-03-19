@@ -238,14 +238,14 @@ export class Gear{
         return `${this.name} T:${this.total_teeth} M:${this.m} PA:${this.pressure_angle}`
     }
 
-    select = () => {
+    select = async () => {
         this.is_selected = true 
-        this.render()
+        await this.render()
     }
 
-    deselect = () => {
+    deselect = async () => {
         this.is_selected = false 
-        this.render()
+        await this.render()
     }
 
     set_is_rotating = (value) => {
@@ -271,7 +271,7 @@ export class Gear{
     }
 
 
-    update = (new_position=null) =>{
+    update = async (new_position=null) =>{
         if(new_position) {
             this.position = new_position
         }
@@ -304,10 +304,10 @@ export class Gear{
         }
 
         if(this.child) {
-            this.child.update()
+            await this.child.update()
         }
 
-        this.render()
+        await this.render()
     }
 
 
@@ -317,14 +317,14 @@ export class Gear{
         this.guide_path = null
     }
 
-    render = (force_reload_image=false) =>{
+    render = async (force_reload_image=false) =>{
         try{
             this.draw_circles()
             this.draw_center()
             this.draw_text()
             this.draw_gear()
             this.draw_spokes()
-            this.to_svg(force_reload_image)
+            await this.to_svg(force_reload_image)
         } catch (e) {
             console.log("Colud not render: ", e)            
         }
@@ -383,11 +383,11 @@ export class Gear{
 
         let radians_per_spoke = Constants.TWOPI / this.total_spokes
 
-        let padding_factor = .075
+        let padding_factor = .1
         let radians = 0
         let steps = 100
         let step = radians_per_spoke / steps
-        let innerRadius = root_radius * ( padding_factor * 4)
+        let innerRadius = root_radius * ( padding_factor * 3)
         let outerRadius = root_radius * ( 1 - padding_factor * 2.5)
 
         let spoke_padding = root_radius * padding_factor
@@ -426,11 +426,11 @@ export class Gear{
                 let innerPoint = new Point(ipx, ipy)
                 let outerPoint = new Point(opx, opy)
                 if(innerPoint.distance(ip1) > spoke_padding && innerPoint.distance(ip2) > spoke_padding) {
-                    innerPts.push(new Point(ipx, ipy))
+                    innerPts.push(new Point(ipx, ipy, 2))
                 }
 
                 if(outerPoint.distance(op1) > spoke_padding && outerPoint.distance(op2) > spoke_padding) {
-                    outerPts.push(new Point(opx, opy))
+                    outerPts.push(new Point(opx, opy, 2))
                 }
             }
 
@@ -448,7 +448,7 @@ export class Gear{
         const dedendum = this.m * 1.25
 
         const root_radius = this.pitch_radius  - (2 * dedendum )
-        let padding_factor = .075
+        let padding_factor = .085
         let outerRadius = root_radius * ( 1 - padding_factor * 1.8)
 
         let font_size = (this.m * this.total_teeth) / 10
@@ -464,7 +464,7 @@ export class Gear{
 
     }
 
-    to_svg = (force_reload_image=false) => {
+    to_svg = async (force_reload_image=false) => {
 
         const guides = ! this.show_guides ? '' :
         `<path d="${this.center_points}" stroke="${this.get_guide_style()}" stroke-width="1"/> ${this.guide_points}`
@@ -483,15 +483,14 @@ export class Gear{
         </svg>`
 
         if(svg !== this.previous_svg || force_reload_image) {
+            console.log("redrawing!!!!", this.name)
             this.text_img = new Image(this.outside_radius*2, this.outside_radius*2)
             let blob = new Blob([svg], {type: 'image/svg+xml'});
             let url = URL.createObjectURL(blob);
             this.text_img.src = url;
-    
-            this.text_img.onload = () => {
-                this.svg_to_draw = this.text_img
-                this.previous_svg = svg
-            }    
+            await this.text_img.decode()
+            this.svg_to_draw = this.text_img
+            this.previous_svg = svg
         } 
     }
 
@@ -513,7 +512,7 @@ export class Gear{
         
         let nx1 = ix + Math.cos(radians) * thickness
         let ny1 = iy + Math.sin(radians) * thickness
-        return new Point(nx1, ny1)
+        return new Point(nx1, ny1, 2)
     }
 
 

@@ -28,12 +28,14 @@ let selected_gear = null
 let is_dragging = false 
 let start_drag_point = null
 
-let show_guides = true
-let show_text = true
+let show_guides = dqs('#show_guides').checked
+let show_text = dqs('#show_text').checked
 
 let encoding_version = '001'
 
 let view_scale = 1.0
+
+const interaction_delay = 10
 
 const reset = () =>{
   let initial_gear = selected_gearset[0]
@@ -61,33 +63,51 @@ const decode_state = (state) =>{
   return statestr
 } 
 
-dqs("#teeth").addEventListener("input", (event) => {
-  dqs("#teeth_label").textContent = 'Teeth: ' + event.target.value;
-  selected_gear.total_teeth = event.target.value        
-  reset()
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms || DEF_DELAY));
+}
+
+
+dqs("#teeth").addEventListener("input", async (event) => {
+  let new_val = event.target.value 
+  await sleep(interaction_delay)
+  if(dqs('#teeth').value == new_val) {
+    dqs("#teeth_label").textContent = 'Teeth: ' + event.target.value;
+    selected_gear.total_teeth = event.target.value        
+    reset()  
+  }
 });
 
-dqs("#pressure_angle").addEventListener("input", (event) => {
-  dqs("#pressure_angle_label").textContent = 'Pressure Angle: ' + event.target.value;
-  selected_gearset.forEach(g => {
-    g.pressure_angle = parseFloat(event.target.value)
-    g.render()
-  })
-  update_state()
+dqs("#pressure_angle").addEventListener("input", async (event) => {
+  let new_val = event.target.value 
+  await sleep(interaction_delay)
+  if(dqs('#pressure_angle').value == new_val) {
+    dqs("#pressure_angle_label").textContent = 'Pressure Angle: ' + event.target.value;
+    selected_gearset.forEach(g => {
+      g.pressure_angle = parseFloat(event.target.value)
+      g.render()
+    })
+    update_state()  
+  }
 });
 
-dqs("#pitch").addEventListener("input", (event) => {
-  dqs("#pitch_label").textContent = 'Pitch (M): ' + event.target.value;
-  const newDP = event.target.value
-  selected_gearset.forEach(g => {
-    g.m = newDP
-    g.render()
-  })
-  reset()  
-  update_state()
+dqs("#pitch").addEventListener("input", async (event) => {
+  let new_val = event.target.value 
+  await sleep(interaction_delay)
+  if(dqs('#pitch').value == new_val) {
+    dqs("#pitch_label").textContent = 'Pitch (M): ' + event.target.value;
+    const newDP = event.target.value
+    selected_gearset.forEach(g => {
+      g.m = newDP
+      g.render()
+    })
+    reset()  
+    update_state()  
+  }
 });
 
-dqs("#connection_angle").addEventListener("input", (event) => {
+dqs("#connection_angle").addEventListener("input", async (event) => {
+  
   dqs("#connection_angle_label").textContent = 'Connection Angle: ' + event.target.value;
   selected_gear.connection_angle = event.target.value       
   reset() 
