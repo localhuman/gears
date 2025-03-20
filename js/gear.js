@@ -483,7 +483,6 @@ export class Gear{
         </svg>`
 
         if(svg !== this.previous_svg || force_reload_image) {
-            console.log("redrawing!!!!", this.name)
             this.text_img = new Image(this.outside_radius*2, this.outside_radius*2)
             let blob = new Blob([svg], {type: 'image/svg+xml'});
             let url = URL.createObjectURL(blob);

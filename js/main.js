@@ -228,9 +228,11 @@ const confirm_delete_initial_gear = () => {
   dqs('#confirm_modal .modal-body').innerHTML = `<p>This will delete the parent gear and all children of this gear.</p>`
   var myModal = new bootstrap.Modal(document.getElementById('confirm_modal'))
   myModal.show()
-  dqs('#confirm_modal_btn').addEventListener('click', (event) => {
+  dqs('#confirm_modal_btn').addEventListener('click', function onClick(event){
     myModal.hide()
     delete_gear(true)
+    this.removeEventListener('click', onClick)
+
   })
 }
 
@@ -240,9 +242,10 @@ const reset_gears = (confirmed=false) => {
     dqs('#confirm_modal .modal-body').innerHTML = `<p>This will delete everything and start over</p>`
     var myModal = new bootstrap.Modal(document.getElementById('confirm_modal'))
     myModal.show()
-    dqs('#confirm_modal_btn').addEventListener('click', (event) => {
+    dqs('#confirm_modal_btn').addEventListener('click', function onClick(event) {
       myModal.hide()
       reset_gears(true)
+      this.removeEventListener('click', onClick)
     })  
   } else {
     window.location.href=""
@@ -263,21 +266,20 @@ dqs("#share_svg").addEventListener("click", (event) => {
 dqs("#export_svg").addEventListener("click", (event)=> {
   var myModal = new bootstrap.Modal(document.getElementById('export_modal'))
   myModal.show()
-
-  dqs('#export_selected_gear').addEventListener('click', (event) => {
-    const filename = dqs('#svg_file_name').value
-    Exporter.export_gear_svg(selected_gear, filename)
-    myModal.hide()
-  })  
-
-
-  dqs('#export_all_gears').addEventListener('click', (event) => {
-    const filename = dqs('#svg_file_name').value
-    const separate = dqs('#show_separate_gearsets').checked
-    Exporter.export_all_gears_svg(gearsets, filename, separate)
-    myModal.hide()
-  })  
 })
+
+dqs('#export_selected_gear').addEventListener('click', (event) => {
+  const filename = dqs('#svg_file_name').value
+  Exporter.export_gear_svg(selected_gear, filename)
+})  
+
+
+dqs('#export_all_gears').addEventListener('click', (event) => {
+  const filename = dqs('#svg_file_name').value
+  const separate = dqs('#show_separate_gearsets').checked
+  Exporter.export_all_gears_svg(gearsets, filename, separate)
+})  
+
 
 dqs("#about_button").addEventListener("click", (event) => {
   var myModal = new bootstrap.Modal(document.getElementById('about_modal'))
