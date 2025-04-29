@@ -13,6 +13,22 @@
   
       gtag('config', 'G-8VWJGSMS6Q');
     </script>
+    <script>
+      function gtag_report_conversion(url) {
+        var callback = function () {
+          if (typeof(url) != 'undefined') {
+            window.location = url;
+          }
+        };
+        gtag('event', 'conversion', {
+            'send_to': 'AW-1019864412/mUpRCPCP1bsaENzKp-YD',
+            'value': 0.1,
+            'currency': 'USD',
+            'event_callback': callback
+        });
+        return false;
+      }
+    </script>
   
     <link rel="stylesheet" href="./css/styles.css">
 
@@ -251,5 +267,7 @@
     <script type="module" src="./js/export.js"></script>
     <script type="module" src="./js/gear.js"></script>
     <script type="module" src="./js/main.js"></script>
+
+  
   </body>
 </html>

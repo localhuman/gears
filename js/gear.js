@@ -331,7 +331,9 @@ export class Gear{
     }
 
     export_center = () => {
-        return `<path d="M${this.center.x-Constants.CENTERWIDTH} ${this.center.y} L${this.center.x+Constants.CENTERWIDTH} ${this.center.y} M${this.center.x} ${this.center.y-Constants.CENTERWIDTH} L${this.center.x} ${this.center.y+Constants.CENTERWIDTH}" style="fill:none;stroke:black;stroke-width:1"/>`
+        let length = (this.m * this.total_teeth) / 8
+
+        return `<path d="M${this.center.x-length} ${this.center.y} L${this.center.x+length} ${this.center.y} M${this.center.x} ${this.center.y-length} L${this.center.x} ${this.center.y+length}" style="fill:none;stroke:black;stroke-width:1"/>`
     }
 
     get_radius = () => {
@@ -494,8 +496,7 @@ export class Gear{
     }
 
     draw_center = () => {
-
-        let length = this.m * 3
+        let length = (this.m * this.total_teeth) / 8
 
         this.center_points = `M${this.center.x-length} ${this.center.y} 
                                 L${this.center.x+length} ${this.center.y} Z 
